@@ -1,0 +1,14 @@
+{
+  "card": {
+    "name": "Lichttegel"
+  },
+  "ariaTile": "{name} lamp",
+  "power": "{name} aan of uit",
+  "stepDown": "Helderheid omlaag",
+  "stepUp": "Helderheid omhoog",
+  "on": "Aan",
+  "onKelvin": "Aan, {kelvin} K",
+  "groupOn": "{on} van {total} aan",
+  "loading": "Laden",
+  "entityNotFound": "Entiteit {entity} niet gevonden"
+}

@@ -1,0 +1,42 @@
+{
+  "card": {
+    "name": "Scheda luce",
+    "description": "Scheda in vetro per una luce: una grande pillola di luminosità con le modalità Luminosità, Bianco e Colore, ed effetti.",
+    "loading": "Caricamento",
+    "entityNotFound": "Entità non trovata: {entity}"
+  },
+  "mode": {
+    "group": "Modalità della pillola",
+    "brightness": "Luminosità",
+    "white": "Bianco",
+    "colour": "Colore"
+  },
+  "readout": {
+    "brightness": "Luminosità",
+    "average": "Luminosità, media",
+    "warmth": "Calore",
+    "tap": "Tocca per cambiare",
+    "on": "Accesa",
+    "kelvinUnit": "K"
+  },
+  "sub": {
+    "on": "Accesa",
+    "onKelvin": "Accesa, {kelvin} K",
+    "group": "{on} di {total} accese"
+  },
+  "aria": {
+    "brightness": "Luminosità di {name}",
+    "warmth": "Calore di {name}",
+    "colour": "Colore di {name}",
+    "kelvin": "{value} K",
+    "notWhite": "Non in modalità bianco",
+    "hue": "Tonalità {value}",
+    "power": "Accendi o spegni {name}",
+    "effect": "Effetto: {value}",
+    "member": "{name}: {value}"
+  },
+  "effect": {
+    "label": "Effetto",
+    "none": "Nessuno"
+  }
+}

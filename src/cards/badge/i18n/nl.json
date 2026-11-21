@@ -1,0 +1,6 @@
+{
+  "card": {
+    "name": "Lichtbadge"
+  },
+  "label": "{name}: {value}"
+}

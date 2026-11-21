@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Liquid Climate badges</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0a0d14}
+.lc{font-family:'Inter',system-ui,-apple-system,sans-serif;color:#F4F6FA;-webkit-font-smoothing:antialiased;font-feature-settings:'tnum' 1}
+.glass{position:relative;-webkit-backdrop-filter:blur(22px) saturate(180%);backdrop-filter:blur(22px) saturate(180%);border:1px solid rgba(255,255,255,.14);box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 12px 28px -14px rgba(0,0,0,.6)}
+.rim::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;background:linear-gradient(140deg,rgba(255,255,255,.55),rgba(255,255,255,0) 38%,rgba(255,255,255,0) 62%,rgba(255,255,255,.22));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+.orb{position:absolute;border-radius:50%;filter:blur(70px)}
+.dot{animation:lcDot 2.4s ease-in-out infinite}
+@keyframes lcDot{0%,100%{opacity:.5;transform:scale(.85)}50%{opacity:1;transform:scale(1.1)}}
+@media (prefers-reduced-motion:reduce){.dot{animation:none}}
+</style>
+</helmet>
+<div class="lc" style="width: 1440px; height: 200px; position: relative; overflow: hidden; background: #0a0d14; padding: 0 40px; box-sizing: border-box; display: flex; align-items: center; gap: 28px">
+  <div class="orb" aria-hidden="true" style="width: 520px; height: 300px; left: 80px; top: -40px; background-color: #24324a; opacity: 0.8"></div>
+  <div class="orb" aria-hidden="true" style="width: 520px; height: 300px; right: 120px; top: -60px; background-color: #1d3a3a; opacity: 0.7"></div>
+
+  <div style="position: relative; display: flex; flex-direction: column; gap: 12px">
+    <span style="font-size: 12px; font-weight: 500; color: rgba(235,240,248,0.6)">Badge</span>
+    <div style="display: flex; gap: 10px">
+      <sc-for list="{{badges}}" as="b" hint-placeholder-count="6">
+        <div class="glass rim" aria-label="{{b.aria}}" style="height: 44px; padding: 0 16px 0 6px; border-radius: 22px; display: flex; align-items: center; gap: 10px; background: {{b.bg}}">
+          <span style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: {{b.iconBg}}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{b.icon}}"></path></svg>
+          </span>
+          <span style="display: flex; flex-direction: column; line-height: 1.15">
+            <span style="font-size: 10.5px; color: rgba(235,240,248,0.68)">{{b.name}}</span>
+            <span style="font-size: 14px; font-weight: 600">{{b.value}}</span>
+          </span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="position: relative; display: flex; flex-direction: column; gap: 12px">
+    <span style="font-size: 12px; font-weight: 500; color: rgba(235,240,248,0.6)">Icon only</span>
+    <div style="display: flex; gap: 10px">
+      <sc-for list="{{badges}}" as="b" hint-placeholder-count="6">
+        <div class="glass rim" aria-label="{{b.aria}}" style="width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: {{b.iconBg}}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{b.icon}}"></path></svg>
+          <sc-if value="{{b.live}}" hint-placeholder-val="{{ true }}">
+            <span class="dot" aria-hidden="true" style="position: absolute; right: 1px; top: 1px; width: 9px; height: 9px; border-radius: 50%; background-color: {{b.dot}}; border: 2px solid #0a0d14"></span>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":200}}'>
+class Component extends DCLogic {
+  rgba(hex, a) {
+    var n = parseInt(hex.slice(1), 16);
+    return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+  }
+  renderVals() {
+    var self = this;
+    var flame = 'M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z';
+    var power = 'M12 2v10 M18.4 6.6a9 9 0 1 1-12.77.04';
+    var door = 'M13 4h3a2 2 0 0 1 2 2v14 M2 20h3 M13 20h9 M10 12v.01 M13 4.562v16.157a1 1 0 0 1-1.242.97L5 20V5.562a2 2 0 0 1 1.515-1.94l4-1A2 2 0 0 1 13 4.561Z';
+    var alert = 'M21.73 18l-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z M12 9v4 M12 17h.01';
+    var rows = [
+      { name: 'Living Room', value: '17.3°', c: '#ff9447', icon: flame, live: false },
+      { name: 'Bedroom', value: '24.0°', c: '#ff9447', icon: flame, live: false },
+      { name: 'Nail Salon', value: '25.0°', c: '#ff9447', icon: flame, live: false },
+      { name: 'Nail Salon', value: 'Off', c: '#6b7280', icon: power, live: false },
+      { name: 'Living Room', value: 'Paused', c: '#facc15', icon: door, live: true },
+      { name: 'Bedroom', value: 'Error', c: '#f87171', icon: alert, live: true }
+    ];
+    return {
+      badges: rows.map(function (r) {
+        return {
+          name: r.name, value: r.value, icon: r.icon, live: r.live, dot: r.c,
+          aria: r.name + ': ' + r.value,
+          bg: 'rgba(22,25,33,0.5)', iconBg: self.rgba(r.c, 0.3)
+        };
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

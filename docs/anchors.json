@@ -1,0 +1,20 @@
+{
+  "base": "",
+  "anchors": {
+    "light.entity": "/cards/light#light-entity",
+    "light.name": "/cards/light#light-name",
+    "light.controls": "/cards/light#light-controls",
+    "light.write_hold": "/cards/light#light-write-hold",
+    "light.look": "/cards/light#light-look",
+    "tile.entity": "/cards/tile#tile-entity",
+    "tile.look": "/cards/tile#tile-look",
+    "tile.tap_action": "/cards/tile#tile-tap-action",
+    "tile.write_hold": "/cards/tile#tile-write-hold",
+    "badge.entity": "/cards/badge#badge-entity",
+    "badge.look": "/cards/badge#badge-look",
+    "badge.tap_action": "/cards/badge#badge-tap-action",
+    "room.source": "/cards/room#room-source",
+    "room.power_entity": "/cards/room#room-power-entity",
+    "room.look": "/cards/room#room-look"
+  }
+}

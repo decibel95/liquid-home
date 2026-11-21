@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Step 2: add card</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0f1218}
+.lc{font-family:'Inter',system-ui,-apple-system,sans-serif;color:#F4F6FA;-webkit-font-smoothing:antialiased}
+.opt{border-radius:16px;background:#1a1e26;border:1px solid rgba(255,255,255,.08);padding:12px;display:flex;flex-direction:column;gap:10px;text-align:left;font:inherit;color:inherit;cursor:pointer}
+.opt:hover{border-color:rgba(255,255,255,.22)}
+.prev{height:84px;border-radius:12px;background:linear-gradient(160deg,#1f2a3d,#173130);display:flex;align-items:center;justify-content:center}
+</style>
+</helmet>
+<div class="lc" style="width: 620px; height: 520px; box-sizing: border-box; padding: 40px; background: #0f1218; display: flex; flex-direction: column; gap: 18px">
+  <div style="display: flex; flex-direction: column; gap: 6px">
+    <span style="font-size: 13px; font-weight: 500; color: #8fc6ff">Step 2</span>
+    <h2 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.02em">Pick a card</h2>
+    <span style="font-size: 14px; color: rgba(235,240,248,0.72)">Edit dashboard, Add card, search for liquid. Each card starts on your first climate entity.</span>
+  </div>
+  <label style="height: 44px; border-radius: 12px; background: #1a1e26; border: 1px solid rgba(255,255,255,0.12); display: flex; align-items: center; gap: 10px; padding: 0 14px">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(235,240,248,0.6)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M11 4a7 7 0 1 0 0 14 7 7 0 1 0 0-14z M21 21l-4.3-4.3"></path></svg>
+    <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Search cards</span>
+    <input value="liquid" readonly style="flex: 1; min-width: 0; background: transparent; border: none; outline: none; color: #F4F6FA; font: inherit; font-size: 14px">
+  </label>
+  <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px">
+    <button class="opt">
+      <span class="prev" aria-hidden="true">
+        <svg width="62" height="62" viewBox="0 0 40 40" fill="none" stroke-linecap="round">
+          <path d="M 7.3 32.7 A 18 18 0 1 1 32.7 32.7" stroke="rgba(255,255,255,0.18)" stroke-width="2.2"></path>
+          <path d="M 10.1 29.9 A 14 14 0 1 1 29.9 29.9" stroke="rgba(255,255,255,0.15)" stroke-width="3"></path>
+          <path d="M 10.1 29.9 A 14 14 0 0 1 20 6" stroke="#ff9447" stroke-width="3"></path>
+        </svg>
+      </span>
+      <span style="font-size: 13px; font-weight: 600">Dial</span>
+      <span style="font-size: 12px; line-height: 1.35; color: rgba(235,240,248,0.68)">Full control for one unit</span>
+    </button>
+    <button class="opt">
+      <span class="prev" aria-hidden="true">
+        <span style="width: 92px; height: 30px; border-radius: 10px; background: rgba(22,25,33,0.6); border: 1px solid rgba(255,255,255,0.14); display: flex; align-items: center; gap: 6px; padding: 0 6px; box-sizing: border-box">
+          <span style="width: 18px; height: 18px; border-radius: 6px; background: rgba(255,148,71,0.4)"></span>
+          <span style="flex: 1; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.3)"></span>
+          <span style="font-size: 10px">21°</span>
+        </span>
+      </span>
+      <span style="font-size: 13px; font-weight: 600">Tile</span>
+      <span style="font-size: 12px; line-height: 1.35; color: rgba(235,240,248,0.68)">One row with +/- in a grid</span>
+    </button>
+    <button class="opt">
+      <span class="prev" aria-hidden="true" style="gap: 6px">
+        <span style="width: 26px; height: 34px; border-radius: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18)"></span>
+        <span style="width: 26px; height: 34px; border-radius: 8px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1)"></span>
+        <span style="width: 26px; height: 34px; border-radius: 8px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1)"></span>
+      </span>
+      <span style="font-size: 13px; font-weight: 600">Cluster</span>
+      <span style="font-size: 12px; line-height: 1.35; color: rgba(235,240,248,0.68)">Every unit, grouped by area</span>
+    </button>
+    <button class="opt">
+      <span class="prev" aria-hidden="true">
+        <span style="height: 24px; padding: 0 8px 0 3px; border-radius: 12px; background: rgba(22,25,33,0.6); border: 1px solid rgba(255,255,255,0.14); display: flex; align-items: center; gap: 5px">
+          <span style="width: 18px; height: 18px; border-radius: 50%; background: rgba(255,148,71,0.45)"></span>
+          <span style="font-size: 10px">17.3°</span>
+        </span>
+      </span>
+      <span style="font-size: 13px; font-weight: 600">Badge</span>
+      <span style="font-size: 12px; line-height: 1.35; color: rgba(235,240,248,0.68)">Small status in the header</span>
+    </button>
+  </div>
+  <p style="margin: 0; font-size: 13px; line-height: 1.5; color: rgba(235,240,248,0.66)">No climate entity yet? The card says so and links to the integrations page instead of showing an empty dial.</p>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":620,"height":520}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

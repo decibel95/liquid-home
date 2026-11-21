@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Step 3: visual editor</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0f1218}
+.lc{font-family:'Inter',system-ui,-apple-system,sans-serif;color:#F4F6FA;-webkit-font-smoothing:antialiased;font-feature-settings:'tnum' 1}
+button{font:inherit;color:inherit;cursor:pointer;margin:0}
+button:focus-visible,input:focus-visible{outline:2px solid #8fc6ff;outline-offset:2px}
+.field{display:flex;flex-direction:column;gap:6px}
+.lbl{font-size:12px;font-weight:500;color:rgba(235,240,248,.7)}
+.box{min-height:44px;border-radius:12px;background:#11151c;border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:10px;padding:0 14px;box-sizing:border-box;font-size:14px}
+.row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.sw{width:42px;height:26px;flex:none;border-radius:13px;border:none;padding:0;position:relative;transition:background-color .25s}
+.sw span{position:absolute;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .25s cubic-bezier(.3,1.4,.5,1)}
+.seg{display:flex;gap:4px;padding:3px;border-radius:12px;background:#11151c;border:1px solid rgba(255,255,255,.1)}
+.seg button{flex:1;height:34px;border-radius:9px;border:none;font-size:13px;transition:background-color .25s,color .25s}
+.help{width:20px;height:20px;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:transparent;font-size:11px;font-weight:600;color:rgba(235,240,248,.75);display:inline-flex;align-items:center;justify-content:center;padding:0}
+.tint{transition:background-color .7s ease,opacity .7s ease}
+.fade{animation:lcFade .3s ease}
+@keyframes lcFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.fade{animation:none}}
+</style>
+</helmet>
+<div class="lc" style="width: 1320px; height: 860px; box-sizing: border-box; padding: 36px 40px; background: #0f1218; display: flex; flex-direction: column; gap: 20px">
+  <div style="display: flex; align-items: flex-end; justify-content: space-between">
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <span style="font-size: 13px; font-weight: 500; color: #8fc6ff">Step 3</span>
+      <h2 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.02em">Configure in the visual editor</h2>
+    </div>
+    <span style="font-size: 13px; color: rgba(235,240,248,0.6)">Pick the entity. Everything else is detected and can be changed.</span>
+  </div>
+
+  <div style="flex: 1; min-height: 0; display: flex; border-radius: 24px; background: #1a1e26; border: 1px solid rgba(255,255,255,0.08); overflow: hidden">
+    <div style="width: 560px; flex: none; display: flex; flex-direction: column; border-right: 1px solid rgba(255,255,255,0.08)">
+      <div role="tablist" aria-label="Editor sections" style="display: flex; gap: 4px; padding: 14px 18px 0; border-bottom: 1px solid rgba(255,255,255,0.08)">
+        <sc-for list="{{tabs}}" as="t" hint-placeholder-count="4">
+          <button role="tab" aria-selected="{{t.on}}" onClick="{{t.pick}}" style="height: 42px; padding: 0 14px; border: none; background: transparent; font-size: 14px; font-weight: 500; color: {{t.fg}}; box-shadow: inset 0 -2px 0 {{t.line}}">{{t.label}}</button>
+        </sc-for>
+      </div>
+
+      <div style="flex: 1; min-height: 0; overflow: auto; padding: 20px 22px; box-sizing: border-box">
+        <sc-if value="{{isSetup}}" hint-placeholder-val="{{ true }}">
+          <div class="fade" style="display: flex; flex-direction: column; gap: 18px">
+            <div class="field">
+              <span class="lbl">Climate entity</span>
+              <div class="box">
+                <span style="font-weight: 500">Keuken Airco</span>
+                <span style="font-size: 12px; color: rgba(235,240,248,0.55)">climate.keuken_airco</span>
+              </div>
+            </div>
+            <div class="field">
+              <span class="lbl">Name</span>
+              <div class="box"><span>Living Room</span></div>
+              <span style="font-size: 12px; color: rgba(235,240,248,0.55)">Empty uses the area name, Keuken.</span>
+            </div>
+            <div class="field">
+              <span class="lbl">Room temperature</span>
+              <div class="box" style="justify-content: space-between">
+                <span>{{roomName}}</span>
+                <span style="font-size: 13px; color: rgba(235,240,248,0.7)">{{roomVal}}</span>
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 10px">
+              <sc-if value="{{showSuggest}}" hint-placeholder-val="{{ true }}">
+                <div class="fade" style="border-radius: 14px; background: rgba(255,176,103,0.1); border: 1px solid rgba(255,176,103,0.35); padding: 12px 14px; display: flex; align-items: center; gap: 12px">
+                  <span style="flex: 1; font-size: 13px; line-height: 1.45">This unit reports whole degrees. Woonkamer temperatuur reads 17.3°.</span>
+                  <button onClick="{{useSensor}}" style="height: 34px; padding: 0 14px; border-radius: 17px; border: none; background: #ffb067; color: #1b1206; font-size: 13px; font-weight: 600">Use it</button>
+                </div>
+              </sc-if>
+              <div style="border-radius: 14px; background: rgba(90,176,255,0.08); border: 1px solid rgba(90,176,255,0.3); padding: 12px 14px; display: flex; align-items: center; gap: 12px">
+                <span style="flex: 1; font-size: 13px; line-height: 1.45">Daikin Onecta is a cloud integration. Changes go out {{delayText}} after you stop adjusting, so one drag is one call.</span>
+                <button class="help" aria-label="Docs: write delay">?</button>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{isSensors}}" hint-placeholder-val="{{ false }}">
+          <div class="fade" style="display: flex; flex-direction: column">
+            <span style="font-size: 13px; color: rgba(235,240,248,0.7); padding-bottom: 6px">Found on Keuken Airco and its 4 linked devices</span>
+            <sc-for list="{{sensors}}" as="s" hint-placeholder-count="6">
+              <div class="row">
+                <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+                  <span style="font-size: 14px; font-weight: 500">{{s.name}}</span>
+                  <span style="font-size: 12px; color: rgba(235,240,248,0.55)">{{s.src}}</span>
+                </div>
+                <span style="font-size: 13px; color: rgba(235,240,248,0.75)">{{s.val}}</span>
+                <button style="height: 30px; padding: 0 10px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.14); background: transparent; font-size: 12px; color: rgba(235,240,248,0.8)">Change</button>
+                <button class="sw" role="switch" aria-checked="{{s.on}}" aria-label="Show {{s.name}}" onClick="{{s.toggle}}" style="background-color: {{s.track}}"><span style="left: {{s.knob}}px"></span></button>
+              </div>
+            </sc-for>
+            <span style="font-size: 12px; color: rgba(235,240,248,0.5); padding-top: 12px">Not shown: schedule, holiday mode, firmware updates.</span>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{isControls}}" hint-placeholder-val="{{ false }}">
+          <div class="fade" style="display: flex; flex-direction: column; gap: 18px">
+            <div class="field">
+              <span class="lbl">Modes on the card</span>
+              <div style="display: flex; gap: 6px; flex-wrap: wrap">
+                <sc-for list="{{modeChips}}" as="m" hint-placeholder-count="6">
+                  <button aria-pressed="{{m.on}}" onClick="{{m.toggle}}" style="height: 34px; padding: 0 14px; border-radius: 17px; font-size: 13px; border: 1px solid {{m.bd}}; background: {{m.bg}}">{{m.label}}</button>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column">
+              <sc-for list="{{ctrls}}" as="c" hint-placeholder-count="4">
+                <div class="row">
+                  <span style="flex: 1; font-size: 14px">{{c.name}}</span>
+                  <span style="font-size: 12px; color: rgba(235,240,248,0.55)">{{c.detail}}</span>
+                  <button class="sw" role="switch" aria-checked="{{c.on}}" aria-label="{{c.name}}" onClick="{{c.toggle}}" style="background-color: {{c.track}}"><span style="left: {{c.knob}}px"></span></button>
+                </div>
+              </sc-for>
+            </div>
+            <div class="field">
+              <span class="lbl" style="display: flex; align-items: center; gap: 8px">Write delay <button class="help" aria-label="Docs: write delay">?</button></span>
+              <div class="seg" role="radiogroup" aria-label="Write delay">
+                <sc-for list="{{delays}}" as="d" hint-placeholder-count="4">
+                  <button role="radio" aria-checked="{{d.on}}" onClick="{{d.pick}}" style="background: {{d.bg}}; color: {{d.fg}}">{{d.label}}</button>
+                </sc-for>
+              </div>
+            </div>
+            <div class="field">
+              <span class="lbl">Status rows under the dial</span>
+              <div class="box" style="justify-content: space-between"><span>Automation</span><span style="font-size: 12px; color: rgba(235,240,248,0.55)">input_text.woonkamer_auto_stand</span></div>
+              <div class="box" style="justify-content: space-between"><span>Window pause</span><span style="font-size: 12px; color: rgba(235,240,248,0.55)">input_boolean.keuken_airco_gepauzeerd...</span></div>
+              <button style="align-self: flex-start; height: 34px; padding: 0 14px; border-radius: 17px; border: 1px dashed rgba(255,255,255,0.25); background: transparent; font-size: 13px">Add entity</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{isLook}}" hint-placeholder-val="{{ false }}">
+          <div class="fade" style="display: flex; flex-direction: column; gap: 20px">
+            <div class="field">
+              <span class="lbl">Glass</span>
+              <div class="seg" role="radiogroup" aria-label="Glass">
+                <sc-for list="{{glassOpts}}" as="g" hint-placeholder-count="3">
+                  <button role="radio" aria-checked="{{g.on}}" onClick="{{g.pick}}" style="background: {{g.bg}}; color: {{g.fg}}">{{g.label}}</button>
+                </sc-for>
+              </div>
+            </div>
+            <label class="field">
+              <span class="lbl" style="display: flex; justify-content: space-between"><span>Mode tint</span><span>9%</span></span>
+              <input type="range" min="0" max="30" value="9" style="accent-color: #8fc6ff">
+            </label>
+            <label class="field">
+              <span class="lbl" style="display: flex; justify-content: space-between"><span>Blur</span><span>30 px</span></span>
+              <input type="range" min="8" max="60" value="30" style="accent-color: #8fc6ff">
+            </label>
+            <div class="field">
+              <span class="lbl">Motion</span>
+              <div class="seg" role="radiogroup" aria-label="Motion">
+                <sc-for list="{{motionOpts}}" as="g" hint-placeholder-count="3">
+                  <button role="radio" aria-checked="{{g.on}}" onClick="{{g.pick}}" style="background: {{g.bg}}; color: {{g.fg}}">{{g.label}}</button>
+                </sc-for>
+              </div>
+              <span style="font-size: 12px; color: rgba(235,240,248,0.55)">Reduced motion in the OS always wins.</span>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 10px; padding: 14px 22px; border-top: 1px solid rgba(255,255,255,0.08)">
+        <button style="height: 36px; padding: 0 14px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.14); background: transparent; font-size: 13px">Code editor</button>
+        <button onClick="{{copyDiag}}" style="height: 36px; padding: 0 14px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.14); background: transparent; font-size: 13px">{{diagLabel}}</button>
+        <span style="flex: 1"></span>
+        <a href="https://github.com" style="font-size: 13px; color: #8fc6ff; text-decoration: none">Docs</a>
+      </div>
+    </div>
+
+    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; background: #0c1016">
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.08)">
+        <span style="font-size: 14px; font-weight: 500">Preview</span>
+        <div class="seg" role="radiogroup" aria-label="Preview state" style="width: 440px">
+          <sc-for list="{{pvOpts}}" as="p" hint-placeholder-count="6">
+            <button role="radio" aria-checked="{{p.on}}" onClick="{{p.pick}}" style="font-size: 12px; background: {{p.bg}}; color: {{p.fg}}">{{p.label}}</button>
+          </sc-for>
+        </div>
+      </div>
+      <div style="flex: 1; min-height: 0; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center">
+        <div aria-hidden="true" style="position: absolute; width: 420px; height: 420px; left: -60px; top: -40px; border-radius: 50%; background-color: #24324a; filter: blur(90px); opacity: 0.8"></div>
+        <div aria-hidden="true" style="position: absolute; width: 360px; height: 360px; right: -60px; bottom: -60px; border-radius: 50%; background-color: #1d3a3a; filter: blur(90px); opacity: 0.7"></div>
+        <div style="position: relative; width: 360px; box-sizing: border-box; padding: 20px; border-radius: 34px; background: {{cardBg}}; backdrop-filter: blur(30px) saturate(170%); border: 1px solid rgba(255,255,255,0.13); box-shadow: inset 0 1px 0 rgba(255,255,255,0.22), 0 30px 60px -24px rgba(0,0,0,0.6); display: flex; flex-direction: column; gap: 10px; overflow: hidden; color: {{cardFg}}">
+          <div class="tint" aria-hidden="true" style="position: absolute; inset: 0; background-color: {{pvColor}}; opacity: {{pvTint}}; pointer-events: none"></div>
+          <div style="position: relative; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 17px; font-weight: 600">Living Room</span>
+            <span style="font-size: 12px; opacity: 0.7">{{pvSub}}</span>
+          </div>
+          <div style="position: relative; width: 320px; height: 250px">
+            <svg viewBox="0 0 200 200" width="250" height="250" aria-hidden="true" style="position: absolute; left: 35px; top: 0; opacity: {{pvDialOp}}">
+              <path d="{{pvTrack}}" fill="none" stroke="{{pvTrackCol}}" stroke-width="6" stroke-linecap="round"></path>
+              <path d="{{pvProg}}" fill="none" stroke="{{pvColor}}" stroke-width="6" stroke-linecap="round" style="transition: stroke .7s"></path>
+              <circle cx="{{pvKnobX}}" cy="{{pvKnobY}}" r="7" fill="#ffffff" stroke="{{pvColor}}" stroke-width="2.5" opacity="{{pvKnobOp}}"></circle>
+            </svg>
+            <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding-bottom: 10px">
+              <span style="font-size: 54px; font-weight: 200; letter-spacing: -0.04em; line-height: 1">{{pvBig}}</span>
+              <span style="font-size: 12px; opacity: 0.7; margin-top: 8px">{{pvInside}}</span>
+            </div>
+          </div>
+          <sc-if value="{{pvError}}" hint-placeholder-val="{{ false }}">
+            <div class="fade" style="position: relative; border-radius: 12px; background: rgba(248,113,113,0.16); border: 1px solid rgba(248,113,113,0.45); padding: 8px 12px; font-size: 12.5px">Outdoor unit reports an error</div>
+          </sc-if>
+          <div style="position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid {{lineCol}}; padding-top: 10px">
+            <sc-for list="{{pvInfo}}" as="i" hint-placeholder-count="4">
+              <div style="display: flex; flex-direction: column; gap: 2px; opacity: {{i.op}}">
+                <span style="font-size: 15px">{{i.v}}</span>
+                <span style="font-size: 10.5px; opacity: 0.65">{{i.l}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+      <div style="padding: 12px 20px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 12.5px; color: rgba(235,240,248,0.6)">{{pvNote}}</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1320,"height":860}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      tab: 'setup', pv: 'live', room: false, delay: '1.5', glass: 'dark', motion: 'rich', diag: false,
+      sens: { hum: true, out: true, eh: true, ec: false, cloud: true, health: true },
+      ctrl: { fan: true, sv: true, sh: true, pre: true },
+      modes: { off: true, heat: true, cool: true, heat_cool: true, dry: true, fan_only: true }
+    };
+  }
+  pt(r, a) { var t = a * Math.PI / 180; return [100 + r * Math.cos(t), 100 + r * Math.sin(t)]; }
+  arc(r, a0, a1) {
+    if (a1 - a0 < 0.3) a1 = a0 + 0.3;
+    var p = this.pt(r, a0), q = this.pt(r, a1);
+    return 'M ' + p[0].toFixed(2) + ' ' + p[1].toFixed(2) + ' A ' + r + ' ' + r + ' 0 ' + (a1 - a0 > 180 ? 1 : 0) + ' 1 ' + q[0].toFixed(2) + ' ' + q[1].toFixed(2);
+  }
+  seg(list, cur, key) {
+    var self = this;
+    return list.map(function (o) {
+      var on = o[0] === cur;
+      return {
+        label: o[1], on: on,
+        bg: on ? 'rgba(255,255,255,0.14)' : 'transparent',
+        fg: on ? '#ffffff' : 'rgba(235,240,248,0.65)',
+        pick: function () { var p = {}; p[key] = o[0]; self.setState(p); }
+      };
+    });
+  }
+  sw(on) { return { track: on ? '#5ab0ff' : 'rgba(255,255,255,0.18)', knob: on ? 19 : 3 }; }
+  flip(group, k) {
+    var g = Object.assign({}, this.state[group]); g[k] = !g[k];
+    var p = {}; p[group] = g; this.setState(p);
+  }
+  renderVals() {
+    var self = this, s = this.state;
+    var tabs = [['setup', 'Setup'], ['sensors', 'Sensors'], ['controls', 'Controls'], ['look', 'Look']].map(function (t) {
+      var on = s.tab === t[0];
+      return { label: t[1], on: on, fg: on ? '#ffffff' : 'rgba(235,240,248,0.6)', line: on ? '#8fc6ff' : 'transparent', pick: function () { self.setState({ tab: t[0] }); } };
+    });
+    var SN = [
+      ['hum', 'Humidity', 'Regeling, device_class humidity', '40%'],
+      ['out', 'Outdoor temperature', 'Regeling, outdoor temperature', '6°'],
+      ['eh', 'Energy, heating', 'Regeling, 4 energy sensors', '1.7 kWh today'],
+      ['ec', 'Energy, cooling', 'Regeling, 4 energy sensors', '0 kWh today'],
+      ['cloud', 'Cloud call limit', 'Gateway, Daikin Onecta', '159 left'],
+      ['health', 'Unit health', 'Regeling, gateway, outdoor unit: 11 sensors', 'All OK']
+    ];
+    var sensors = SN.map(function (r) {
+      var on = s.sens[r[0]], v = self.sw(on);
+      return { name: r[1], src: r[2], val: r[3], on: on, track: v.track, knob: v.knob, toggle: function () { self.flip('sens', r[0]); } };
+    });
+    var MC = [['off', 'Off'], ['heat', 'Heat'], ['cool', 'Cool'], ['heat_cool', 'Auto'], ['dry', 'Dry'], ['fan_only', 'Fan']];
+    var modeChips = MC.map(function (m) {
+      var on = s.modes[m[0]];
+      return { label: m[1], on: on, bg: on ? 'rgba(255,255,255,0.12)' : 'transparent', bd: on ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.12)', toggle: function () { self.flip('modes', m[0]); } };
+    });
+    var CT = [['fan', 'Fan ring', 'auto, quiet, 1-5'], ['sv', 'Vertical swing', 'fixed, swing, comfort'], ['sh', 'Horizontal swing', 'fixed, swing'], ['pre', 'Presets', 'boost, away']];
+    var ctrls = CT.map(function (c) {
+      var on = s.ctrl[c[0]], v = self.sw(on);
+      return { name: c[1], detail: c[2], on: on, track: v.track, knob: v.knob, toggle: function () { self.flip('ctrl', c[0]); } };
+    });
+
+    var PV = {
+      live: { color: '#ff9447', on: true, sp: true, t: 16.5, sub: 'Heating to 16.5°' },
+      heat: { color: '#ff9447', on: true, sp: true, t: 21, sub: 'Heating to 21.0°' },
+      cool: { color: '#5ab0ff', on: true, sp: true, t: 22, sub: 'Cooling to 22.0°' },
+      dry: { color: '#40d3c8', on: true, sp: false, t: 0, sub: 'Drying' },
+      off: { color: '#9aa3b2', on: false, sp: false, t: 0, sub: 'Off' },
+      error: { color: '#ff9447', on: true, sp: true, t: 16.5, sub: 'Heating to 16.5°' }
+    };
+    var pv = PV[s.pv];
+    var inside = s.room ? 17.3 : 20;
+    var aT = 135 + (pv.t - 10) / 20 * 270;
+    var k = this.pt(80, aT);
+    var light = s.glass === 'light';
+    var info = [
+      { v: '40%', l: 'Humidity', op: s.sens.hum ? 1 : 0.2 },
+      { v: '6°', l: 'Outside', op: s.sens.out ? 1 : 0.2 },
+      { v: '1.7 kWh', l: 'Today', op: s.sens.eh ? 1 : 0.2 },
+      { v: '159', l: 'Cloud calls', op: s.sens.cloud ? 1 : 0.2 }
+    ];
+
+    return {
+      tabs: tabs,
+      isSetup: s.tab === 'setup', isSensors: s.tab === 'sensors', isControls: s.tab === 'controls', isLook: s.tab === 'look',
+      roomName: s.room ? 'Woonkamer temperatuur' : 'Unit sensor',
+      roomVal: s.room ? '17.3°' : '20°',
+      showSuggest: !s.room,
+      useSensor: function () { self.setState({ room: true }); },
+      delayText: s.delay === '0' ? 'immediately' : s.delay + ' s',
+      sensors: sensors, modeChips: modeChips, ctrls: ctrls,
+      delays: this.seg([['0', 'Instant'], ['1', '1 s'], ['1.5', '1.5 s'], ['3', '3 s']], s.delay, 'delay'),
+      glassOpts: this.seg([['dark', 'Dark'], ['light', 'Light'], ['theme', 'Theme']], s.glass, 'glass'),
+      motionOpts: this.seg([['rich', 'Rich'], ['subtle', 'Subtle'], ['minimal', 'Minimal']], s.motion, 'motion'),
+      pvOpts: this.seg([['live', 'Live'], ['heat', 'Heat'], ['cool', 'Cool'], ['dry', 'Dry'], ['off', 'Off'], ['error', 'Error']], s.pv, 'pv'),
+      diagLabel: s.diag ? 'Copied' : 'Copy diagnostics',
+      copyDiag: function () { self.setState({ diag: true }); setTimeout(function () { self.setState({ diag: false }); }, 1600); },
+      cardBg: light ? 'rgba(245,247,250,0.62)' : 'rgba(22,25,33,0.5)',
+      cardFg: light ? '#10141b' : '#F4F6FA',
+      lineCol: light ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.09)',
+      pvColor: pv.color,
+      pvTint: pv.on ? 0.09 : 0,
+      pvSub: pv.sub,
+      pvTrack: this.arc(80, 135, 405),
+      pvTrackCol: light ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.12)',
+      pvProg: pv.sp ? this.arc(80, 135, aT) : 'M 0 0',
+      pvKnobX: k[0].toFixed(1), pvKnobY: k[1].toFixed(1), pvKnobOp: pv.sp ? 1 : 0,
+      pvDialOp: s.pv === 'error' ? 0.4 : 1,
+      pvBig: pv.sp ? pv.t.toFixed(1) + '°' : (pv.on ? inside.toFixed(1) + '°' : 'Off'),
+      pvInside: pv.sp ? 'Inside ' + inside.toFixed(1) + '°' : (pv.on ? 'Inside' : 'Inside ' + inside.toFixed(1) + '°'),
+      pvError: s.pv === 'error',
+      pvInfo: info,
+      pvNote: s.pv === 'live' ? 'Live shows the real entity.' : 'Simulated state. Nothing is sent to the unit.'
+    };
+  }
+}
+</script>
+</body>
+</html>

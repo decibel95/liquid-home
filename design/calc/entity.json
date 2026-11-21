@@ -1,0 +1,232 @@
+[
+ {
+  "name": "Warm white 2700 K (derived input)",
+  "in": "#ffa757",
+  "sat": 0.66,
+  "dark": {
+   "in_ratio": 9.64,
+   "out": "#ffa757",
+   "how": "kept",
+   "ratio": 9.64,
+   "tile": 11.2,
+   "badge": 9.67,
+   "dist": 85.7
+  },
+  "light": {
+   "in_ratio": 1.83,
+   "out": "#e66d00",
+   "how": "adjusted",
+   "ratio": 3.05,
+   "tile": 13.46,
+   "badge": 12.62,
+   "dist": 86.2
+  }
+ },
+ {
+  "name": "Cool white 6500 K (derived input)",
+  "in": "#fffefa",
+  "sat": 0.02,
+  "dark": {
+   "in_ratio": 18.38,
+   "out": "#d5dce6",
+   "how": "neutral",
+   "ratio": 13.43,
+   "tile": 9.89,
+   "badge": 8.2,
+   "dist": 104.0
+  },
+  "light": {
+   "in_ratio": 1.04,
+   "out": "#64748b",
+   "how": "neutral",
+   "ratio": 4.53,
+   "tile": 13.03,
+   "badge": 12.03,
+   "dist": 69.1
+  }
+ },
+ {
+  "name": "Saturated red",
+  "in": "#ff0000",
+  "sat": 1.0,
+  "dark": {
+   "in_ratio": 4.64,
+   "out": "#ff0000",
+   "how": "kept",
+   "ratio": 4.64,
+   "tile": 15.32,
+   "badge": 14.09,
+   "dist": 71.6
+  },
+  "light": {
+   "in_ratio": 3.8,
+   "out": "#ff0000",
+   "how": "kept",
+   "ratio": 3.8,
+   "tile": 11.51,
+   "badge": 10.36,
+   "dist": 106.1
+  }
+ },
+ {
+  "name": "Yellow",
+  "in": "#ffff00",
+  "sat": 1.0,
+  "dark": {
+   "in_ratio": 17.27,
+   "out": "#ffff00",
+   "how": "kept",
+   "ratio": 17.27,
+   "tile": 8.97,
+   "badge": 7.25,
+   "dist": 100.7
+  },
+  "light": {
+   "in_ratio": 1.02,
+   "out": "#949400",
+   "how": "adjusted",
+   "ratio": 3.07,
+   "tile": 13.82,
+   "badge": 12.98,
+   "dist": 86.2
+  }
+ },
+ {
+  "name": "Blue",
+  "in": "#0000ff",
+  "sat": 1.0,
+  "dark": {
+   "in_ratio": 2.16,
+   "out": "#4242ff",
+   "how": "adjusted",
+   "ratio": 3.05,
+   "tile": 15.51,
+   "badge": 14.61,
+   "dist": 71.8
+  },
+  "light": {
+   "in_ratio": 8.17,
+   "out": "#0000ff",
+   "how": "kept",
+   "ratio": 8.17,
+   "tile": 10.41,
+   "badge": 9.02,
+   "dist": 106.1
+  }
+ },
+ {
+  "name": "light.ceiling_lights 2631 K",
+  "in": "#ffa452",
+  "sat": 0.68,
+  "dark": {
+   "in_ratio": 9.44,
+   "out": "#ffa452",
+   "how": "kept",
+   "ratio": 9.44,
+   "tile": 11.32,
+   "badge": 9.79,
+   "dist": 84.7
+  },
+  "light": {
+   "in_ratio": 1.87,
+   "out": "#e66d00",
+   "how": "adjusted",
+   "ratio": 3.05,
+   "tile": 13.46,
+   "badge": 12.62,
+   "dist": 86.2
+  }
+ },
+ {
+  "name": "light.kitchen_lights hs 345,75",
+  "in": "#ff4070",
+  "sat": 0.75,
+  "dark": {
+   "in_ratio": 5.49,
+   "out": "#ff4070",
+   "how": "kept",
+   "ratio": 5.49,
+   "tile": 13.79,
+   "badge": 12.52,
+   "dist": 76.7
+  },
+  "light": {
+   "in_ratio": 3.21,
+   "out": "#ff4070",
+   "how": "kept",
+   "ratio": 3.21,
+   "tile": 13.01,
+   "badge": 12.0,
+   "dist": 70.0
+  }
+ },
+ {
+  "name": "light.entrance_color_white_lights hs 345,75",
+  "in": "#ff4070",
+  "sat": 0.75,
+  "dark": {
+   "in_ratio": 5.49,
+   "out": "#ff4070",
+   "how": "kept",
+   "ratio": 5.49,
+   "tile": 13.79,
+   "badge": 12.52,
+   "dist": 76.7
+  },
+  "light": {
+   "in_ratio": 3.21,
+   "out": "#ff4070",
+   "how": "kept",
+   "ratio": 3.21,
+   "tile": 13.01,
+   "badge": 12.0,
+   "dist": 70.0
+  }
+ },
+ {
+  "name": "light.living_room_rgbww_lights rgb_color",
+  "in": "#ff7f7d",
+  "sat": 0.51,
+  "dark": {
+   "in_ratio": 7.58,
+   "out": "#ff7f7d",
+   "how": "kept",
+   "ratio": 7.58,
+   "tile": 12.23,
+   "badge": 10.76,
+   "dist": 83.5
+  },
+  "light": {
+   "in_ratio": 2.33,
+   "out": "#ff524f",
+   "how": "adjusted",
+   "ratio": 3.04,
+   "tile": 13.28,
+   "badge": 12.39,
+   "dist": 72.2
+  }
+ },
+ {
+  "name": "light.office_rgbw_lights rgb_color",
+  "in": "#ff8080",
+  "sat": 0.5,
+  "dark": {
+   "in_ratio": 7.64,
+   "out": "#ff8080",
+   "how": "kept",
+   "ratio": 7.64,
+   "tile": 12.22,
+   "badge": 10.65,
+   "dist": 84.2
+  },
+  "light": {
+   "in_ratio": 2.31,
+   "out": "#ff5252",
+   "how": "adjusted",
+   "ratio": 3.03,
+   "tile": 13.28,
+   "badge": 12.4,
+   "dist": 71.4
+  }
+ }
+]

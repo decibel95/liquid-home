@@ -1,0 +1,85 @@
+name: Release
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+permissions: {}
+jobs:
+  build:
+    # GitHub only: the same workflow files also sit in the Forgejo repository, where this must not run.
+    if: github.server_url == 'https://github.com'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 'lts/*'
+      - name: Check tag matches package.json version
+        run: |
+          pkg="v$(node -p "require('./package.json').version")"
+          if [ "$pkg" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match package.json version ${pkg#v}" >&2
+            exit 1
+          fi
+      - name: Check the OWNER placeholder is filled in
+        run: node scripts/check-owner.mjs
+      - name: Check there is no file dependency and no vendor folder
+        run: node scripts/check-dependencies.mjs
+      - run: npm ci --ignore-scripts
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: Size budget
+        run: npm run size
+      - name: Extract release notes from CHANGELOG.md
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          mkdir release-assets
+          scripts/release-notes.sh "$version" > release-assets/notes.md || {
+            echo "::error::CHANGELOG.md has no section for $version. Add a '## $version' entry before tagging."
+            exit 1
+          }
+          cp dist/liquid-home.js release-assets/liquid-home.js
+          cat release-assets/notes.md
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: release-assets
+          path: release-assets
+          if-no-files-found: error
+
+  release:
+    # Only uploads what the build job produced: no checkout, no install, no repository code runs here.
+    if: github.server_url == 'https://github.com'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: release-assets
+          path: release-assets
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            names="$(gh release view "$GITHUB_REF_NAME" --json assets --jq '.assets[].name' 2>/dev/null || true)"
+            if printf '%s\n' "$names" | grep -qx 'liquid-home.js'; then
+              echo "Release $GITHUB_REF_NAME already exists with liquid-home.js, nothing to do."
+              exit 0
+            fi
+            echo "Release $GITHUB_REF_NAME exists without liquid-home.js, uploading it."
+            gh release upload "$GITHUB_REF_NAME" release-assets/liquid-home.js --clobber
+            exit 0
+          fi
+          flags=""
+          case "$GITHUB_REF_NAME" in
+            *-*) flags="--prerelease" ;;
+          esac
+          gh release create "$GITHUB_REF_NAME" release-assets/liquid-home.js --verify-tag --title "$GITHUB_REF_NAME" --notes-file release-assets/notes.md $flags

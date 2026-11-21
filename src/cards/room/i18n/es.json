@@ -1,0 +1,20 @@
+{
+  "card": {
+    "name": "Tarjeta de habitación"
+  },
+  "title": "Luces",
+  "summary": "{n} de {total} encendidas",
+  "on": "Encendida",
+  "onKelvin": "Encendida, {kelvin} K",
+  "chooseArea": "Elige un área en el editor de la tarjeta.",
+  "empty": "No hay luces en esta área.",
+  "power": "Encender o apagar {name}",
+  "open": "Abrir {name}, {state}",
+  "controls": "Controles de {name}",
+  "modeGroup": "Modo de color, {name}",
+  "white": "Blanco",
+  "colour": "Color",
+  "brightness": "Brillo",
+  "stepDown": "Bajar el brillo",
+  "stepUp": "Subir el brillo"
+}

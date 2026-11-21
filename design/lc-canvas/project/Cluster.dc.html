@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Liquid Climate house cluster</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0b0e14}
+.lc{font-family:'Inter',system-ui,-apple-system,sans-serif;color:#F4F6FA;-webkit-font-smoothing:antialiased;font-feature-settings:'tnum' 1}
+.rim::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;background:linear-gradient(140deg,rgba(255,255,255,.5),rgba(255,255,255,0) 35%,rgba(255,255,255,0) 65%,rgba(255,255,255,.18));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+button{font:inherit;color:inherit;cursor:pointer;margin:0;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.05)}
+button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.press{transition:transform .3s cubic-bezier(.3,1.7,.5,1),background-color .5s ease,border-color .5s ease}
+.press:active{transform:scale(.96)}
+.spin{transform-box:fill-box;transform-origin:center;animation:lcSpin linear infinite}
+@keyframes lcSpin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+</style>
+</helmet>
+<div class="lc" style="width: 900px; height: 600px; position: relative; overflow: hidden; background: #0b0e14; display: flex; align-items: center; justify-content: center">
+  <div aria-hidden="true" style="position: absolute; width: 560px; height: 560px; left: -140px; top: 40px; border-radius: 50%; background-color: #24324a; filter: blur(100px); opacity: 0.8"></div>
+  <div aria-hidden="true" style="position: absolute; width: 480px; height: 480px; right: -120px; bottom: -120px; border-radius: 50%; background-color: #1d3a3a; filter: blur(100px); opacity: 0.7"></div>
+
+  <section aria-label="House climate" class="rim" style="position: relative; width: 820px; box-sizing: border-box; padding: 24px; border-radius: 36px; background: rgba(22,25,33,0.5); backdrop-filter: blur(30px) saturate(170%); border: 1px solid rgba(255,255,255,0.12); box-shadow: inset 0 1px 0 rgba(255,255,255,0.22), 0 40px 80px -24px rgba(0,0,0,0.65); display: flex; flex-direction: column; gap: 18px">
+    <header style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap">
+      <div style="display: flex; align-items: baseline; gap: 12px">
+        <h2 style="margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.02em">Climate</h2>
+        <span style="font-size: 13px; color: rgba(235,240,248,0.7)">{{summary}}</span>
+      </div>
+      <div style="display: flex; gap: 22px; font-size: 13px; color: rgba(235,240,248,0.7)">
+        <span><strong style="font-weight: 500; color: #F4F6FA">6°</strong> outside</span>
+        <span><strong style="font-weight: 500; color: #F4F6FA">3.5 kWh</strong> today</span>
+        <span><strong style="font-weight: 500; color: #F4F6FA">158</strong> cloud calls left</span>
+      </div>
+    </header>
+
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+      <sc-for list="{{rooms}}" as="r" hint-placeholder-count="3">
+        <button class="press" onClick="{{r.pick}}" aria-pressed="{{r.selected}}" aria-label="{{r.aria}}" style="height: 284px; border-radius: 26px; padding: 16px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; text-align: left; background: {{r.bg}}; border-color: {{r.bd}}">
+          <span style="display: flex; align-items: center; justify-content: space-between">
+            <span style="font-size: 15px; font-weight: 600">{{r.name}}</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{r.color}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{r.icon}}"></path></svg>
+          </span>
+          <span style="position: relative; align-self: center; width: 190px; height: 190px; display: block">
+            <svg viewBox="0 0 200 200" width="190" height="190" aria-hidden="true" style="position: absolute; inset: 0">
+              <path d="{{r.fanDim}}" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="5" stroke-linecap="round"></path>
+              <path d="{{r.fanLit}}" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="5" stroke-linecap="round"></path>
+              <circle class="spin" cx="100" cy="100" r="77" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="1" stroke-dasharray="1.2 7" stroke-linecap="round" opacity="{{r.spinOp}}" style="animation-duration: {{r.spin}}"></circle>
+              <path d="{{r.track}}" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="7" stroke-linecap="round"></path>
+              <path d="{{r.prog}}" fill="none" stroke="{{r.color}}" stroke-width="7" stroke-linecap="round"></path>
+              <circle cx="{{r.roomX}}" cy="{{r.roomY}}" r="3" fill="#ffffff" opacity="0.7"></circle>
+              <circle cx="{{r.knobX}}" cy="{{r.knobY}}" r="8" fill="#ffffff" stroke="{{r.color}}" stroke-width="3" opacity="{{r.knobOp}}"></circle>
+            </svg>
+            <span style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding-bottom: 6px">
+              <span style="display: flex; align-items: flex-start">
+                <span style="font-size: 44px; font-weight: 200; letter-spacing: -0.04em; line-height: 1">{{r.target}}</span>
+                <span style="font-size: 18px; font-weight: 300; margin-top: 4px; color: rgba(235,240,248,0.75)">{{r.deg}}</span>
+              </span>
+              <span style="font-size: 12px; color: rgba(235,240,248,0.65); margin-top: 6px">Inside {{r.room}}°</span>
+            </span>
+          </span>
+          <span style="font-size: 12px; color: rgba(235,240,248,0.65)">{{r.foot}}</span>
+        </button>
+      </sc-for>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 16px; border-top: 1px solid rgba(255,255,255,0.09); padding-top: 16px">
+      <div style="display: flex; flex-direction: column; gap: 2px; width: 150px">
+        <span style="font-size: 15px; font-weight: 600">{{sel.name}}</span>
+        <span style="font-size: 12px; color: rgba(235,240,248,0.65)">{{sel.verb}}</span>
+      </div>
+      <div role="group" aria-label="Mode" style="display: flex; gap: 6px; flex: 1 1 auto">
+        <sc-for list="{{modes}}" as="m" hint-placeholder-count="6">
+          <button class="press" onClick="{{m.pick}}" aria-pressed="{{m.pressed}}" aria-label="{{m.label}}" style="width: 44px; height: 44px; border-radius: 14px; padding: 0; display: flex; align-items: center; justify-content: center; background: {{m.bg}}; border-color: {{m.bd}}">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{m.fg}}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{m.icon}}"></path></svg>
+          </button>
+        </sc-for>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px">
+        <button class="press" onClick="{{dec}}" aria-label="Lower target temperature" style="width: 44px; height: 44px; border-radius: 50%; padding: 0; display: flex; align-items: center; justify-content: center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"></path></svg>
+        </button>
+        <span style="width: 66px; text-align: center; font-size: 24px; font-weight: 300">{{sel.target}}</span>
+        <button class="press" onClick="{{inc}}" aria-label="Raise target temperature" style="width: 44px; height: 44px; border-radius: 50%; padding: 0; display: flex; align-items: center; justify-content: center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14 M12 5v14"></path></svg>
+        </button>
+      </div>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":900,"height":600}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      sel: 0,
+      rooms: [
+        { name: 'Living Room', mode: 'heat', target: 16.5, room: 17.3, fan: 'quiet', kwh: 1.7 },
+        { name: 'Bedroom', mode: 'heat', target: 21, room: 24, fan: '3', kwh: 1.0 },
+        { name: 'Nail Salon', mode: 'heat', target: 21, room: 25, fan: '3', kwh: 0.8 }
+      ]
+    };
+    this.FANS = ['auto', 'quiet', '1', '2', '3', '4', '5'];
+    this.FANN = { auto: 'auto', quiet: 'quiet', '1': '1', '2': '2', '3': '3', '4': '4', '5': '5' };
+    this.SPIN = { auto: '7s', quiet: '14s', '1': '12s', '2': '9s', '3': '6.5s', '4': '4.5s', '5': '2.6s' };
+    var P = {
+      power: 'M12 2v10 M18.4 6.6a9 9 0 1 1-12.77.04',
+      flame: 'M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z',
+      snow: 'M2 12h20 M12 2v20 M20 16l-4-4 4-4 M4 8l4 4-4 4 M16 4l-4 4-4-4 M8 20l4-4 4 4',
+      auto: 'M21 16l-4 4-4-4 M17 20V4 M3 8l4-4 4 4 M7 4v16',
+      drop: 'M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z',
+      fan: 'M10.827 16.379a6.082 6.082 0 0 1-8.618-7.002l5.412 1.45a6.082 6.082 0 0 1 7.002-8.618l-1.45 5.412a6.082 6.082 0 0 1 8.618 7.002l-5.412-1.45a6.082 6.082 0 0 1-7.002 8.618l1.45-5.412Z M12 12v.01'
+    };
+    this.MODES = [
+      { id: 'off', label: 'Off', verb: 'Off', color: '#9aa3b2', icon: P.power },
+      { id: 'heat', label: 'Heat', verb: 'Heating', color: '#ff9447', icon: P.flame },
+      { id: 'cool', label: 'Cool', verb: 'Cooling', color: '#5ab0ff', icon: P.snow },
+      { id: 'heat_cool', label: 'Auto', verb: 'Auto', color: '#a99cff', icon: P.auto },
+      { id: 'dry', label: 'Dry', verb: 'Drying', color: '#40d3c8', icon: P.drop },
+      { id: 'fan_only', label: 'Fan', verb: 'Fan only', color: '#d5dce6', icon: P.fan }
+    ];
+  }
+  rgba(hex, a) {
+    var n = parseInt(hex.slice(1), 16);
+    return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+  }
+  pt(r, a) { var t = a * Math.PI / 180; return [100 + r * Math.cos(t), 100 + r * Math.sin(t)]; }
+  arc(r, a0, a1) {
+    if (a1 - a0 < 0.3) a1 = a0 + 0.3;
+    var p = this.pt(r, a0), q = this.pt(r, a1);
+    return 'M ' + p[0].toFixed(2) + ' ' + p[1].toFixed(2) + ' A ' + r + ' ' + r + ' 0 ' + (a1 - a0 > 180 ? 1 : 0) + ' 1 ' + q[0].toFixed(2) + ' ' + q[1].toFixed(2) + ' ';
+  }
+  mode(id) { return this.MODES.filter(function (m) { return m.id === id; })[0]; }
+  hasSp(id) { return id === 'heat' || id === 'cool' || id === 'heat_cool'; }
+  update(patch) {
+    var i = this.state.sel;
+    this.setState({ rooms: this.state.rooms.map(function (r, j) { return j === i ? Object.assign({}, r, patch) : r; }) });
+  }
+  renderVals() {
+    var self = this, s = this.state;
+    var rooms = s.rooms.map(function (r, i) {
+      var m = self.mode(r.mode);
+      var on = r.mode !== 'off';
+      var sp = self.hasSp(r.mode);
+      var aT = 135 + (r.target - 10) / 20 * 270;
+      var k = self.pt(80, aT), rp = self.pt(80, 135 + (r.room - 10) / 20 * 270);
+      var fi = self.FANS.indexOf(r.fan), segW = (270 - 6 * 5) / 7, dim = '', lit = '';
+      for (var j = 0; j < 7; j++) {
+        var a0 = 135 + j * (segW + 5);
+        var d = self.arc(94, a0, a0 + segW);
+        if (on && ((fi === 0 && j === 0) || (fi > 0 && j > 0 && j <= fi))) lit += d; else dim += d;
+      }
+      var sel = i === s.sel;
+      return {
+        name: r.name, icon: m.icon, color: on ? m.color : '#6b7280',
+        target: sp ? r.target.toFixed(1) : (on ? '--' : 'Off'), deg: sp ? '°' : '',
+        room: r.room.toFixed(1),
+        foot: on ? m.verb + ', fan ' + self.FANN[r.fan] + ', ' + r.kwh.toFixed(1) + ' kWh' : 'Off, ' + r.kwh.toFixed(1) + ' kWh today',
+        track: self.arc(80, 135, 405), prog: sp ? self.arc(80, 135, aT) : 'M 0 0',
+        knobX: k[0].toFixed(1), knobY: k[1].toFixed(1), knobOp: sp ? 1 : 0,
+        roomX: rp[0].toFixed(1), roomY: rp[1].toFixed(1),
+        fanDim: dim || 'M 0 0', fanLit: lit || 'M 0 0',
+        spin: self.SPIN[r.fan], spinOp: on ? 1 : 0,
+        selected: sel,
+        aria: r.name + ', ' + m.verb + (sp ? ', target ' + r.target + ' degrees' : '') + ', inside ' + r.room + ' degrees',
+        bg: sel ? 'rgba(255,255,255,0.11)' : 'rgba(255,255,255,0.04)',
+        bd: sel ? 'rgba(255,255,255,0.26)' : 'rgba(255,255,255,0.07)',
+        pick: function () { self.setState({ sel: i }); }
+      };
+    });
+    var cur = s.rooms[s.sel];
+    var curM = this.mode(cur.mode);
+    var curSp = this.hasSp(cur.mode);
+    var running = s.rooms.filter(function (r) { return r.mode !== 'off'; }).length;
+    var modes = this.MODES.map(function (m) {
+      var act = m.id === cur.mode;
+      return {
+        label: m.label, icon: m.icon, pressed: act,
+        bg: act ? self.rgba(m.color, 0.2) : 'rgba(255,255,255,0.05)',
+        bd: act ? self.rgba(m.color, 0.45) : 'rgba(255,255,255,0.08)',
+        fg: act ? '#ffffff' : 'rgba(235,240,248,0.72)',
+        pick: function () { self.update({ mode: m.id }); }
+      };
+    });
+    return {
+      rooms: rooms,
+      modes: modes,
+      summary: running + ' of ' + s.rooms.length + ' on',
+      sel: { name: cur.name, verb: curM.verb, target: curSp ? cur.target.toFixed(1) + '°' : '--' },
+      dec: function () { if (curSp) self.update({ target: Math.max(10, cur.target - 0.5) }); },
+      inc: function () { if (curSp) self.update({ target: Math.min(30, cur.target + 0.5) }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

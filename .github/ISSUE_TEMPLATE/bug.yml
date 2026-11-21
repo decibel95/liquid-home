@@ -1,0 +1,74 @@
+name: Bug report
+description: Something does not work as expected
+labels: [bug]
+body:
+  - type: input
+    id: ha_version
+    attributes:
+      label: Home Assistant version
+      placeholder: "2025.1.0"
+    validations:
+      required: true
+  - type: input
+    id: card_version
+    attributes:
+      label: Card version
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and OS
+      placeholder: "Chrome 130 on Windows 11, or HA Companion app on iOS 18"
+    validations:
+      required: true
+  - type: input
+    id: integration
+    attributes:
+      label: Light integration
+      placeholder: "Hue, IKEA, Zigbee2MQTT, ..."
+    validations:
+      required: true
+  - type: dropdown
+    id: card
+    attributes:
+      label: Which card
+      options:
+        - light card
+        - tile
+        - badge
+        - room card
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: Open the card editor, press the "Copy diagnostics" button at the bottom and paste the result here. It contains your card config, entity ids and names (no states, history, location or account data); review it before posting.
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Optional. Drag and drop images here.

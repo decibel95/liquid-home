@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Side by side with Liquid Climate</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#14161a}
+.lc{font-family:'Inter',system-ui,-apple-system,sans-serif;color:#F4F6FA;-webkit-font-smoothing:antialiased;font-feature-settings:'tnum' 1}
+.g-dark{--lc-fg:#f4f6fa;--lc-fg2:rgba(235,240,248,.78);--lc-fg3:rgba(235,240,248,.76);--lc-bg:rgba(18,20,26,.78);--lc-edge:rgba(255,255,255,.12);--lc-shine:rgba(255,255,255,.22);--lc-track:rgba(255,255,255,.14);--lc-bright:#ffffff;--lc-btn:rgba(255,255,255,.05);--lc-btn-edge:rgba(255,255,255,.08);--lc-line:rgba(255,255,255,.09);--lc-rim:rgba(255,255,255,.5);--lc-rim2:rgba(255,255,255,.18);--lc-room:rgba(255,255,255,.04);--lc-room-on:rgba(100,140,240,.1);--lc-room-edge:rgba(255,255,255,.07);--lc-room-on-edge:rgba(255,255,255,.26);color:var(--lc-fg)}
+.g-light{--lc-fg:#10141b;--lc-fg2:rgba(16,20,27,.62);--lc-fg3:rgba(16,20,27,.62);--lc-bg:rgba(248,249,252,.72);--lc-edge:rgba(0,0,0,.1);--lc-shine:rgba(255,255,255,.7);--lc-track:rgba(16,20,27,.16);--lc-bright:#10141b;--lc-btn:rgba(0,0,0,.04);--lc-btn-edge:rgba(0,0,0,.08);--lc-line:rgba(0,0,0,.1);--lc-rim:rgba(255,255,255,.9);--lc-rim2:rgba(255,255,255,.4);--lc-room:rgba(255,255,255,.55);--lc-room-on:rgba(255,255,255,.7);--lc-room-edge:rgba(16,20,27,.08);--lc-room-on-edge:rgba(16,20,27,.3);color:var(--lc-fg)}
+.glass{position:relative;box-sizing:border-box;color:var(--lc-fg);background:var(--lc-bg);-webkit-backdrop-filter:blur(30px) saturate(170%);backdrop-filter:blur(30px) saturate(170%);border:1px solid var(--lc-edge)}
+.rim::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;background:linear-gradient(140deg,var(--lc-rim),rgba(255,255,255,0) 35%,rgba(255,255,255,0) 65%,var(--lc-rim2));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+button{font:inherit;color:inherit;cursor:pointer;margin:0;border:1px solid var(--lc-btn-edge);background:var(--lc-btn)}
+button:focus-visible{outline:2px solid var(--lc-bright);outline-offset:2px}
+button:disabled{cursor:default}
+.round{width:44px;height:44px;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center;flex:none}
+.body{container-type:inline-size;width:100%}
+.cap{font-size:13px;font-weight:600}
+.row{display:flex;gap:40px;align-items:flex-start}
+.fig{display:flex;flex-direction:column;gap:10px;margin:0}
+.badge{font:inherit;position:relative;box-sizing:border-box;height:36px;min-width:36px;margin:0;display:flex;align-items:center;color:var(--lc-fg);background-color:var(--lc-bg);-webkit-backdrop-filter:blur(22px) saturate(180%);backdrop-filter:blur(22px) saturate(180%);border:1px solid var(--lc-edge);border-radius:18px;box-shadow:inset 0 1px 0 var(--lc-shine),0 12px 28px -14px rgba(0,0,0,.6);text-align:left}
+</style>
+</helmet>
+<div class="lc" style="width: 2208px; height: 3420px; position: relative; overflow: hidden; display: grid; grid-template-columns: 1fr 1fr">
+  <sc-for list="{{panels}}" as="p" hint-placeholder-count="2">
+    <section class="{{p.g}}" style="background: {{p.ground}}; padding: 48px; display: flex; flex-direction: column; gap: 40px">
+      <span style="font-size: 13px; color: var(--lc-fg2)">{{p.title}}. Left: real Liquid Climate render from docs/public/media at its CSS size. Right: Liquid Home on the same ground.</span>
+
+      <div class="row">
+        <figure class="fig"><sc-if value="{{p.isDark}}" hint-placeholder-val="{{ true }}"><img src="/_blob/ece25f49b0387e6691c272d987f05d98" alt="Liquid Climate dial card, {{p.name}} glass" style="width: 516px; height: 901px; display: block"></sc-if><sc-if value="{{p.isLight}}" hint-placeholder-val="{{ false }}"><img src="/_blob/330a24442d9fc83743d6e5dbd48c0e6b" alt="Liquid Climate dial card, {{p.name}} glass" style="width: 516px; height: 901px; display: block"></sc-if><figcaption class="cap">Liquid Climate dial</figcaption></figure>
+        <figure class="fig" style="padding-top: 36px">
+          <article class="glass rim" aria-label="Ceiling Lights" style="width: 444px; padding: 22px; border-radius: 40px; display: flex; flex-direction: column; gap: 16px; box-shadow: inset 0 1px 0 var(--lc-shine), 0 40px 80px -24px rgba(0,0,0,0.45)">
+            <header style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+              <span style="display: flex; flex-direction: column; gap: 2px"><h2 style="margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.02em">Ceiling Lights</h2><span style="font-size: 13px; color: var(--lc-fg2)">On, 2631 K</span></span>
+              <button class="round" aria-label="Turn off Ceiling Lights" aria-pressed="true" style="background: {{p.pwr}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v10 M18.4 6.6a9 9 0 1 1-12.77.04"></path></svg></button>
+            </header>
+            <div class="body"><div style="display: flex; align-items: center; justify-content: space-between; height: 280px">
+              <span style="display: flex; flex-direction: column; gap: 8px">
+                <span style="display: flex; align-items: flex-start"><span style="font-size: 18cqw; font-weight: 200; letter-spacing: -0.04em; line-height: 1">2631</span><span style="font-size: 7cqw; font-weight: 300; margin-top: 1.5cqw; color: var(--lc-fg2)">K</span></span>
+                <span style="font-size: 13px; color: var(--lc-fg2)">Warmth</span>
+              </span>
+              <div role="slider" tabindex="0" aria-orientation="vertical" aria-valuemin="2000" aria-valuemax="6535" aria-valuenow="2631" aria-valuetext="2631 K" aria-label="Colour temperature, Ceiling Lights" style="position: relative; margin-right: 24px; width: 96px; height: 280px; box-sizing: border-box; border-radius: 26px; background: var(--lc-track); border: 1px solid var(--lc-btn-edge); overflow: hidden">
+                <div aria-hidden="true" style="position: absolute; left: 0; right: 0; bottom: 0; height: 13.9%; background-color: {{p.c}}; background-image: {{p.kgrad}}; background-size: 100% 278px; background-position: bottom"></div>
+              </div>
+            </div></div>
+            <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px">
+              <button aria-pressed="false" style="height: 60px; border-radius: 18px; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; color: var(--lc-fg2)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5 M9 18h6 M10 22h4"></path></svg><span style="font-size: 11px; font-weight: 500">Brightness</span></button>
+              <button aria-pressed="true" style="height: 60px; border-radius: 18px; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; background: {{p.modeBg}}; border-color: {{p.modeBd}}"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 1 0 0-8z M12 2v2 M12 20v2 M4.93 4.93l1.41 1.41 M17.66 17.66l1.41 1.41 M2 12h2 M20 12h2 M6.34 17.66l-1.41 1.41 M19.07 4.93l-1.41 1.41"></path></svg><span style="font-size: 11px; font-weight: 500">White</span></button>
+              <button aria-pressed="false" style="height: 60px; border-radius: 18px; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; color: var(--lc-fg2)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 17a10 10 0 0 0-20 0 M6 17a6 6 0 0 1 12 0 M10 17a2 2 0 0 1 4 0"></path></svg><span style="font-size: 11px; font-weight: 500">Colour</span></button>
+            </div>
+          </article>
+          <figcaption class="cap">Liquid Home light card, V1 colour controls (White mode)</figcaption>
+        </figure>
+      </div>
+
+      <div class="row">
+        <figure class="fig"><sc-if value="{{p.isDark}}" hint-placeholder-val="{{ true }}"><img src="/_blob/57fbd63eaa069422f7a1746d87f09766" alt="Liquid Climate tiles, {{p.name}} glass" style="width: 508px; height: 514px; display: block"></sc-if><sc-if value="{{p.isLight}}" hint-placeholder-val="{{ false }}"><img src="/_blob/fe126ca162845f3235bf1902280905d6" alt="Liquid Climate tiles, {{p.name}} glass" style="width: 508px; height: 514px; display: block"></sc-if><figcaption class="cap">Liquid Climate tile</figcaption></figure>
+        <figure class="fig" style="padding-top: 44px">
+          <div style="display: flex; flex-direction: column; gap: 14px">
+            <sc-for list="{{p.tiles}}" as="t" hint-placeholder-count="3">
+              <article class="glass rim" aria-label="{{t.name}} light" style="width: 420px; height: 96px; padding: 0 12px 0 14px; display: flex; align-items: center; gap: 14px; border-radius: 26px; box-shadow: inset 0 1px 0 var(--lc-shine), 0 20px 40px -20px rgba(0,0,0,0.6)">
+                <button aria-label="Switch {{t.name}}" aria-pressed="{{t.pressed}}" style="width: 50px; height: 50px; flex: none; border-radius: 16px; padding: 0; display: flex; align-items: center; justify-content: center; background: {{t.bg}}; border-color: {{t.bd}}; color: {{t.fg}}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5 M9 18h6 M10 22h4"></path></svg></button>
+                <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 3px"><span style="font-size: 16px; font-weight: 600; letter-spacing: -0.01em">{{t.name}}</span><span style="font-size: 13px; color: var(--lc-fg2)">{{t.sub}}</span></div>
+                <div style="display: flex; align-items: center; gap: 2px; flex: none">
+                  <button class="round" aria-label="Lower brightness" disabled="{{t.off}}" style="opacity: {{t.sOp}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"></path></svg></button>
+                  <span style="width: 64px; text-align: center; font-size: 24px; font-weight: 300; letter-spacing: -0.03em">{{t.target}}</span>
+                  <button class="round" aria-label="Raise brightness" disabled="{{t.off}}" style="opacity: {{t.sOp}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14 M12 5v14"></path></svg></button>
+                </div>
+              </article>
+            </sc-for>
+          </div>
+          <figcaption class="cap">Liquid Home light tile</figcaption>
+        </figure>
+      </div>
+
+      <div class="row">
+        <figure class="fig"><sc-if value="{{p.isDark}}" hint-placeholder-val="{{ true }}"><img src="/_blob/037def036a14d741a750565cd9db7d39" alt="Liquid Climate badges, {{p.name}} glass" style="width: 514px; height: 174px; display: block"></sc-if><sc-if value="{{p.isLight}}" hint-placeholder-val="{{ false }}"><img src="/_blob/c3b76ed958f9f64ec3983613c9e2a1dc" alt="Liquid Climate badges, {{p.name}} glass" style="width: 514px; height: 174px; display: block"></sc-if><figcaption class="cap">Liquid Climate badge</figcaption></figure>
+        <figure class="fig" style="padding-top: 40px">
+          <div style="display: flex; flex-wrap: wrap; gap: 10px; width: 420px">
+            <sc-for list="{{p.badges}}" as="b" hint-placeholder-count="3">
+              <span class="badge rim" role="img" aria-label="{{b.name}}: {{b.value}}" style="padding: 0 12px; gap: 8px">
+                <span style="width: 28px; height: 28px; margin-inline-start: -8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--lc-bright); background-color: {{b.tint}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5 M9 18h6 M10 22h4"></path></svg></span>
+                <span style="display: flex; flex-direction: column"><span style="font-size: 10px; font-weight: 500; line-height: 10px; color: var(--lc-fg2)">{{b.name}}</span><span style="font-size: 12px; font-weight: 500; line-height: 1.2">{{b.value}}</span></span>
+              </span>
+            </sc-for>
+            <sc-for list="{{p.badges}}" as="b" hint-placeholder-count="3">
+              <span class="badge rim" role="img" aria-label="{{b.name}}: {{b.value}}" style="width: 36px; padding: 0; justify-content: center; color: var(--lc-bright); background-image: linear-gradient({{b.tint}}, {{b.tint}})"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5 M9 18h6 M10 22h4"></path></svg></span>
+            </sc-for>
+          </div>
+          <figcaption class="cap">Liquid Home light badge</figcaption>
+        </figure>
+      </div>
+
+      <figure class="fig"><sc-if value="{{p.isDark}}" hint-placeholder-val="{{ true }}"><img src="/_blob/0bc3c1da53560d60ebcba0ddba6206b5" alt="Liquid Climate cluster, {{p.name}} glass" style="width: 728px; height: 843px; display: block"></sc-if><sc-if value="{{p.isLight}}" hint-placeholder-val="{{ false }}"><img src="/_blob/186e6f45986f2d69a709c58683bac5ef" alt="Liquid Climate cluster, {{p.name}} glass" style="width: 728px; height: 843px; display: block"></sc-if><figcaption class="cap">Liquid Climate cluster</figcaption></figure>
+      <figure class="fig">
+        <section class="glass rim" aria-label="Living Room lights" style="width: 780px; padding: 24px; border-radius: 36px; display: flex; flex-direction: column; gap: 18px; box-shadow: inset 0 1px 0 var(--lc-shine), 0 40px 80px -24px rgba(0,0,0,0.65)">
+          <header style="display: flex; align-items: center; justify-content: space-between; gap: 16px">
+            <div style="display: flex; align-items: baseline; gap: 12px"><h2 style="margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.02em">Living Room</h2><span style="font-size: 13px; color: var(--lc-fg2)">1 of 3 on</span></div>
+            <button class="round" aria-label="Turn off Living Room Lights" aria-pressed="true" style="background: {{p.grp}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v10 M18.4 6.6a9 9 0 1 1-12.77.04"></path></svg></button>
+          </header>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+            <sc-for list="{{p.rooms}}" as="r" hint-placeholder-count="3">
+              <button aria-pressed="{{r.pressed}}" aria-label="{{r.name}}, {{r.foot}}" style="opacity: {{r.op}}; box-sizing: border-box; min-width: 0; border-radius: 26px; padding: 16px; display: flex; flex-direction: column; gap: 4px; text-align: left; background: {{r.bg}}; border-color: {{r.bd}}">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%"><span style="font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{r.name}}</span><span style="display: flex; flex: none; color: {{r.c}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5 M9 18h6 M10 22h4"></path></svg></span></span>
+                <span style="display: flex; align-items: flex-start; justify-content: center; width: 100%; padding: 22px 0 18px"><span style="font-size: 44px; font-weight: 200; letter-spacing: -0.04em; line-height: 1">{{r.big}}</span><span style="font-size: 18px; font-weight: 300; margin-top: 4px; color: var(--lc-fg2)">{{r.unit}}</span></span>
+                <span style="font-size: 12px; color: var(--lc-fg3)">{{r.foot}}</span>
+              </button>
+            </sc-for>
+          </div>
+        </section>
+        <figcaption class="cap">Liquid Home room card (derived: area, group, one member off, one unavailable)</figcaption>
+      </figure>
+    </section>
+  </sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2208,"height":3420}}'>
+class Component extends DCLogic {
+  rgba(hex, a) {
+    var n = parseInt(hex.slice(1), 16);
+    return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+  }
+  panel(G) {
+    var self = this, dark = G === 'dark';
+    var kit = dark ? '#ff4070' : '#e51f5c', neu = dark ? '#d5dce6' : '#64748b', off = '#6b7280';
+    function tile(name, sub, c, target) {
+      return { name: name, sub: sub, target: target, pressed: c ? 'true' : 'false', off: !c, sOp: c ? 1 : 0.3,
+        bg: c ? self.rgba(c, 0.24) : 'var(--lc-btn)', bd: c ? self.rgba(c, 0.45) : 'var(--lc-btn-edge)', fg: c ? 'var(--lc-bright)' : 'var(--lc-fg2)' };
+    }
+    function room(name, c, big, unit, foot, sel, op) {
+      return { name: name, c: c, big: big, unit: unit, foot: foot, op: op || 1, pressed: sel ? 'true' : 'false', bg: sel ? 'var(--lc-room-on)' : 'var(--lc-room)', bd: sel ? 'var(--lc-room-on-edge)' : 'var(--lc-room-edge)' };
+    }
+    return {
+      g: 'g-' + G, name: G, isDark: dark, isLight: !dark, title: dark ? 'Dark glass' : 'Light glass', ground: dark ? '#14161a' : '#e7e9ee',
+      dial: dark ? '/_blob/ece25f49b0387e6691c272d987f05d98' : '/_blob/330a24442d9fc83743d6e5dbd48c0e6b',
+      tile: dark ? '/_blob/57fbd63eaa069422f7a1746d87f09766' : '/_blob/fe126ca162845f3235bf1902280905d6',
+      badge: dark ? '/_blob/037def036a14d741a750565cd9db7d39' : '/_blob/c3b76ed958f9f64ec3983613c9e2a1dc',
+      cluster: dark ? '/_blob/0bc3c1da53560d60ebcba0ddba6206b5' : '/_blob/186e6f45986f2d69a709c58683bac5ef',
+      c: neu, kgrad: dark ? 'linear-gradient(to top, #ff890e 0.0%, #ff9a3a 8.3%, #ffa95c 16.7%, #ffb677 25.0%, #ffc18d 33.3%, #ffcba1 41.7%, #ffd4b2 50.0%, #ffddc1 58.3%, #d5dce6 66.7%, #d5dce6 75.0%, #d5dce6 83.3%, #d5dce6 91.7%, #d5dce6 100.0%)' : 'linear-gradient(to top, #b15c00 0.0%, #ae5f00 8.3%, #ac6000 16.7%, #a5631f 25.0%, #9f6835 33.3%, #976841 41.7%, #916b4c 50.0%, #8b6d54 58.3%, #64748b 66.7%, #64748b 75.0%, #64748b 83.3%, #64748b 91.7%, #64748b 100.0%)', pwr: self.rgba(neu, 0.28), modeBg: self.rgba(neu, 0.2), modeBd: self.rgba(neu, 0.45), grp: self.rgba(neu, 0.28),
+      tiles: [tile('Ceiling Lights', 'On, 2631 K', neu, '71%'), tile('Kitchen Lights', 'On', kit, '71%'), tile('Bed Light', 'Off', null, '--')],
+      badges: [
+        { name: 'Ceiling Lights', value: '71%', tint: self.rgba(neu, 0.3) },
+        { name: 'Kitchen Lights', value: '71%', tint: self.rgba(kit, 0.3) },
+        { name: 'Bed Light', value: 'Off', tint: self.rgba(off, 0.3) }
+      ],
+      rooms: [room('Ceiling Lights', neu, '71', '%', 'On, 2631 K', true), room('Living Room RGBWW Lights', 'var(--lc-fg3)', 'Off', '', 'Off', false), room('Entrance Color + White Lights', 'var(--lc-fg3)', '--', '', 'Unavailable', false, 0.5)]
+    };
+  }
+  renderVals() {
+    return { panels: [this.panel('dark'), this.panel('light')] };
+  }
+}
+</script>
+</body>
+</html>

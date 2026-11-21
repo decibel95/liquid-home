@@ -1,0 +1,41 @@
+name: CI
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+permissions: {}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 'lts/*'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: One copy of lit
+        run: |
+          paths="$(npm ls lit --all --parseable | sort -u)"
+          echo "$paths"
+          if [ "$(echo "$paths" | wc -l)" != "1" ]; then
+            echo "More than one copy of lit is installed (liquid-core and liquid-home must share one)" >&2
+            exit 1
+          fi
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: Size budget
+        run: npm run size
+      - if: github.server_url == 'https://github.com'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: liquid-home
+          path: dist/liquid-home.js

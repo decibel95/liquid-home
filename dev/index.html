@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Liquid Home dev harness</title>
+    <style>
+      body { margin: 0; background: #0b0e14; color: #f4f6fa; font-family: system-ui, sans-serif; }
+      main { position: relative; overflow: hidden; padding: 24px; }
+      .blob { position: fixed; border-radius: 50%; filter: blur(90px); z-index: 0; pointer-events: none; }
+      .b1 { width: 520px; height: 520px; left: -160px; top: 80px; background: #24324a; opacity: 0.8; }
+      .b2 { width: 460px; height: 460px; right: -160px; bottom: 60px; background: #3a3320; opacity: 0.7; }
+      h1 { position: relative; font-size: 18px; font-weight: 600; margin: 0 0 4px; }
+      p.note { position: relative; margin: 0 0 20px; color: rgba(235, 240, 248, 0.65); font-size: 13px; }
+      h2 { position: relative; font-size: 13px; font-weight: 500; color: rgba(235, 240, 248, 0.6); margin: 28px 0 12px; }
+      section.slot { position: relative; display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: flex-start; }
+      label.lang { position: relative; display: block; margin: 0 0 16px; font-size: 13px; color: rgba(235, 240, 248, 0.65); }
+      label.lang select { margin-left: 8px; font: inherit; color: inherit; background: #1a1e26; border: 1px solid rgba(255,255,255,.14); border-radius: 8px; padding: 4px 8px; }
+      #fixtures { position: relative; margin: 0; padding-left: 18px; font-size: 12px; color: rgba(235, 240, 248, 0.6); }
+      #log { position: relative; margin: 20px 0 0; background: #11151c; border-radius: 12px; padding: 12px; font: 12px/1.5 ui-monospace, Consolas, monospace; white-space: pre-wrap; min-height: 120px; max-height: 320px; overflow: auto; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="blob b1"></div>
+      <div class="blob b2"></div>
+      <h1>Liquid Home dev harness</h1>
+      <p class="note">Fake hass built from derived light fixtures (test/fixtures/lights.ts). Service calls are logged and applied to the fake states after 0.8 s. Nothing talks to Home Assistant.</p>
+      <label class="lang">Language <select id="lang"><option value="en">English</option><option value="nl">Nederlands</option><option value="de">Deutsch</option><option value="fr">Français</option><option value="es">Español</option><option value="it">Italiano</option></select></label>
+      <h2>Light card</h2>
+      <section class="slot" id="slot-light"></section>
+      <h2>Tiles</h2>
+      <section class="slot" id="slot-tile"></section>
+      <h2>Badges</h2>
+      <section class="slot" id="slot-badge"></section>
+      <h2>Room card</h2>
+      <section class="slot" id="slot-room"></section>
+      <h2>Fixtures</h2>
+      <ul id="fixtures"></ul>
+      <pre id="log" aria-live="polite">Service calls appear here.</pre>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

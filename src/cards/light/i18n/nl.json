@@ -1,0 +1,42 @@
+{
+  "card": {
+    "name": "Lichtkaart",
+    "description": "Glazen kaart voor één lamp: een grote helderheidsbalk met de modi Helderheid, Wit en Kleur, en effecten.",
+    "loading": "Laden",
+    "entityNotFound": "Entiteit niet gevonden: {entity}"
+  },
+  "mode": {
+    "group": "Modus van de balk",
+    "brightness": "Helderheid",
+    "white": "Wit",
+    "colour": "Kleur"
+  },
+  "readout": {
+    "brightness": "Helderheid",
+    "average": "Helderheid, gemiddeld",
+    "warmth": "Warmte",
+    "tap": "Tik om te schakelen",
+    "on": "Aan",
+    "kelvinUnit": "K"
+  },
+  "sub": {
+    "on": "Aan",
+    "onKelvin": "Aan, {kelvin} K",
+    "group": "{on} van {total} aan"
+  },
+  "aria": {
+    "brightness": "Helderheid van {name}",
+    "warmth": "Warmte van {name}",
+    "colour": "Kleur van {name}",
+    "kelvin": "{value} K",
+    "notWhite": "Niet in witmodus",
+    "hue": "Tint {value}",
+    "power": "{name} aan of uit",
+    "effect": "Effect: {value}",
+    "member": "{name}: {value}"
+  },
+  "effect": {
+    "label": "Effect",
+    "none": "Geen"
+  }
+}

@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Liquid Home artwork backdrop component</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0b0e14}
+.lc{font-family:'Inter',system-ui,-apple-system,sans-serif;color:#F4F6FA;-webkit-font-smoothing:antialiased;font-feature-settings:'tnum' 1}
+.g-dark{--lc-fg:#f4f6fa;--lc-fg2:rgba(235,240,248,.78);--lc-bg:rgba(18,20,26,.78);--lc-edge:rgba(255,255,255,.12);--lc-shine:rgba(255,255,255,.22);--lc-bright:#ffffff;--lc-btn:rgba(255,255,255,.05);--lc-btn-edge:rgba(255,255,255,.08);--lc-rim:rgba(255,255,255,.5);--lc-rim2:rgba(255,255,255,.18);color:var(--lc-fg)}
+.g-light{--lc-fg:#10141b;--lc-fg2:rgba(16,20,27,.62);--lc-bg:rgba(248,249,252,.72);--lc-edge:rgba(0,0,0,.1);--lc-shine:rgba(255,255,255,.7);--lc-bright:#10141b;--lc-btn:rgba(0,0,0,.04);--lc-btn-edge:rgba(0,0,0,.08);--lc-rim:rgba(255,255,255,.9);--lc-rim2:rgba(255,255,255,.4);color:var(--lc-fg)}
+.g-light.on-art{--lc-fg2:rgba(16,20,27,.86)}
+.card{position:relative;box-sizing:border-box;width:300px;border-radius:40px;overflow:hidden;-webkit-backdrop-filter:blur(30px) saturate(170%);backdrop-filter:blur(30px) saturate(170%);border:1px solid var(--lc-edge);box-shadow:inset 0 1px 0 var(--lc-shine),0 40px 80px -24px rgba(0,0,0,.45)}
+.rim::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;background:linear-gradient(140deg,var(--lc-rim),rgba(255,255,255,0) 35%,rgba(255,255,255,0) 65%,var(--lc-rim2));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;z-index:3}
+.art{position:absolute;inset:0;transform:scale(1.15);filter:blur(30px)}
+.fill{position:absolute;inset:0;background:var(--lc-bg)}
+.body{position:relative;padding:22px;display:flex;flex-direction:column;gap:14px}
+.orb{position:absolute;border-radius:50%;filter:blur(90px)}
+.k{font-size:12px;font-weight:500;color:rgba(235,240,248,.6)}
+.mono{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px}
+.id{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;font-weight:600;color:#ffb067}
+button{font:inherit;color:inherit;cursor:pointer;margin:0;border:1px solid var(--lc-btn-edge);background:var(--lc-btn)}
+button:focus-visible{outline:2px solid var(--lc-bright);outline-offset:2px}
+.ctl{width:44px;height:44px;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center}
+.spec{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13px}
+.spec span:nth-child(odd){color:rgba(235,240,248,.78)}
+</style>
+</helmet>
+<div class="lc" style="width: 1400px; height: 1440px; position: relative; overflow: hidden; background: #0b0e14; box-sizing: border-box; padding: 48px; display: flex; flex-direction: column; gap: 24px">
+  <div class="orb" aria-hidden="true" style="width: 520px; height: 520px; left: -160px; top: 80px; background-color: #24324a; opacity: 0.8"></div>
+  <div class="orb" aria-hidden="true" style="width: 460px; height: 460px; right: -160px; bottom: 60px; background-color: #1d3a3a; opacity: 0.7"></div>
+
+  <header style="position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 40px">
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <h1 style="margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.02em">artwork-backdrop</h1>
+      <span style="font-size: 13px; color: rgba(235,240,248,0.78)">One blurred image layer under the existing glass fill. The card keeps its own backdrop blur, edge, rim and shadow. No second glass layer, no glow. Without entity_picture the card is plain glass.</span>
+      <span class="k" style="margin-top: 6px">Layers, back to front</span>
+      <div class="spec">
+        <span>1</span><span>card: backdrop blur 30px saturate 170%, edge, rim, shadow (as today)</span>
+        <span>2</span><span>artwork: entity_picture, cover, blur <span class="id">TOK-15</span> 30px, scale <span class="id">TOK-16</span> 1.15</span>
+        <span>3</span><span>glass fill lc-bg, unchanged values, now above the artwork</span>
+        <span>4</span><span>content; on light glass fg2 becomes MENU_GLASS.light.fg2 rgba(16,20,27,0.86) <span class="id">TOK-18</span></span>
+      </div>
+      <span style="font-size: 12px; color: rgba(235,240,248,0.76)">Covers are placeholders. The demo entity_picture is an HA media proxy path with a rotating access token (/api/media_player_proxy/...?token=...); it was not fetched for this canvas.</span>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 15px; font-weight: 600">Decision <span class="id">CHO-2</span>: scrim</span>
+      <span style="font-size: 13px; color: rgba(235,240,248,0.78)"><strong style="color: #f4f6fa">Option A, chosen (recommended option; rows 1 and 2):</strong> no scrim on either glass. The existing glass fill already keeps text at 4.5:1 or more over any cover (<span class="id">TOK-17</span>, <span class="id">CON-11</span>); on light glass the secondary text uses the existing menu value .86 (6.86:1 worst case, black cover). This departs from the kickoff word "darkened"; chosen, not yet gate-approved.</span>
+      <span style="font-size: 13px; color: rgba(235,240,248,0.78)"><strong style="color: #f4f6fa">Option B, not chosen, kept for the record (row 3):</strong> a scrim inside the artwork layer: rgba(0,0,0,0.40) on dark glass, rgba(255,255,255,0.50) on light glass (a darkening scrim on light glass leaves fg2 at 3.88:1 over a very dark cover). Light fg2 stays .62: 4.52:1 worst case (<span class="id">CON-12</span>).</span>
+      <span style="font-size: 12px; color: rgba(235,240,248,0.76)">Ratios are measured on the flat cover colour; pure white and pure black covers bound every real image.</span>
+    </div>
+  </header>
+
+  <section style="position: relative; display: flex; flex-direction: column; gap: 22px">
+    <sc-for list="{{rows}}" as="row" hint-placeholder-count="3">
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <span style="font-size: 13px; font-weight: 600">{{row.title}}</span>
+        <div style="display: grid; grid-template-columns: repeat(4, 300px); gap: 24px">
+          <sc-for list="{{row.cards}}" as="c" hint-placeholder-count="4">
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <div style="border-radius: 40px; background: {{c.ground}}">
+                <article class="card rim {{c.g}}" aria-label="{{c.name}} media">
+                  <sc-if value="{{c.hasArt}}" hint-placeholder-val="{{ true }}">
+                    <div class="art" aria-hidden="true">
+                      <div style="position: absolute; inset: 0; background: {{c.cov}}"></div>
+                      <div style="position: absolute; width: 180px; height: 180px; left: 20px; top: 10px; border-radius: 50%; background: {{c.shape}}"></div>
+                      <div style="position: absolute; inset: 0; background: {{c.scrim}}"></div>
+                    </div>
+                  </sc-if>
+                  <div class="fill" aria-hidden="true"></div>
+                  <div class="body">
+                    <span style="display: flex; flex-direction: column; gap: 2px">
+                      <span style="font-size: 20px; font-weight: 600; letter-spacing: -0.02em">{{c.name}}</span>
+                      <span style="font-size: 13px; color: var(--lc-fg2)">{{c.sub}}</span>
+                    </span>
+                    <span style="display: flex; flex-direction: column; gap: 3px; min-height: 40px">
+                      <span style="font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{c.title}}</span>
+                      <span style="font-size: 13px; color: var(--lc-fg2)">{{c.artist}}</span>
+                    </span>
+                    <div style="display: flex; justify-content: center; gap: 12px">
+                      <button class="ctl" aria-label="Previous"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="transform: scaleX(-1)"><path d="M5 4l10 8-10 8z M19 5v14"></path></svg></button>
+                      <button class="ctl" aria-label="Pause"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h2a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z M15 4h2a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"></path></svg></button>
+                      <button class="ctl" aria-label="Next"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4l10 8-10 8z M19 5v14"></path></svg></button>
+                    </div>
+                  </div>
+                </article>
+              </div>
+              <span style="font-size: 12px; color: rgba(235,240,248,0.76)">{{c.caption}}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":1440}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var COV = {
+      light: ['#f4efe4', '#e6d9bf'],
+      sat: ['#3b2fd6', '#d6336c'],
+      dark: ['#121318', '#262833']
+    };
+    var kt = 'I Wanna Be A Hippy (Flamman & Abraxas Radio Mix)';
+    var MEDIA = {
+      kitchen: ['Kitchen', 'Playing', kt, 'Technohead'],
+      lounge: ['Lounge room', 'Playing, Netflix', 'Chapter 1', 'House of Cards'],
+      living: ['Living Room', 'Playing, YouTube', 'The Best Fireplace Video (3 hours)', ''],
+      browse: ['Browse', 'Playing', '', '']
+    };
+    function c(glass, cover, media, scrim, caption) {
+      var dark = glass === 'dark', m = MEDIA[media], cv = cover ? COV[cover] : ['', ''];
+      return {
+        g: 'g-' + glass + (cover && !dark && !scrim ? ' on-art' : ''), ground: dark ? '#14161a' : '#e7e9ee', hasArt: !!cover,
+        cov: cv[0], shape: cv[1], scrim: scrim || 'transparent',
+        name: m[0], sub: m[1], title: m[2], artist: m[3], caption: caption
+      };
+    }
+    return {
+      rows: [
+        { title: 'Option A, chosen: dark glass, no scrim', cards: [
+          c('dark', 'light', 'kitchen', '', 'Very light placeholder cover. fg 8.98, fg2 5.91.'),
+          c('dark', 'sat', 'living', '', 'Saturated placeholder cover #3b2fd6 with #d6336c. fg 15.22, fg2 9.18. Title shortened (real title has a two-symbol prefix).'),
+          c('dark', 'dark', 'lounge', '', 'Very dark placeholder cover. fg 17.02, fg2 10.06. Bound, white cover: 8.47 / 5.63.'),
+          c('dark', '', 'browse', '', 'No entity_picture (media_player.browse): plain dark glass.')
+        ] },
+        { title: 'Option A, chosen: light glass, no scrim, fg2 .86', cards: [
+          c('light', 'light', 'kitchen', '', 'Very light placeholder cover. fg 17.10, fg2 11.59.'),
+          c('light', 'sat', 'living', '', 'Saturated placeholder cover. fg 10.66, fg2 8.01. Title shortened.'),
+          c('light', 'dark', 'lounge', '', 'Very dark placeholder cover. fg 9.41, fg2 7.22. Bound, black cover: 8.82 / 6.86.'),
+          c('light', '', 'browse', '', 'No entity_picture: plain light glass, normal fg2.')
+        ] },
+        { title: 'Option B, not chosen, kept for the record: scrim variant', cards: [
+          c('dark', 'light', 'kitchen', 'rgba(0,0,0,0.4)', 'Dark, black 0.40 scrim, very light cover. fg 12.37, fg2 7.79. Bound 11.99 / 7.57.'),
+          c('light', 'dark', 'lounge', 'rgba(255,255,255,0.5)', 'Light, white 0.50 scrim, very dark cover, fg2 .62. fg 13.20, fg2 4.58. Bound 12.81 / 4.52.'),
+          c('light', 'sat', 'living', 'rgba(255,255,255,0.5)', 'Light, white 0.50 scrim, saturated cover. fg 14.00, fg2 4.65. Title shortened.')
+        ] }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Liquid Home palette</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0b0e14}
+.lc{font-family:'Inter',system-ui,-apple-system,sans-serif;color:#F4F6FA;-webkit-font-smoothing:antialiased;font-feature-settings:'tnum' 1}
+.g-dark{--lc-fg:#f4f6fa;--lc-fg2:rgba(235,240,248,.78);--lc-fg3:rgba(235,240,248,.76);--lc-bg:rgba(18,20,26,.78);--lc-edge:rgba(255,255,255,.12);--lc-shine:rgba(255,255,255,.22);--lc-track:rgba(255,255,255,.14);--lc-bright:#ffffff;--lc-btn:rgba(255,255,255,.05);--lc-btn-edge:rgba(255,255,255,.08);--lc-line:rgba(255,255,255,.09);--lc-rim:rgba(255,255,255,.5);--lc-rim2:rgba(255,255,255,.18);color:var(--lc-fg)}
+.g-light{--lc-fg:#10141b;--lc-fg2:rgba(16,20,27,.62);--lc-fg3:rgba(16,20,27,.62);--lc-bg:rgba(248,249,252,.72);--lc-edge:rgba(0,0,0,.1);--lc-shine:rgba(255,255,255,.7);--lc-track:rgba(16,20,27,.16);--lc-bright:#10141b;--lc-btn:rgba(0,0,0,.04);--lc-btn-edge:rgba(0,0,0,.08);--lc-line:rgba(0,0,0,.1);--lc-rim:rgba(255,255,255,.9);--lc-rim2:rgba(255,255,255,.4);color:var(--lc-fg)}
+.glass{position:relative;box-sizing:border-box;background:var(--lc-bg);-webkit-backdrop-filter:blur(30px) saturate(170%);backdrop-filter:blur(30px) saturate(170%);border:1px solid var(--lc-edge);box-shadow:inset 0 1px 0 var(--lc-shine),0 20px 40px -20px rgba(0,0,0,.6)}
+.rim::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;background:linear-gradient(140deg,var(--lc-rim),rgba(255,255,255,0) 35%,rgba(255,255,255,0) 65%,var(--lc-rim2));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+.orb{position:absolute;border-radius:50%;filter:blur(90px)}
+.k{font-size:12px;font-weight:500;color:rgba(235,240,248,.6)}
+.mono{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px}
+</style>
+</helmet>
+<div class="lc" style="width: 1240px; height: 1220px; position: relative; overflow: hidden; background: #0b0e14; box-sizing: border-box; padding: 48px; display: flex; flex-direction: column; gap: 28px">
+  <div class="orb" aria-hidden="true" style="width: 520px; height: 520px; left: -160px; top: 80px; background-color: #24324a; opacity: 0.8"></div>
+  <div class="orb" aria-hidden="true" style="width: 460px; height: 460px; right: -160px; bottom: 60px; background-color: #1d3a3a; opacity: 0.7"></div>
+
+  <header style="position: relative; display: flex; flex-direction: column; gap: 6px">
+    <h1 style="margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.02em">Palette</h1>
+    <span style="font-size: 13px; color: rgba(235,240,248,0.78)">Every colour below already ships in Liquid Climate (src/ui/modes.ts). Left dot: dark glass. Right dot: the tone() value on light glass. Ratio: the colour against the glass base.</span>
+  </header>
+
+  <section style="position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+    <sc-for list="{{swatches}}" as="s" hint-placeholder-count="9">
+      <div style="display: flex; align-items: stretch; border-radius: 22px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08)">
+        <div class="g-dark glass" style="flex: 1 1 0; border: 0; box-shadow: none; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; align-items: center; gap: 10px">
+            <span aria-hidden="true" style="width: 28px; height: 28px; border-radius: 50%; background-color: {{s.dark}}"></span>
+            <span style="display: flex; flex-direction: column; gap: 2px">
+              <span style="font-size: 13px; font-weight: 600">{{s.name}}</span>
+              <span class="mono" style="color: var(--lc-fg2)">{{s.dark}}</span>
+            </span>
+          </div>
+          <span style="font-size: 12px; color: var(--lc-fg3)">{{s.src}}, {{s.rd}}:1</span>
+        </div>
+        <div class="g-light" style="flex: 1 1 0; background: #f9f9fb; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; align-items: center; gap: 10px">
+            <span aria-hidden="true" style="width: 28px; height: 28px; border-radius: 50%; background-color: {{s.light}}"></span>
+            <span style="display: flex; flex-direction: column; gap: 2px">
+              <span style="font-size: 13px; font-weight: 600">{{s.lightName}}</span>
+              <span class="mono" style="color: var(--lc-fg2)">{{s.light}}</span>
+            </span>
+          </div>
+          <span style="font-size: 12px; color: var(--lc-fg2)">{{s.rl}}:1</span>
+        </div>
+      </div>
+    </sc-for>
+  </section>
+
+  <section style="position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 24px">
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <span class="k">TINT (how much colour sits behind an icon)</span>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px">
+        <sc-for list="{{tints}}" as="t" hint-placeholder-count="5">
+          <span style="display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04)">
+            <span class="mono">{{t.v}}</span>
+            <span style="font-size: 12px; color: rgba(235,240,248,0.76)">{{t.k}}</span>
+          </span>
+        </sc-for>
+      </div>
+      <span style="font-size: 12px; color: rgba(235,240,248,0.76); max-width: 560px">Base for every ratio on this canvas: dark glass rgba(18,20,26,0.78) over HA dark #111111 = #121318; light glass rgba(248,249,252,0.72) over HA light #fafafa = #f9f9fb. Mode colours stay as they are (CHO-3). On light glass they measure 1.76 to 2.42, so the 3:1 rule for entity-colour is stricter than the climate arc today (CON-13). Gap (CON-14): test/glass.test.ts line 122 measures over pure white and pure black backdrops; these ratios use the glass over HA's own page colours, so dark glass on a white page or light glass on a black page is not covered.</span>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <span class="k">Proposed new colours (COL-1)</span>
+      <div style="border-radius: 22px; border: 1px dashed rgba(255,255,255,0.28); padding: 18px; display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 20px; font-weight: 600; letter-spacing: -0.02em">None</span>
+        <span style="font-size: 13px; color: rgba(235,240,248,0.78)">Lamp colours are not palette colours: they come from the lamp and pass through entity-colour. Anything without its own colour uses the fan_only neutral.</span>
+      </div>
+    </div>
+  </section>
+
+  <section style="position: relative; display: flex; flex-direction: column; gap: 10px">
+    <span class="k">Domain mapping (default is reuse)</span>
+    <div style="display: grid; grid-template-columns: 150px 1fr 1fr 150px; border-radius: 22px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); font-size: 13px">
+      <span style="padding: 10px 14px; background: rgba(255,255,255,0.06); font-weight: 600">Domain</span>
+      <span style="padding: 10px 14px; background: rgba(255,255,255,0.06); font-weight: 600">State</span>
+      <span style="padding: 10px 14px; background: rgba(255,255,255,0.06); font-weight: 600">Existing token</span>
+      <span style="padding: 10px 14px; background: rgba(255,255,255,0.06); font-weight: 600">Icon</span>
+      <sc-for list="{{map}}" as="m" hint-placeholder-count="11">
+        <span style="padding: 9px 14px; border-top: 1px solid rgba(255,255,255,0.06); font-weight: 500">{{m.d}}</span>
+        <span style="padding: 9px 14px; border-top: 1px solid rgba(255,255,255,0.06); color: rgba(235,240,248,0.78)">{{m.s}}</span>
+        <span style="padding: 9px 14px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="width: 12px; height: 12px; flex: none; border-radius: 50%; background: {{m.c}}"></span>{{m.t}}</span>
+        <span class="mono" style="padding: 9px 14px; border-top: 1px solid rgba(255,255,255,0.06); color: rgba(235,240,248,0.78)">{{m.i}}</span>
+      </sc-for>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1240,"height":1220}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var sw = [
+      ['off', '#9aa3b2', '#9aa3b2', 'MODES', '7.29', '2.42'],
+      ['heat', '#ff9447', '#ff9447', 'MODES', '8.46', '2.08'],
+      ['cool', '#5ab0ff', '#5ab0ff', 'MODES', '8.03', '2.20'],
+      ['heat_cool, auto', '#a99cff', '#a99cff', 'MODES', '7.85', '2.25'],
+      ['dry', '#40d3c8', '#40d3c8', 'MODES', '10.04', '1.76'],
+      ['fan_only (neutral)', '#d5dce6', '#64748b', 'MODES + LIGHT_TONES', '13.43', '4.53'],
+      ['error', '#f87171', '#dc2626', 'STATUS_COLORS + LIGHT_TONES', '6.71', '4.59'],
+      ['paused', '#facc15', '#b45309', 'STATUS_COLORS + LIGHT_TONES', '12.11', '4.78'],
+      ['status off', '#6b7280', '#6b7280', 'STATUS_COLORS', '3.84', '4.60']
+    ];
+    var gray = '#9aa3b2';
+    return {
+      swatches: sw.map(function (r) {
+        return { name: r[0], dark: r[1], light: r[2], lightName: r[1] === r[2] ? 'same on light' : 'tone() on light', src: r[3], rd: r[4], rl: r[5] };
+      }),
+      tints: [
+        { v: '0.24', k: 'TINT.tile, power button' },
+        { v: '0.45', k: 'TINT.tileEdge' },
+        { v: '0.30', k: 'TINT.badge, icon circle' },
+        { v: '0.28', k: 'dial power button' },
+        { v: '0.20 / 0.45', k: 'dial mode button, fill / edge' }
+      ],
+      map: [
+        { d: 'light', s: 'on, with a colour (hs, rgb, xy)', t: 'entity-colour (lamp rgb_color)', c: '#ff4070', i: 'bulb (ICO-1)' },
+        { d: 'light', s: 'on, colour temperature', t: 'fan_only neutral (CHO-1 option B)', c: '#d5dce6', i: 'bulb (ICO-1)' },
+        { d: 'light', s: 'on, no colour (brightness or on/off only), any group', t: 'fan_only neutral (CHO-4)', c: '#d5dce6', i: 'bulb (ICO-1)' },
+        { d: 'light', s: 'off', t: 'no tint, icon fg2', c: 'transparent', i: 'bulb (ICO-1)' },
+        { d: 'cover', s: 'open, partly open, moving', t: 'fan_only neutral', c: '#d5dce6', i: 'blinds (ICO-4)' },
+        { d: 'fan', s: 'on', t: 'fan_only', c: '#d5dce6', i: 'ICONS.fan' },
+        { d: 'media_player', s: 'playing, paused', t: 'fan_only neutral, artwork carries colour', c: '#d5dce6', i: 'speaker (ICO-5)' },
+        { d: 'sensor', s: 'normal / warning / critical', t: 'none / paused / error', c: '#facc15', i: 'thermometer (ICO-9), drop, zap, gauge' },
+        { d: 'binary_sensor', s: 'problem class on (moisture, smoke)', t: 'error', c: '#f87171', i: 'drop, alert' },
+        { d: 'any', s: 'unavailable, off', t: 'status off', c: '#6b7280', i: 'domain icon' },
+        { d: 'any', s: 'battery low', t: 'paused', c: '#facc15', i: 'battery (ICO-10)' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+{
+  "card": {
+    "name": "Tarjeta de luz",
+    "description": "Tarjeta de cristal para una luz: una gran píldora de brillo con los modos Brillo, Blanco y Color, y efectos.",
+    "loading": "Cargando",
+    "entityNotFound": "Entidad no encontrada: {entity}"
+  },
+  "mode": {
+    "group": "Modo de la píldora",
+    "brightness": "Brillo",
+    "white": "Blanco",
+    "colour": "Color"
+  },
+  "readout": {
+    "brightness": "Brillo",
+    "average": "Brillo, promedio",
+    "warmth": "Calidez",
+    "tap": "Toca para cambiar",
+    "on": "Encendida",
+    "kelvinUnit": "K"
+  },
+  "sub": {
+    "on": "Encendida",
+    "onKelvin": "Encendida, {kelvin} K",
+    "group": "{on} de {total} encendidas"
+  },
+  "aria": {
+    "brightness": "Brillo de {name}",
+    "warmth": "Calidez de {name}",
+    "colour": "Color de {name}",
+    "kelvin": "{value} K",
+    "notWhite": "No está en modo blanco",
+    "hue": "Tono {value}",
+    "power": "Encender o apagar {name}",
+    "effect": "Efecto: {value}",
+    "member": "{name}: {value}"
+  },
+  "effect": {
+    "label": "Efecto",
+    "none": "Ninguno"
+  }
+}

@@ -1,0 +1,9 @@
+# Replace the owner placeholder in the URLs below when the repository is public; the Documentation link must match DOCS_URL in src/const.ts (the GitHub Pages docs site).
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://decibel95.github.io/liquid-home
+    about: Setup, configuration and card options.
+  - name: Questions and ideas
+    url: https://github.com/decibel95/liquid-home/discussions
+    about: Ask questions and share ideas in GitHub Discussions.

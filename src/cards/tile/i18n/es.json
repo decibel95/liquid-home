@@ -1,0 +1,14 @@
+{
+  "card": {
+    "name": "Mosaico de luz"
+  },
+  "ariaTile": "Luz {name}",
+  "power": "Encender o apagar {name}",
+  "stepDown": "Bajar el brillo",
+  "stepUp": "Subir el brillo",
+  "on": "Encendida",
+  "onKelvin": "Encendida, {kelvin} K",
+  "groupOn": "{on} de {total} encendidas",
+  "loading": "Cargando",
+  "entityNotFound": "Entidad {entity} no encontrada"
+}

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Liquid Home dashboard under load</title>
+    <style>
+      body { margin: 0; background: #0b0e14; color: #f4f6fa; font-family: system-ui, sans-serif; }
+      main { position: relative; padding: 16px; box-sizing: border-box; display: grid; grid-template-columns: 444px 1fr; gap: 16px; align-items: start; }
+      .blob { position: fixed; border-radius: 50%; filter: blur(90px); pointer-events: none; z-index: 0; }
+      .b1 { width: 520px; height: 520px; left: -160px; top: 80px; background: #24324a; opacity: 0.8; }
+      .b2 { width: 460px; height: 460px; right: -160px; bottom: 60px; background: #3a3320; opacity: 0.7; }
+      .b3 { width: 380px; height: 380px; left: 40%; top: 30%; background: #2a3a30; opacity: 0.6; }
+      main > * { position: relative; z-index: 1; }
+      .col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+      #tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+      #badges { display: flex; flex-wrap: wrap; gap: 10px; }
+    </style>
+  </head>
+  <body>
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+    <main>
+      <div class="col" id="left"></div>
+      <div class="col" id="right">
+        <div id="badges"></div>
+        <div id="tiles"></div>
+        <div id="room"></div>
+      </div>
+    </main>
+    <script type="module" src="./perf.ts"></script>
+  </body>
+</html>

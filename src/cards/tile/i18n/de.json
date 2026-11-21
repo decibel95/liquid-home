@@ -1,0 +1,14 @@
+{
+  "card": {
+    "name": "Licht-Kachel"
+  },
+  "ariaTile": "{name} Licht",
+  "power": "{name} schalten",
+  "stepDown": "Helligkeit verringern",
+  "stepUp": "Helligkeit erhöhen",
+  "on": "An",
+  "onKelvin": "An, {kelvin} K",
+  "groupOn": "{on} von {total} an",
+  "loading": "Lädt",
+  "entityNotFound": "Entität {entity} nicht gefunden"
+}

@@ -1,0 +1,42 @@
+{
+  "card": {
+    "name": "Carte lumière",
+    "description": "Carte en verre pour une lumière : une grande pastille de luminosité avec les modes Luminosité, Blanc et Couleur, et des effets.",
+    "loading": "Chargement",
+    "entityNotFound": "Entité introuvable : {entity}"
+  },
+  "mode": {
+    "group": "Mode de la pastille",
+    "brightness": "Luminosité",
+    "white": "Blanc",
+    "colour": "Couleur"
+  },
+  "readout": {
+    "brightness": "Luminosité",
+    "average": "Luminosité, moyenne",
+    "warmth": "Chaleur",
+    "tap": "Appuyer pour basculer",
+    "on": "Allumée",
+    "kelvinUnit": "K"
+  },
+  "sub": {
+    "on": "Allumée",
+    "onKelvin": "Allumée, {kelvin} K",
+    "group": "{on}/{total} allumées"
+  },
+  "aria": {
+    "brightness": "Luminosité de {name}",
+    "warmth": "Chaleur de {name}",
+    "colour": "Couleur de {name}",
+    "kelvin": "{value} K",
+    "notWhite": "Pas en mode blanc",
+    "hue": "Teinte {value}",
+    "power": "Allumer ou éteindre {name}",
+    "effect": "Effet : {value}",
+    "member": "{name} : {value}"
+  },
+  "effect": {
+    "label": "Effet",
+    "none": "Aucun"
+  }
+}

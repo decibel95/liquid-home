@@ -1,0 +1,20 @@
+{
+  "card": {
+    "name": "Room card"
+  },
+  "title": "Lights",
+  "summary": "{n} of {total} on",
+  "on": "On",
+  "onKelvin": "On, {kelvin} K",
+  "chooseArea": "Choose an area in the card editor.",
+  "empty": "No lights in this area.",
+  "power": "Switch {name}",
+  "open": "Open {name}, {state}",
+  "controls": "Controls for {name}",
+  "modeGroup": "Colour mode, {name}",
+  "white": "White",
+  "colour": "Colour",
+  "brightness": "Brightness",
+  "stepDown": "Lower brightness",
+  "stepUp": "Raise brightness"
+}

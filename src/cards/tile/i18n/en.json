@@ -1,0 +1,14 @@
+{
+  "card": {
+    "name": "Light tile"
+  },
+  "ariaTile": "{name} light",
+  "power": "Switch {name}",
+  "stepDown": "Lower brightness",
+  "stepUp": "Raise brightness",
+  "on": "On",
+  "onKelvin": "On, {kelvin} K",
+  "groupOn": "{on} of {total} on",
+  "loading": "Loading",
+  "entityNotFound": "Entity {entity} not found"
+}

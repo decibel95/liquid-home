@@ -1,0 +1,14 @@
+node_modules
+dist
+docs/.vitepress/cache
+docs/.vitepress/dist
+
+# Local, private (machine, secrets, agent config)
+.mcp.json
+.claude/
+CLAUDE.local.md
+.local/
+.omc/
+
+.env*
+*.pem

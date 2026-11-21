@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Step 1: install</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0f1218}
+.lc{font-family:'Inter',system-ui,-apple-system,sans-serif;color:#F4F6FA;-webkit-font-smoothing:antialiased}
+code{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:12px;color:#cfe3ff}
+</style>
+</helmet>
+<div class="lc" style="width: 620px; height: 520px; box-sizing: border-box; padding: 40px; background: #0f1218; display: flex; flex-direction: column; gap: 22px">
+  <div style="display: flex; flex-direction: column; gap: 6px">
+    <span style="font-size: 13px; font-weight: 500; color: #8fc6ff">Step 1</span>
+    <h2 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.02em">Install from the Marketplace</h2>
+  </div>
+  <ol style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; line-height: 1.45; color: rgba(235,240,248,0.82)">
+    <li>Open Settings, then Marketplace, and search for Liquid Climate.</li>
+    <li>Select Download. The dashboard resource is added for you.</li>
+    <li>Reload the browser tab once.</li>
+  </ol>
+  <div style="border-radius: 20px; background: #1a1e26; border: 1px solid rgba(255,255,255,0.08); padding: 18px; display: flex; flex-direction: column; gap: 16px">
+    <div style="display: flex; align-items: center; gap: 14px">
+      <div aria-hidden="true" style="width: 56px; height: 56px; flex: none; border-radius: 16px; background: #242a35; border: 1px solid rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center">
+        <svg width="36" height="36" viewBox="0 0 40 40" fill="none" stroke-linecap="round">
+          <path d="M 10.1 29.9 A 14 14 0 1 1 29.9 29.9" stroke="rgba(255,255,255,0.2)" stroke-width="3.5"></path>
+          <path d="M 10.1 29.9 A 14 14 0 0 1 20 6" stroke="#ff9447" stroke-width="3.5"></path>
+        </svg>
+      </div>
+      <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+        <span style="font-size: 16px; font-weight: 600">Liquid Climate</span>
+        <span style="font-size: 13px; color: rgba(235,240,248,0.68)">Glass climate cards: dial, tile, cluster and badge</span>
+      </div>
+      <button style="height: 40px; padding: 0 18px; border-radius: 20px; border: none; background: #5ab0ff; color: #0b1220; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Download</button>
+    </div>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap">
+      <span style="height: 26px; padding: 0 10px; border-radius: 13px; background: rgba(255,255,255,0.06); font-size: 12px; display: inline-flex; align-items: center; color: rgba(235,240,248,0.75)">Dashboard</span>
+      <span style="height: 26px; padding: 0 10px; border-radius: 13px; background: rgba(255,255,255,0.06); font-size: 12px; display: inline-flex; align-items: center; color: rgba(235,240,248,0.75)">4 cards</span>
+      <span style="height: 26px; padding: 0 10px; border-radius: 13px; background: rgba(255,255,255,0.06); font-size: 12px; display: inline-flex; align-items: center; color: rgba(235,240,248,0.75)">Home Assistant 2025.1 or newer</span>
+    </div>
+  </div>
+  <div role="status" style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: rgba(235,240,248,0.8)">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>
+    <span>Resource registered. Next: add a card to a dashboard.</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":620,"height":520}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

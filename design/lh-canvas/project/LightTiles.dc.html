@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Light tile</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0b0e14}
+.lc{font-family:'Inter',system-ui,-apple-system,sans-serif;color:#F4F6FA;-webkit-font-smoothing:antialiased;font-feature-settings:'tnum' 1}
+.g-dark{--lc-fg:#f4f6fa;--lc-fg2:rgba(235,240,248,.78);--lc-fg3:rgba(235,240,248,.76);--lc-bg:rgba(18,20,26,.78);--lc-edge:rgba(255,255,255,.12);--lc-shine:rgba(255,255,255,.22);--lc-track:rgba(255,255,255,.14);--lc-bright:#ffffff;--lc-btn:rgba(255,255,255,.05);--lc-btn-edge:rgba(255,255,255,.08);--lc-rim:rgba(255,255,255,.5);--lc-rim2:rgba(255,255,255,.18);color:var(--lc-fg)}
+.g-light{--lc-fg:#10141b;--lc-fg2:rgba(16,20,27,.62);--lc-fg3:rgba(16,20,27,.62);--lc-bg:rgba(248,249,252,.72);--lc-edge:rgba(0,0,0,.1);--lc-shine:rgba(255,255,255,.7);--lc-track:rgba(16,20,27,.16);--lc-bright:#10141b;--lc-btn:rgba(0,0,0,.04);--lc-btn-edge:rgba(0,0,0,.08);--lc-rim:rgba(255,255,255,.9);--lc-rim2:rgba(255,255,255,.4);color:var(--lc-fg)}
+.tile{position:relative;box-sizing:border-box;width:420px;height:96px;padding:0 12px 0 14px;display:flex;align-items:center;gap:14px;border-radius:26px;color:var(--lc-fg);background:var(--lc-bg);-webkit-backdrop-filter:blur(30px) saturate(170%);backdrop-filter:blur(30px) saturate(170%);border:1px solid var(--lc-edge);box-shadow:inset 0 1px 0 var(--lc-shine),0 20px 40px -20px rgba(0,0,0,.6)}
+.rim::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;background:linear-gradient(140deg,var(--lc-rim),rgba(255,255,255,0) 35%,rgba(255,255,255,0) 65%,var(--lc-rim2));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+.orb{position:absolute;border-radius:50%;filter:blur(90px)}
+button{font:inherit;color:inherit;cursor:pointer;margin:0;border:1px solid var(--lc-btn-edge);background:var(--lc-btn)}
+button:focus-visible{outline:2px solid var(--lc-bright);outline-offset:2px}
+button:disabled{cursor:default}
+.press{transition:transform .3s cubic-bezier(.3,1.7,.5,1),background-color .5s ease,border-color .5s ease}
+.press:active:not(:disabled){transform:scale(.9)}
+.power{width:50px;height:50px;flex:none;border-radius:16px;padding:0;display:flex;align-items:center;justify-content:center}
+.step{width:44px;height:44px;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center}
+.num{width:20px;flex:none;font-size:12px;font-weight:600;text-align:right}
+@media (prefers-reduced-motion:reduce){.press{transition:none}}
+</style>
+</helmet>
+<div class="lc" style="width: 1000px; height: 1100px; position: relative; overflow: hidden; background: #0b0e14; display: grid; grid-template-columns: 1fr 1fr">
+  <section style="position: relative; overflow: hidden; padding: 40px 0 0 30px; display: flex; flex-direction: column; gap: 12px">
+    <div class="orb" aria-hidden="true" style="width: 420px; height: 420px; left: -140px; top: 120px; background-color: #24324a; opacity: 0.8"></div>
+    <div class="orb" aria-hidden="true" style="width: 380px; height: 380px; right: -140px; bottom: 40px; background-color: #1d3a3a; opacity: 0.7"></div>
+    <span style="position: relative; font-size: 13px; color: rgba(235,240,248,0.78)">Dark glass. 3, 5, 6, 7 and 8 are derived. 1 and 6 draw the neutral (CHO-1 option B), 8 is a group (CHO-4).</span>
+    <sc-for list="{{dk}}" as="t" hint-placeholder-count="8">
+      <div style="position: relative; display: flex; align-items: center; gap: 10px">
+        <span class="num" style="color: rgba(235,240,248,0.76)">{{t.n}}</span>
+        <article class="tile rim g-dark" aria-label="{{t.name}} light">
+          <button class="press power" aria-label="{{t.pl}}" aria-pressed="{{t.pressed}}" disabled="{{t.dis}}" style="background: {{t.bg}}; border-color: {{t.bd}}; color: {{t.fg}}; opacity: {{t.pOp}}">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5 M9 18h6 M10 22h4"></path></svg>
+          </button>
+          <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 3px">
+            <span style="font-size: 16px; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{t.name}}</span>
+            <span style="font-size: 13px; color: var(--lc-fg2)">{{t.sub}}</span>
+          </div>
+          <sc-if value="{{t.steps}}" hint-placeholder-val="{{ true }}">
+            <div style="display: flex; align-items: center; gap: 2px; flex: none">
+              <button class="press step" aria-label="Lower brightness" disabled="{{t.noSp}}" style="opacity: {{t.sOp}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"></path></svg></button>
+              <span style="width: 64px; text-align: center; font-size: 24px; font-weight: 300; letter-spacing: -0.03em">{{t.target}}</span>
+              <button class="press step" aria-label="Raise brightness" disabled="{{t.noSp}}" style="opacity: {{t.sOp}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14 M12 5v14"></path></svg></button>
+            </div>
+          </sc-if>
+        </article>
+      </div>
+    </sc-for>
+  </section>
+  <section style="position: relative; background: #e7e9ee; color: #10141b; padding: 40px 0 0 30px; display: flex; flex-direction: column; gap: 12px">
+    <span style="font-size: 13px; color: rgba(16,20,27,0.62)">Light glass. Same states and numbers, colours through entity-colour for light glass.</span>
+    <sc-for list="{{lt}}" as="t" hint-placeholder-count="8">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span class="num" style="color: rgba(16,20,27,0.62)">{{t.n}}</span>
+        <article class="tile rim g-light" aria-label="{{t.name}} light">
+          <button class="press power" aria-label="{{t.pl}}" aria-pressed="{{t.pressed}}" disabled="{{t.dis}}" style="background: {{t.bg}}; border-color: {{t.bd}}; color: {{t.fg}}; opacity: {{t.pOp}}">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5 M9 18h6 M10 22h4"></path></svg>
+          </button>
+          <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 3px">
+            <span style="font-size: 16px; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{t.name}}</span>
+            <span style="font-size: 13px; color: var(--lc-fg2)">{{t.sub}}</span>
+          </div>
+          <sc-if value="{{t.steps}}" hint-placeholder-val="{{ true }}">
+            <div style="display: flex; align-items: center; gap: 2px; flex: none">
+              <button class="press step" aria-label="Lower brightness" disabled="{{t.noSp}}" style="opacity: {{t.sOp}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"></path></svg></button>
+              <span style="width: 64px; text-align: center; font-size: 24px; font-weight: 300; letter-spacing: -0.03em">{{t.target}}</span>
+              <button class="press step" aria-label="Raise brightness" disabled="{{t.noSp}}" style="opacity: {{t.sOp}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14 M12 5v14"></path></svg></button>
+            </div>
+          </sc-if>
+        </article>
+      </div>
+    </sc-for>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1000,"height":1100}}'>
+class Component extends DCLogic {
+  rgba(hex, a) {
+    var n = parseInt(hex.slice(1), 16);
+    return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+  }
+  list(G) {
+    var self = this;
+    var kit = G === 'dark' ? '#ff4070' : '#e51f5c', neu = G === 'dark' ? '#d5dce6' : '#64748b';
+    function t(n, name, sub, c, target, o) {
+      o = o || {};
+      var on = !!c;
+      return {
+        n: n, name: name, sub: sub, target: target, pressed: on ? 'true' : 'false', dis: !!o.dis,
+        pl: 'Switch ' + name, bg: on ? self.rgba(c, 0.24) : 'var(--lc-btn)', bd: on ? self.rgba(c, 0.45) : 'var(--lc-btn-edge)',
+        fg: on ? 'var(--lc-bright)' : 'var(--lc-fg2)', pOp: o.dis ? 0.5 : 1,
+        steps: !o.noSteps, noSp: !on, sOp: on ? 1 : 0.3
+      };
+    }
+    return [
+      t('1', 'Ceiling Lights', 'On, 2631 K', neu, '71%'),
+      t('2', 'Kitchen Lights', 'On', kit, '71%'),
+      t('3', 'Kitchen Lights', 'On', kit, '10%'),
+      t('4', 'Bed Light', 'Off', null, '--'),
+      t('5', 'Office RGBW Lights', 'Unavailable', null, '--', { dis: true }),
+      t('6', 'Ceiling Lights', 'On', neu, '71%'),
+      t('7', 'Entrance Color + White Lights', 'On', neu, '', { noSteps: true }),
+      t('8', 'Living Room Lights', '3 of 3 on', neu, '71%')
+    ];
+  }
+  renderVals() {
+    return { dk: this.list('dark'), lt: this.list('light') };
+  }
+}
+</script>
+</body>
+</html>

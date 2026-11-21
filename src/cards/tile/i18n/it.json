@@ -1,0 +1,14 @@
+{
+  "card": {
+    "name": "Riquadro luce"
+  },
+  "ariaTile": "Luce {name}",
+  "power": "Accendi o spegni {name}",
+  "stepDown": "Diminuisci luminosità",
+  "stepUp": "Aumenta luminosità",
+  "on": "Accesa",
+  "onKelvin": "Accesa, {kelvin} K",
+  "groupOn": "{on} di {total} accese",
+  "loading": "Caricamento",
+  "entityNotFound": "Entità {entity} non trovata"
+}

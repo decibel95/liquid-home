@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Liquid Climate package overview</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0f1218}
+.lc{font-family:'Inter',system-ui,-apple-system,sans-serif;color:#F4F6FA;-webkit-font-smoothing:antialiased}
+h3{margin:0;font-size:18px;font-weight:600;letter-spacing:-.01em}
+pre{margin:0;font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:12px;line-height:1.6;color:#d7e6fb;white-space:pre}
+code{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:12px;color:#cfe3ff}
+.panel{border-radius:18px;background:#1a1e26;border:1px solid rgba(255,255,255,.08);padding:18px}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;font-weight:500;color:rgba(235,240,248,.6);padding:0 12px 10px 0;border-bottom:1px solid rgba(255,255,255,.1)}
+.tbl td{padding:10px 12px 10px 0;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top;line-height:1.45;color:rgba(235,240,248,.85)}
+.muted{color:rgba(235,240,248,.62)}
+.step{flex:1;min-width:0;border-radius:14px;background:#1a1e26;border:1px solid rgba(255,255,255,.08);padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.arrow{flex:none;align-self:center;color:rgba(235,240,248,.4)}
+</style>
+</helmet>
+<div class="lc" style="width: 1100px; height: 2400px; box-sizing: border-box; padding: 48px; background: #0f1218; display: flex; flex-direction: column; gap: 40px">
+  <header style="display: flex; flex-direction: column; gap: 8px">
+    <h2 style="margin: 0; font-size: 30px; font-weight: 600; letter-spacing: -0.02em">Package overview</h2>
+    <p style="margin: 0; font-size: 15px; line-height: 1.5; color: rgba(235,240,248,0.72); max-width: 760px">Everything that ships besides the cards: config, detection, repo, docs and releases. One JavaScript file, four cards, a visual editor for each.</p>
+  </header>
+
+  <section style="display: flex; flex-direction: column; gap: 14px">
+    <h3>What ships</h3>
+    <div class="panel">
+      <table class="tbl">
+        <thead><tr><th>Card</th><th>Element</th><th>Use</th><th>Required</th></tr></thead>
+        <tbody>
+          <tr><td>Dial</td><td><code>custom:liquid-climate-card</code></td><td>Full control for one unit</td><td><code>entity</code></td></tr>
+          <tr><td>Tile</td><td><code>custom:liquid-climate-tile</code></td><td>Compact row, opens the dial as a sheet</td><td><code>entity</code></td></tr>
+          <tr><td>Cluster</td><td><code>custom:liquid-climate-cluster</code></td><td>All units, grouped by area or floor</td><td>nothing</td></tr>
+          <tr><td>Badge</td><td><code>custom:liquid-climate-badge</code></td><td>Status pill for headers and badges</td><td><code>entity</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section style="display: flex; flex-direction: column; gap: 14px">
+    <h3>Config</h3>
+    <p style="margin: 0; font-size: 14px; line-height: 1.5" class="muted">The editor writes this. Every sensor defaults to auto; set an entity id to override or false to hide.</p>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px">
+      <div class="panel"><pre>type: custom:liquid-climate-card
+entity: climate.keuken_airco
+name: Living Room
+temperature_sensor: sensor.woonkamer_temperatuur
+sensors:
+  humidity: auto
+  outdoor: auto
+  energy: auto
+  cloud_limit: auto
+  health: auto
+controls:
+  modes: [off, heat, cool, heat_cool, dry, fan_only]
+  fan: true
+  swing: true
+  swing_horizontal: true
+  presets: true
+write_delay: 1.5
+status_entities:
+  - entity: input_text.woonkamer_auto_stand
+    name: Automation
+look:
+  glass: dark
+  tint: 0.09
+  blur: 30
+  motion: rich
+config_version: 1</pre></div>
+      <div style="display: flex; flex-direction: column; gap: 14px">
+        <div class="panel"><pre>type: custom:liquid-climate-cluster
+group_by: area
+exclude:
+  - climate.guest_room
+names:
+  climate.keuken_airco: Living Room
+order: auto
+tap_action: open_dial
+config_version: 1</pre></div>
+        <div class="panel" style="display: flex; flex-direction: column; gap: 8px">
+          <span style="font-size: 14px; font-weight: 600">Rules for the schema</span>
+          <ul style="margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.55; color: rgba(235,240,248,0.82)">
+            <li>Only <code>entity</code> is required. The rest has a default.</li>
+            <li>Controls hide when the entity does not support them, whatever the config says.</li>
+            <li><code>config_version</code> lets updates migrate old configs silently.</li>
+            <li>Theme variables (<code>--lc-tint</code>, <code>--lc-blur</code>, <code>--lc-radius</code>) override look from an HA theme.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="display: flex; flex-direction: column; gap: 14px">
+    <h3>Sensor detection</h3>
+    <p style="margin: 0; font-size: 14px; line-height: 1.5" class="muted">Search the device family: the climate entity's device plus every device whose <code>via_device</code> points to it. Match on device class, unit and translation key, never on the entity name.</p>
+    <div class="panel">
+      <table class="tbl">
+        <thead><tr><th style="width: 150px">Role</th><th>Generic rule</th><th style="width: 290px">Daikin Onecta extra</th></tr></thead>
+        <tbody>
+          <tr><td>Humidity</td><td>sensor, device_class humidity</td><td>regeling device</td></tr>
+          <tr><td>Outdoor temp</td><td>temperature sensor with an outdoor translation key</td><td>outdoor temperature on regeling</td></tr>
+          <tr><td>Unit temp</td><td>other temperature sensor in the family</td><td>flags whole-degree readings, suggests a room sensor</td></tr>
+          <tr><td>Energy</td><td>device_class energy, split by heating and cooling, period from translation key</td><td>8 sensors: day, week, month, year</td></tr>
+          <tr><td>Cloud limit</td><td>none</td><td>rate limit remaining day on gateway</td></tr>
+          <tr><td>Health</td><td>binary_sensor problem, error code sensors</td><td>error, warning, caution per device</td></tr>
+          <tr><td>Room sensor</td><td>suggest temperature sensors in the same area, then same floor</td><td>same</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px">
+    <div style="display: flex; flex-direction: column; gap: 14px">
+      <h3>Repository</h3>
+      <div class="panel"><pre>liquid-climate/
+  src/
+    cards/        dial, tile, cluster, badge
+    editor/       one editor per card
+    detect/       device family + roles
+    ui/           dial, glass, motion
+    migrate.ts    config_version upgrades
+  test/           unit + visual snapshots
+  docs/           docs site source
+  examples/       gallery configs + images
+  dist/           liquid-climate.js
+  hacs.json
+  .github/
+    ISSUE_TEMPLATE/  bug, feature
+    workflows/       ci, release</pre></div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 14px">
+      <h3>Docs</h3>
+      <div class="panel" style="display: flex; flex-direction: column; gap: 12px; font-size: 13px; line-height: 1.5">
+        <div><span style="font-weight: 600">README</span><span class="muted">: quick start in 3 steps, a GIF per card, Marketplace badge.</span></div>
+        <div><span style="font-weight: 600">Docs site</span><span class="muted">: GitHub Pages. Getting started, one page per card, full config reference, detection rules, theming.</span></div>
+        <div><span style="font-weight: 600">Gallery</span><span class="muted">: one unit, whole house, wall tablet. Screenshot plus YAML to copy.</span></div>
+        <div><span style="font-weight: 600">Troubleshooting</span><span class="muted">: card not found, sensor not detected, cloud limit reached, plus the diagnostics field in the bug template.</span></div>
+        <div><span style="font-weight: 600">Help links</span><span class="muted">: every (?) in the editor opens the matching docs anchor.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section style="display: flex; flex-direction: column; gap: 14px">
+    <h3>Release flow</h3>
+    <div style="display: flex; gap: 10px">
+      <div class="step"><span style="font-size: 13px; font-weight: 600">Pull request</span><span class="muted" style="font-size: 12px">lint, types, unit tests, visual snapshots</span></div>
+      <svg class="arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14 M13 6l6 6-6 6"></path></svg>
+      <div class="step"><span style="font-size: 13px; font-weight: 600">Merge to main</span><span class="muted" style="font-size: 12px">changelog entry required</span></div>
+      <svg class="arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14 M13 6l6 6-6 6"></path></svg>
+      <div class="step"><span style="font-size: 13px; font-weight: 600">Tag vX.Y.Z</span><span class="muted" style="font-size: 12px">action builds dist and attaches it</span></div>
+      <svg class="arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14 M13 6l6 6-6 6"></path></svg>
+      <div class="step"><span style="font-size: 13px; font-weight: 600">GitHub release</span><span class="muted" style="font-size: 12px">pre-release = beta channel</span></div>
+      <svg class="arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14 M13 6l6 6-6 6"></path></svg>
+      <div class="step"><span style="font-size: 13px; font-weight: 600">Marketplace</span><span class="muted" style="font-size: 12px">users see the update</span></div>
+    </div>
+  </section>
+
+  <section style="display: flex; flex-direction: column; gap: 14px">
+    <h3>Roadmap</h3>
+    <div class="panel" style="padding: 6px 18px">
+      <table class="tbl">
+        <tbody>
+          <tr><td style="width: 80px; font-weight: 600">0.1</td><td>Dial card with editor, detection, write delay. Runs on this HA only.</td></tr>
+          <tr><td style="font-weight: 600">0.2</td><td>Tile and badge. Tile opens the dial as a sheet.</td></tr>
+          <tr><td style="font-weight: 600">0.3</td><td>Cluster card, area and floor grouping.</td></tr>
+          <tr><td style="font-weight: 600">0.9</td><td>Docs site, gallery, diagnostics, issue templates. Fixture and demo-integration tests green.</td></tr>
+          <tr><td style="font-weight: 600; border-bottom: none">1.0</td><td style="border-bottom: none">Submit to the default Marketplace list.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section style="display: flex; flex-direction: column; gap: 14px">
+    <h3>Decided</h3>
+    <div class="panel" style="padding: 6px 18px">
+      <table class="tbl">
+        <tbody>
+          <tr><td style="width: 150px; font-weight: 600">Home</td><td>Personal GitHub account. Can move to an organisation later; GitHub redirects the old URL.</td></tr>
+          <tr><td style="font-weight: 600">License</td><td>MIT</td></tr>
+          <tr><td style="font-weight: 600">Minimum HA</td><td>2025.1, so horizontal swing is always available. <code>hacs.json</code> sets <code>homeassistant: 2025.1.0</code>.</td></tr>
+          <tr><td style="font-weight: 600; border-bottom: none">Non-Daikin testing</td><td style="border-bottom: none">Fixture entities in the test suite (dual setpoint, no fan modes, no swing, Fahrenheit, step 1.0) plus the HA demo integration's thermostats. No public beta.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1100,"height":2400}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

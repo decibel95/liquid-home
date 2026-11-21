@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Step 4: cluster rooms</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0f1218}
+.lc{font-family:'Inter',system-ui,-apple-system,sans-serif;color:#F4F6FA;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer;margin:0}
+button:focus-visible{outline:2px solid #8fc6ff;outline-offset:2px}
+.sw{width:42px;height:26px;flex:none;border-radius:13px;border:none;padding:0;position:relative;transition:background-color .25s}
+.sw span{position:absolute;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .25s cubic-bezier(.3,1.4,.5,1)}
+.seg{display:flex;gap:4px;padding:3px;border-radius:12px;background:#11151c;border:1px solid rgba(255,255,255,.1)}
+.seg button{flex:1;height:34px;border-radius:9px;border:none;font-size:13px;transition:background-color .25s,color .25s}
+</style>
+</helmet>
+<div class="lc" style="width: 620px; height: 560px; box-sizing: border-box; padding: 40px; background: #0f1218; display: flex; flex-direction: column; gap: 18px">
+  <div style="display: flex; flex-direction: column; gap: 6px">
+    <span style="font-size: 13px; font-weight: 500; color: #8fc6ff">Step 4</span>
+    <h2 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.02em">Cluster: every unit, by area</h2>
+    <span style="font-size: 14px; color: rgba(235,240,248,0.72)">The cluster card lists all climate entities on its own. You only exclude, rename or reorder.</span>
+  </div>
+  <div class="seg" role="radiogroup" aria-label="Group by">
+    <sc-for list="{{groupOpts}}" as="g" hint-placeholder-count="2">
+      <button role="radio" aria-checked="{{g.on}}" onClick="{{g.pick}}" style="background: {{g.bg}}; color: {{g.fg}}">{{g.label}}</button>
+    </sc-for>
+  </div>
+  <div style="border-radius: 18px; background: #1a1e26; border: 1px solid rgba(255,255,255,0.08); padding: 4px 16px">
+    <sc-for list="{{units}}" as="u" hint-placeholder-count="3">
+      <div style="display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid {{u.line}}; opacity: {{u.op}}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(235,240,248,0.45)" stroke-width="2" stroke-linecap="round" aria-label="Drag to reorder" role="img"><path d="M9 5h.01 M15 5h.01 M9 12h.01 M15 12h.01 M9 19h.01 M15 19h.01"></path></svg>
+        <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 14px; font-weight: 500">{{u.name}}</span>
+          <span style="font-size: 12px; color: rgba(235,240,248,0.55)">{{u.detail}}</span>
+        </div>
+        <button class="sw" role="switch" aria-checked="{{u.on}}" aria-label="Show {{u.name}}" onClick="{{u.toggle}}" style="background-color: {{u.track}}"><span style="left: {{u.knob}}px"></span></button>
+      </div>
+    </sc-for>
+  </div>
+  <span style="font-size: 13px; line-height: 1.5; color: rgba(235,240,248,0.62)">{{note}}</span>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":620,"height":560}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { by: 'area', on: [true, true, true] };
+  }
+  renderVals() {
+    var self = this, s = this.state;
+    var U = [
+      ['Living Room', 'Area Keuken, renamed. Keuken Airco'],
+      ['Slaapkamer', 'Area Slaapkamer. Slaapkamer Airco'],
+      ['Nagelsalon', 'Area Nagelsalon. Nagelsalon Airco']
+    ];
+    return {
+      groupOpts: [['area', 'Area'], ['floor', 'Floor']].map(function (o) {
+        var on = s.by === o[0];
+        return { label: o[1], on: on, bg: on ? 'rgba(255,255,255,0.14)' : 'transparent', fg: on ? '#ffffff' : 'rgba(235,240,248,0.65)', pick: function () { self.setState({ by: o[0] }); } };
+      }),
+      units: U.map(function (u, i) {
+        var on = s.on[i];
+        return {
+          name: u[0], detail: u[1], on: on, op: on ? 1 : 0.5,
+          line: i < U.length - 1 ? 'rgba(255,255,255,0.06)' : 'transparent',
+          track: on ? '#5ab0ff' : 'rgba(255,255,255,0.18)', knob: on ? 19 : 3,
+          toggle: function () { var a = s.on.slice(); a[i] = !a[i]; self.setState({ on: a }); }
+        };
+      }),
+      note: s.by === 'area'
+        ? 'A unit added to Home Assistant later shows up here by itself, sorted into its area.'
+        : 'Rooms are grouped under the floors you set in Home Assistant. Areas without a floor go to the bottom.'
+    };
+  }
+}
+</script>
+</body>
+</html>

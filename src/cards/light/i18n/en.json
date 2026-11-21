@@ -1,0 +1,42 @@
+{
+  "card": {
+    "name": "Light card",
+    "description": "Glass card for one light: a big brightness pill with Brightness, White and Colour modes, and effects.",
+    "loading": "Loading",
+    "entityNotFound": "Entity not found: {entity}"
+  },
+  "mode": {
+    "group": "Pill mode",
+    "brightness": "Brightness",
+    "white": "White",
+    "colour": "Colour"
+  },
+  "readout": {
+    "brightness": "Brightness",
+    "average": "Brightness, average",
+    "warmth": "Warmth",
+    "tap": "Tap to switch",
+    "on": "On",
+    "kelvinUnit": "K"
+  },
+  "sub": {
+    "on": "On",
+    "onKelvin": "On, {kelvin} K",
+    "group": "{on} of {total} on"
+  },
+  "aria": {
+    "brightness": "{name} brightness",
+    "warmth": "{name} warmth",
+    "colour": "{name} colour",
+    "kelvin": "{value} K",
+    "notWhite": "Not in white mode",
+    "hue": "Hue {value}",
+    "power": "Switch {name}",
+    "effect": "Effect: {value}",
+    "member": "{name}: {value}"
+  },
+  "effect": {
+    "label": "Effect",
+    "none": "None"
+  }
+}

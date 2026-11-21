@@ -1,0 +1,20 @@
+{
+  "card": {
+    "name": "Scheda stanza"
+  },
+  "title": "Luci",
+  "summary": "{n} di {total} accese",
+  "on": "Accesa",
+  "onKelvin": "Accesa, {kelvin} K",
+  "chooseArea": "Scegli un'area nell'editor della scheda.",
+  "empty": "Nessuna luce in quest'area.",
+  "power": "Accendi o spegni {name}",
+  "open": "Apri {name}, {state}",
+  "controls": "Controlli per {name}",
+  "modeGroup": "Modalità colore, {name}",
+  "white": "Bianco",
+  "colour": "Colore",
+  "brightness": "Luminosità",
+  "stepDown": "Abbassa la luminosità",
+  "stepUp": "Alza la luminosità"
+}

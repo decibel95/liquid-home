@@ -1,0 +1,44 @@
+{
+  "name": "liquid-home",
+  "version": "0.1.0",
+  "description": "Liquid Home: glass light card, tile, badge and room card for Home Assistant lights",
+  "license": "MIT",
+  "type": "module",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/decibel95/liquid-home.git"
+  },
+  "homepage": "https://decibel95.github.io/liquid-home",
+  "bugs": {
+    "url": "https://github.com/decibel95/liquid-home/issues"
+  },
+  "scripts": {
+    "dev": "vite --port 5198 --open /dev/",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "size": "node scripts/size.mjs",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
+    "docs:typecheck": "tsc --noEmit -p docs/.vitepress",
+    "media": "node scripts/media/run.mjs",
+    "e2e": "playwright test -c test/e2e/playwright.config.ts"
+  },
+  "dependencies": {
+    "@decibel95/liquid-core": "0.1.1",
+    "lit": "3.2.1"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "ffmpeg-static": "5.3.0",
+    "happy-dom": "15.11.7",
+    "playwright": "1.65.1",
+    "typescript": "5.6.3",
+    "vite": "5.4.11",
+    "vitepress": "1.6.4",
+    "vitest": "2.1.8",
+    "vue": "3.5.45"
+  }
+}

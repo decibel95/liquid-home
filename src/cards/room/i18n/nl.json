@@ -1,0 +1,20 @@
+{
+  "card": {
+    "name": "Kamerkaart"
+  },
+  "title": "Lampen",
+  "summary": "{n} van {total} aan",
+  "on": "Aan",
+  "onKelvin": "Aan, {kelvin} K",
+  "chooseArea": "Kies een ruimte in de kaarteditor.",
+  "empty": "Geen lampen in deze ruimte.",
+  "power": "{name} aan of uit",
+  "open": "{name} openen, {state}",
+  "controls": "Bediening voor {name}",
+  "modeGroup": "Kleurmodus, {name}",
+  "white": "Wit",
+  "colour": "Kleur",
+  "brightness": "Helderheid",
+  "stepDown": "Helderheid lager",
+  "stepUp": "Helderheid hoger"
+}

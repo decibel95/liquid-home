@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Liquid Home foundations</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0b0e14}
+.lc{font-family:'Inter',system-ui,-apple-system,sans-serif;color:#F4F6FA;-webkit-font-smoothing:antialiased;font-feature-settings:'tnum' 1}
+.g-dark{--lc-fg:#f4f6fa;--lc-fg2:rgba(235,240,248,.78);--lc-fg3:rgba(235,240,248,.76);--lc-bg:rgba(18,20,26,.78);--lc-edge:rgba(255,255,255,.12);--lc-shine:rgba(255,255,255,.22);--lc-track:rgba(255,255,255,.14);--lc-bright:#ffffff;--lc-btn:rgba(255,255,255,.05);--lc-btn-edge:rgba(255,255,255,.08);--lc-line:rgba(255,255,255,.09);--lc-rim:rgba(255,255,255,.5);--lc-rim2:rgba(255,255,255,.18);color:var(--lc-fg)}
+.g-light{--lc-fg:#10141b;--lc-fg2:rgba(16,20,27,.62);--lc-fg3:rgba(16,20,27,.62);--lc-bg:rgba(248,249,252,.72);--lc-edge:rgba(0,0,0,.1);--lc-shine:rgba(255,255,255,.7);--lc-track:rgba(16,20,27,.16);--lc-bright:#10141b;--lc-btn:rgba(0,0,0,.04);--lc-btn-edge:rgba(0,0,0,.08);--lc-line:rgba(0,0,0,.1);--lc-rim:rgba(255,255,255,.9);--lc-rim2:rgba(255,255,255,.4);color:var(--lc-fg)}
+.glass{position:relative;box-sizing:border-box;background:var(--lc-bg);-webkit-backdrop-filter:blur(30px) saturate(170%);backdrop-filter:blur(30px) saturate(170%);border:1px solid var(--lc-edge)}
+.rim::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;background:linear-gradient(140deg,var(--lc-rim),rgba(255,255,255,0) 35%,rgba(255,255,255,0) 65%,var(--lc-rim2));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+.orb{position:absolute;border-radius:50%;filter:blur(90px)}
+.k{font-size:12px;font-weight:500;color:rgba(235,240,248,.6)}
+.mono{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px}
+button{font:inherit;color:inherit;cursor:pointer;margin:0;border:1px solid var(--lc-btn-edge);background:var(--lc-btn)}
+button:focus-visible{outline:2px solid var(--lc-bright);outline-offset:2px}
+.press{transition:transform .3s cubic-bezier(.3,1.7,.5,1),background-color .5s ease,border-color .5s ease}
+.press:active{transform:scale(.9)}
+@media (prefers-reduced-motion:reduce){.press{transition:none}}
+</style>
+</helmet>
+<div class="lc" style="width: 1240px; height: 1180px; position: relative; overflow: hidden; background: #0b0e14; box-sizing: border-box; padding: 48px; display: grid; grid-template-columns: 1fr 1fr; gap: 32px 40px; align-content: start">
+  <div class="orb" aria-hidden="true" style="width: 520px; height: 520px; left: -160px; top: 80px; background-color: #24324a; opacity: 0.8"></div>
+  <div class="orb" aria-hidden="true" style="width: 460px; height: 460px; right: -160px; bottom: 60px; background-color: #1d3a3a; opacity: 0.7"></div>
+
+  <section style="position: relative; display: flex; flex-direction: column; gap: 10px; grid-row: span 2">
+    <span class="k">Typography: Inter 200, 300, 400, 500, 600, tabular figures. No new sizes.</span>
+    <sc-for list="{{type}}" as="t" hint-placeholder-count="12">
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 6px">
+        <span style="font-size: {{t.size}}px; font-weight: {{t.w}}; letter-spacing: {{t.ls}}; line-height: 1.1; white-space: nowrap">{{t.sample}}</span>
+        <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex: none">
+          <span class="mono">{{t.size}} / {{t.w}}</span>
+          <span style="font-size: 12px; color: rgba(235,240,248,0.76)">{{t.use}}</span>
+        </span>
+      </div>
+    </sc-for>
+  </section>
+
+  <section style="position: relative; display: flex; flex-direction: column; gap: 10px">
+    <span class="k">Glass (glass.ts, glass-styles.ts): blur 30px saturate 170% on cards, 22px saturate 180% on badges</span>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+      <div class="g-dark glass rim" style="border-radius: 26px; padding: 16px; display: flex; flex-direction: column; gap: 5px; box-shadow: inset 0 1px 0 var(--lc-shine), 0 20px 40px -20px rgba(0,0,0,0.6)">
+        <span style="font-size: 15px; font-weight: 600">Dark glass</span>
+        <sc-for list="{{gd}}" as="g" hint-placeholder-count="10">
+          <span style="display: flex; justify-content: space-between; gap: 8px"><span style="font-size: 12px; color: var(--lc-fg2)">{{g.k}}</span><span class="mono">{{g.v}}</span></span>
+        </sc-for>
+      </div>
+      <div style="border-radius: 26px; background: #e7e9ee; padding: 0">
+        <div class="g-light glass rim" style="height: 100%; border-radius: 26px; padding: 16px; display: flex; flex-direction: column; gap: 5px; box-shadow: inset 0 1px 0 var(--lc-shine), 0 20px 40px -20px rgba(0,0,0,0.6)">
+          <span style="font-size: 15px; font-weight: 600">Light glass</span>
+          <sc-for list="{{gl}}" as="g" hint-placeholder-count="10">
+            <span style="display: flex; justify-content: space-between; gap: 8px"><span style="font-size: 12px; color: var(--lc-fg2)">{{g.k}}</span><span class="mono">{{g.v}}</span></span>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="position: relative; display: flex; flex-direction: column; gap: 10px">
+    <span class="k">Radii (existing). The slider reuses 26 and 22.</span>
+    <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end">
+      <sc-for list="{{radii}}" as="r" hint-placeholder-count="9">
+        <span style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+          <span aria-hidden="true" style="width: 56px; height: 56px; border-radius: {{r.css}}; border: 1px solid rgba(255,255,255,0.28); background: rgba(255,255,255,0.05)"></span>
+          <span class="mono">{{r.v}}</span>
+          <span style="font-size: 11px; color: rgba(235,240,248,0.76)">{{r.use}}</span>
+        </span>
+      </sc-for>
+    </div>
+    <span class="k" style="margin-top: 10px">Spacing (existing gaps and paddings, px)</span>
+    <div style="display: flex; gap: 10px; align-items: flex-end">
+      <sc-for list="{{space}}" as="s" hint-placeholder-count="12">
+        <span style="display: flex; flex-direction: column; align-items: center; gap: 4px">
+          <span aria-hidden="true" style="width: 14px; height: {{s.h}}px; border-radius: 3px; background: rgba(235,240,248,0.5)"></span>
+          <span class="mono">{{s.v}}</span>
+        </span>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="position: relative; display: flex; flex-direction: column; gap: 10px">
+    <span class="k">Shadows (existing)</span>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px">
+      <sc-for list="{{shadows}}" as="s" hint-placeholder-count="4">
+        <div class="g-dark glass rim" style="border-radius: 22px; padding: 14px; display: flex; flex-direction: column; gap: 4px; box-shadow: {{s.css}}">
+          <span style="font-size: 13px; font-weight: 600">{{s.k}}</span>
+          <span class="mono" style="color: var(--lc-fg2); white-space: normal">{{s.css}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="position: relative; display: flex; flex-direction: column; gap: 10px">
+    <span class="k">Motion (existing). look.motion: rich, subtle, minimal</span>
+    <div style="display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; font-size: 13px">
+      <sc-for list="{{motion}}" as="m" hint-placeholder-count="8">
+        <span style="color: rgba(235,240,248,0.78)">{{m.k}}</span><span class="mono">{{m.v}}</span>
+      </sc-for>
+    </div>
+    <span style="font-size: 12px; color: rgba(235,240,248,0.76)">subtle drops particles. minimal also stops ambient loops (tile flame, badge dot, fan spin). prefers-reduced-motion drops all of that plus press and tint transitions. The slider fill follows the same rule: 0.8s ease when HA reports a change, no transition while dragging.</span>
+  </section>
+
+  <section style="position: relative; display: flex; flex-direction: column; gap: 10px">
+    <span class="k">Focus ring TOK-19 (existing values, named focus-ring in liquid-core)</span>
+    <div style="display: flex; gap: 20px; align-items: center">
+      <div class="g-dark glass rim" style="border-radius: 22px; padding: 18px; display: flex; gap: 18px; align-items: center">
+        <span aria-hidden="true" style="width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--lc-btn-edge); background: var(--lc-btn); outline: 2px solid var(--lc-bright); outline-offset: 2px"></span>
+        <span aria-hidden="true" style="width: 40px; height: 72px; border-radius: 16px; background: var(--lc-track); outline: 2px solid var(--lc-bright); outline-offset: 3px"></span>
+      </div>
+      <div style="border-radius: 22px; background: #e7e9ee">
+        <div class="g-light glass rim" style="border-radius: 22px; padding: 18px; display: flex; gap: 18px; align-items: center">
+          <span aria-hidden="true" style="width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--lc-btn-edge); background: var(--lc-btn); outline: 2px solid var(--lc-bright); outline-offset: 2px"></span>
+          <span aria-hidden="true" style="width: 40px; height: 72px; border-radius: 16px; background: var(--lc-track); outline: 2px solid var(--lc-bright); outline-offset: 3px"></span>
+        </div>
+      </div>
+      <span style="font-size: 12px; color: rgba(235,240,248,0.76); max-width: 200px">2px lc-bright. Offset 2px on buttons, 3px on sliders (the dial's svg slider today).</span>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1240,"height":1180}}'>
+class Component extends DCLogic {
+  renderVals() {
+    function row(size, w, ls, sample, use) { return { size: size, w: w, ls: ls, sample: sample, use: use }; }
+    function kv(k, v) { return { k: k, v: v }; }
+    return {
+      type: [
+        row(72, 200, '-0.04em', '71', '18cqw at 400px: dial value, light card readout (TOK-20)'),
+        row(44, 200, '-0.04em', '19.5', 'cluster value, wide'),
+        row(34, 200, '-0.04em', '19.5', 'cluster value, narrow'),
+        row(28, 300, '0', '%', '7cqw at 400px: dial and light card unit (TOK-20)'),
+        row(24, 300, '-0.03em', '71%', 'tile target'),
+        row(22, 600, '-0.02em', 'Living Room', 'cluster and room title'),
+        row(20, 600, '-0.02em', 'Ceiling Lights', 'dial and light card title'),
+        row(16, 600, '-0.01em', 'Kitchen Lights', 'tile name'),
+        row(15, 600, '0', 'Bed Light', 'room tile name'),
+        row(13, 400, '0', 'On, 2631 K', 'sublines, chips, menu'),
+        row(12, 400, '0', '3 of 3 on', 'room footer, badge value'),
+        row(11, 500, '0', 'Colour', 'mode and chip labels'),
+        row(10, 500, '0.1px', 'Office RGBW Lights', 'badge name')
+      ],
+      gd: [kv('bg', 'rgba(18,20,26,0.78)'), kv('fg', '#f4f6fa'), kv('fg2', 'rgba(235,240,248,0.78)'), kv('fg3', 'rgba(235,240,248,0.76)'), kv('bright', '#ffffff'), kv('track', 'rgba(255,255,255,0.14)'), kv('tick', 'rgba(255,255,255,0.28)'), kv('edge', 'rgba(255,255,255,0.12)'), kv('btn / btn-edge', '0.05 / 0.08 white'), kv('rim / rim2', '0.5 / 0.18 white')],
+      gl: [kv('bg', 'rgba(248,249,252,0.72)'), kv('fg', '#10141b'), kv('fg2', 'rgba(16,20,27,0.62)'), kv('fg3', 'rgba(16,20,27,0.62)'), kv('bright', '#10141b'), kv('track', 'rgba(16,20,27,0.16)'), kv('tick', 'rgba(16,20,27,0.32)'), kv('edge', 'rgba(0,0,0,0.1)'), kv('btn / btn-edge', '0.04 / 0.08 black'), kv('rim / rim2', '0.9 / 0.4 white')],
+      radii: [
+        { v: '40', css: '40px', use: 'dial, light card' }, { v: '36', css: '36px', use: 'cluster, room' }, { v: '26', css: '26px', use: 'tile, slider' },
+        { v: '22', css: '22px', use: 'room tile, pill' }, { v: '18', css: '18px', use: 'mode button' }, { v: '16', css: '16px', use: 'chip, power' },
+        { v: '14', css: '14px', use: 'strip mode' }, { v: '12', css: '12px', use: 'link row' }, { v: '50%', css: '50%', use: 'step, power, dial knob' }
+      ],
+      space: [2, 3, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24].map(function (n) { return { v: String(n), h: n * 2 }; }),
+      shadows: [
+        { k: 'Dial, light card', css: 'inset 0 1px 0 var(--lc-shine), 0 40px 80px -24px rgba(0,0,0,0.45)' },
+        { k: 'Cluster, room card', css: 'inset 0 1px 0 var(--lc-shine), 0 40px 80px -24px rgba(0,0,0,0.65)' },
+        { k: 'Tile', css: 'inset 0 1px 0 var(--lc-shine), 0 20px 40px -20px rgba(0,0,0,0.6)' },
+        { k: 'Badge', css: 'inset 0 1px 0 var(--lc-shine), 0 12px 28px -14px rgba(0,0,0,0.6)' }
+      ],
+      motion: [
+        kv('Press spring (transform)', '0.28s / 0.3s cubic-bezier(.3,1.7,.5,1)'),
+        kv('Press scale: dial, tile, cluster', '0.93 / 0.9 / 0.96'),
+        kv('Button fill and edge', '0.5s ease'),
+        kv('Arc colour and opacity, slider fill', '0.8s'),
+        kv('Dial tint', '0.9s ease'),
+        kv('Pointer glow', '0.4s ease'),
+        kv('Value pop', '0.35s cubic-bezier(.3,1.6,.5,1)'),
+        kv('Tile flame, badge dot loops', '2.4s ease-in-out')
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Liquid Home entity colour component</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0b0e14}
+.lc{font-family:'Inter',system-ui,-apple-system,sans-serif;color:#F4F6FA;-webkit-font-smoothing:antialiased;font-feature-settings:'tnum' 1}
+.orb{position:absolute;border-radius:50%;filter:blur(90px)}
+.k{font-size:12px;font-weight:500;color:rgba(235,240,248,.6)}
+.mono{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px}
+.spec{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13px}
+.spec span:nth-child(odd){color:rgba(235,240,248,.78)}
+.id{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;font-weight:600;color:#ffb067}
+.pw{width:44px;height:44px;flex:none;box-sizing:border-box;border-radius:14px;display:flex;align-items:center;justify-content:center}
+.trk{position:relative;width:72px;height:26px;flex:none;box-sizing:border-box;border-radius:13px;overflow:hidden}
+</style>
+</helmet>
+<div class="lc" style="width: 1240px; height: 1500px; position: relative; overflow: hidden; background: #0b0e14; box-sizing: border-box; padding: 48px; display: flex; flex-direction: column; gap: 22px">
+  <div class="orb" aria-hidden="true" style="width: 520px; height: 520px; left: -160px; top: 80px; background-color: #24324a; opacity: 0.8"></div>
+  <div class="orb" aria-hidden="true" style="width: 460px; height: 460px; right: -160px; bottom: 60px; background-color: #1d3a3a; opacity: 0.7"></div>
+
+  <header style="position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 32px">
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <h1 style="margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.02em">entity-colour</h1>
+      <span style="font-size: 13px; color: rgba(235,240,248,0.78)">The lamp colour, drawn only where a mode colour goes today: slider fill, active icon, tile power tint (TINT 0.24 / 0.45), badge circle (0.30), mode button (0.20 / 0.45), card power button (0.28). Never on the glass, the card background or text. It generalises tone(): tone() is a fixed lookup for three palette colours, entity-colour computes the same idea for any colour. MODES keep tone() unchanged (CHO-3).</span>
+      <span style="font-size: 13px; color: rgba(235,240,248,0.78)">Base: dark glass over HA #111111 = <span class="mono">#121318</span>, track over it <span class="mono">#333438</span>; light glass over HA #fafafa = <span class="mono">#f9f9fb</span>, track <span class="mono">#d4d4d7</span>. WCAG 2 luminance, as contrast() in glass.ts.</span>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span class="k">entityColour(rgb, glass)</span>
+      <div class="spec">
+        <span>1. Input</span><span>HA rgb_color, in every colour mode (CHO-5)</span>
+        <span>2. Neutral <span class="id">TOK-12</span></span><span>HSV saturation under 0.20: tone(fan_only), #d5dce6 dark, #64748b light <span class="id">TOK-14</span></span>
+        <span>3. Keep <span class="id">TOK-11</span></span><span>3:1 or more against both the glass base and the slider track: the colour as is</span>
+        <span>4. Step <span class="id">TOK-13</span></span><span>else in OKLCH: keep hue, move L by 0.01 (up on dark glass, down on light), clamp chroma to the sRGB gamut, until 3:1 against both</span>
+        <span>Icon</span><span>lc-bright on the 0.24 tint over the base; lowest in this table 8.97:1</span>
+      </div>
+    </div>
+  </header>
+
+  <section style="position: relative; display: grid; grid-template-columns: 300px 1fr 1fr; border-radius: 22px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08)">
+    <span style="padding: 10px 14px; background: rgba(255,255,255,0.06); font-size: 12px; font-weight: 600">Input (ID)</span>
+    <span style="padding: 10px 14px; background: #121318; font-size: 12px; font-weight: 600; color: #f4f6fa">Dark glass: tile icon, fill on track, output, base / track ratio</span>
+    <span style="padding: 10px 14px; background: #f9f9fb; font-size: 12px; font-weight: 600; color: #10141b">Light glass: tile icon, fill on track, output, base / track ratio</span>
+    <sc-for list="{{rows}}" as="r" hint-placeholder-count="13">
+      <div style="padding: 8px 14px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; gap: 12px">
+        <span aria-hidden="true" style="width: 28px; height: 28px; flex: none; border-radius: 50%; background: {{r.inp}}; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2)"></span>
+        <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+          <span style="font-size: 13px; font-weight: 600">{{r.name}} <span class="id">{{r.id}}</span></span>
+          <span class="mono" style="color: rgba(235,240,248,0.76)">{{r.inp}}, sat {{r.sat}}, as is {{r.ind}} / {{r.inl}}</span>
+        </span>
+      </div>
+      <div style="padding: 8px 14px; background: #121318; display: flex; align-items: center; gap: 12px; color: #f4f6fa">
+        <span class="pw" aria-hidden="true" style="background: {{r.dTint}}; border: 1px solid {{r.dEdge}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5 M9 18h6 M10 22h4"></path></svg></span>
+        <span class="trk" aria-hidden="true" style="background: #333438"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: 60%; background: {{r.dOut}}"></span></span>
+        <span style="display: flex; flex-direction: column; gap: 2px">
+          <span class="mono" style="font-weight: 600">{{r.dOut}}  {{r.dBase}} / {{r.dTrack}}</span>
+          <span style="font-size: 12px; color: rgba(235,240,248,0.76)">{{r.dHow}}, icon {{r.dIcon}}:1</span>
+        </span>
+      </div>
+      <div style="padding: 8px 14px; background: #f9f9fb; display: flex; align-items: center; gap: 12px; color: #10141b">
+        <span class="pw" aria-hidden="true" style="background: {{r.lTint}}; border: 1px solid {{r.lEdge}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10141b" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5 M9 18h6 M10 22h4"></path></svg></span>
+        <span class="trk" aria-hidden="true" style="background: #d4d4d7"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: 60%; background: {{r.lOut}}"></span></span>
+        <span style="display: flex; flex-direction: column; gap: 2px">
+          <span class="mono" style="font-weight: 600">{{r.lOut}}  {{r.lBase}} / {{r.lTrack}}</span>
+          <span style="font-size: 12px; color: rgba(16,20,27,0.62)">{{r.lHow}}, icon {{r.lIcon}}:1</span>
+        </span>
+      </div>
+    </sc-for>
+  </section>
+
+  <section style="position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 24px">
+    <div style="border-radius: 22px; border: 1px solid rgba(255,255,255,0.12); padding: 16px; display: flex; flex-direction: column; gap: 12px">
+      <span style="font-size: 15px; font-weight: 600">Decision <span class="id">CHO-1</span>: colour-temperature lights</span>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+        <sc-for list="{{cho1}}" as="o" hint-placeholder-count="2">
+          <div style="display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 16px; border: {{o.border}}">
+            <span style="font-size: 13px; font-weight: 600">{{o.title}}</span>
+            <div style="display: flex; gap: 8px">
+              <span style="display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 14px; background: #121318">
+                <span class="pw" aria-hidden="true" style="background: {{o.dTint}}; border: 1px solid {{o.dEdge}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5 M9 18h6 M10 22h4"></path></svg></span>
+                <span class="trk" aria-hidden="true" style="width: 40px; background: #333438"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: 70%; background: {{o.d}}"></span></span>
+              </span>
+              <span style="display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 14px; background: #f9f9fb">
+                <span class="pw" aria-hidden="true" style="background: {{o.lTint}}; border: 1px solid {{o.lEdge}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10141b" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5 M9 18h6 M10 22h4"></path></svg></span>
+                <span class="trk" aria-hidden="true" style="width: 40px; background: #d4d4d7"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: 70%; background: {{o.l}}"></span></span>
+              </span>
+            </div>
+            <span style="font-size: 12px; color: rgba(235,240,248,0.78)">{{o.text}}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px; color: rgba(235,240,248,0.78)">
+      <span><span class="id">CHO-4</span> Every light group draws the neutral, mixed or not. Member colours stay on the group's chips and on the room card icons.</span>
+      <span><span class="id">CON-13</span> Gap, recorded: today's MODES measure 1.76 (dry) to 2.42 (off) against the light base, below 3:1. They stay unchanged so the Liquid Climate migration can pixel-diff to 0 (CHO-3).</span>
+      <span><span class="id">CON-14</span> Gap, recorded: these ratios use the glass over HA's own page colours. test/glass.test.ts (line 122) checks text over pure white and pure black backdrops; dark glass on a white page or light glass on a black page is not covered here, and today's mode colours fail 3:1 there too.</span>
+      <span>Kelvin rows (2700 to 6500 K) would only apply with CHO-1 option A. Option B was chosen, so every colour-temperature light is neutral; the rows stay for the record.</span>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1240,"height":1500}}'>
+class Component extends DCLogic {
+  rgba(hex, a) {
+    var n = parseInt(hex.slice(1), 16);
+    return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+  }
+  renderVals() {
+    var self = this;
+    function f(x) { return Number(x).toFixed(2); }
+    function r(name, inp, sat, ind, inl, dOut, dHow, dBase, dTrack, dIcon, lOut, lHow, lBase, lTrack, lIcon, id) {
+      return {
+        name: name, id: id, inp: inp, sat: f(sat), ind: f(ind), inl: f(inl),
+        dOut: dOut, dHow: dHow, dBase: f(dBase), dTrack: f(dTrack), dIcon: f(dIcon), dTint: self.rgba(dOut, 0.24), dEdge: self.rgba(dOut, 0.45),
+        lOut: lOut, lHow: lHow, lBase: f(lBase), lTrack: f(lTrack), lIcon: f(lIcon), lTint: self.rgba(lOut, 0.24), lEdge: self.rgba(lOut, 0.45)
+      };
+    }
+    function opt(title, d, l, text, rec) {
+      return { title: title, d: d, l: l, text: text, border: rec ? '2px solid rgba(235,240,248,0.6)' : '1px dashed rgba(255,255,255,0.28)',
+        dTint: self.rgba(d, 0.24), dEdge: self.rgba(d, 0.45), lTint: self.rgba(l, 0.24), lEdge: self.rgba(l, 0.45) };
+    }
+    return {
+      rows: [
+        r('2700 K', '#ffa757', 0.66, 6.46, 1.3, '#ffa757', 'kept', 9.64, 6.46, 11.2, '#ae6200', 'adjusted', 4.39, 3.12, 12.89, 'CON-9'),
+        r('4000 K', '#ffcea6', 0.35, 8.66, 1.03, '#ffcea6', 'kept', 12.92, 8.66, 10.03, '#9a6e49', 'adjusted', 4.25, 3.02, 13.15, 'CON-9'),
+        r('4500 K', '#ffdabb', 0.27, 9.47, 1.13, '#ffdabb', 'kept', 14.13, 9.47, 9.66, '#917054', 'adjusted', 4.3, 3.05, 13.12, 'CON-9'),
+        r('5000 K', '#ffe4ce', 0.19, 10.21, 1.16, '#d5dce6', 'neutral', 13.43, 9.0, 9.89, '#64748b', 'neutral', 4.53, 3.22, 13.03, 'CON-9'),
+        r('6500 K', '#fffefa', 0.02, 12.32, 1.04, '#d5dce6', 'neutral', 13.43, 9.0, 9.89, '#64748b', 'neutral', 4.53, 3.22, 13.03, 'CON-1'),
+        r('Saturated red', '#ff0000', 1.0, 3.11, 2.7, '#ff0000', 'kept', 4.64, 3.11, 15.32, '#ef0000', 'adjusted', 4.28, 3.04, 11.41, 'CON-2'),
+        r('Yellow', '#ffff00', 1.0, 11.58, 1.02, '#ffff00', 'kept', 17.27, 11.58, 8.97, '#797900', 'adjusted', 4.39, 3.12, 12.97, 'CON-3'),
+        r('Blue', '#0000ff', 1.0, 1.45, 5.81, '#3b74ff', 'adjusted', 4.53, 3.04, 14.06, '#0000ff', 'kept', 8.17, 5.81, 10.41, 'CON-4'),
+        r('Pastel, hs 200 / 30', '#b2e5ff', 0.3, 9.2, 1.09, '#b2e5ff', 'kept', 13.73, 9.2, 9.85, '#4d7d94', 'adjusted', 4.27, 3.04, 13.11, 'CON-5'),
+        r('Ceiling Lights, 2631 K', '#ffa452', 0.68, 6.33, 1.33, '#ffa452', 'kept', 9.44, 6.33, 11.32, '#b16200', 'adjusted', 4.33, 3.08, 12.92, 'CON-9'),
+        r('Kitchen, Entrance (demo)', '#ff4070', 0.75, 3.68, 2.28, '#ff4070', 'kept', 5.49, 3.68, 13.79, '#e51f5c', 'adjusted', 4.27, 3.03, 12.12, 'CON-6'),
+        r('Living Room RGBWW (demo)', '#ff7f7d', 0.51, 5.08, 1.65, '#ff7f7d', 'kept', 7.58, 5.08, 12.23, '#c74c4e', 'adjusted', 4.37, 3.11, 12.7, 'CON-7'),
+        r('Office RGBW (demo)', '#ff8080', 0.5, 5.12, 1.64, '#ff8080', 'kept', 7.64, 5.12, 12.22, '#c74e51', 'adjusted', 4.31, 3.06, 12.79, 'CON-8')
+      ],
+      cho1: [
+        opt('Option B, chosen (recommended option): neutral', '#d5dce6', '#64748b', 'Every colour-temperature light draws the neutral; warmth shows only on the colour temperature track. Reason: 2631 K (#ffa452) is 19.4 RGB units from heat #ff9447, below the 20-unit colour distance that test/glass.test.ts uses as the visible minimum.', true),
+        opt('Option A, not chosen, kept for the record: lamp colour', '#ffa452', '#b16200', 'The lamp colour through entity-colour (CON-9). A warm lamp looks warm, but it reads as heating next to climate cards.', false)
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

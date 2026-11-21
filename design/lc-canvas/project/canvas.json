@@ -1,0 +1,28 @@
+{
+  "v": 3,
+  "createdOnFiles": {"v": 1, "at": "2026-11-13T10:45:00Z"},
+  "title": "Liquid Climate",
+  "launch": {"view": "canvas"},
+  "pages": [{"id": "cards", "name": "Cards"}, {"id": "setup", "name": "Setup and package"}],
+  "boards": {
+    "Main.dc.html": {"x": 0, "y": 0, "w": 540, "h": 1060, "title": "Dial card (liquid-climate-card)", "is_interactive": true, "radius": 0},
+    "Cluster.dc.html": {"x": 620, "y": 0, "w": 900, "h": 600, "title": "House cluster (liquid-climate-cluster)", "is_interactive": true},
+    "Tile.dc.html": {"x": 620, "y": 720, "w": 460, "h": 420, "title": "Compact tile (liquid-climate-tile)", "is_interactive": true},
+    "States.dc.html": {"x": 1160, "y": 720, "w": 900, "h": 420, "title": "Tile states"},
+    "Badges.dc.html": {"x": 620, "y": 1260, "w": 1440, "h": 200, "title": "Badges (liquid-climate-badge)"},
+    "Setup1Install.dc.html": {"x": 0, "y": 0, "w": 620, "h": 520, "title": "1. Install", "page": "setup"},
+    "Setup2Picker.dc.html": {"x": 700, "y": 0, "w": 620, "h": 520, "title": "2. Add card", "page": "setup"},
+    "Setup3Editor.dc.html": {"x": 0, "y": 640, "w": 1320, "h": 860, "title": "3. Configure in the visual editor", "page": "setup", "is_interactive": true},
+    "Setup4Cluster.dc.html": {"x": 0, "y": 1620, "w": 620, "h": 560, "title": "4. Cluster: rooms by area", "page": "setup", "is_interactive": true},
+    "Setup5Support.dc.html": {"x": 700, "y": 1620, "w": 620, "h": 560, "title": "5. Updates and support", "page": "setup"},
+    "Package.dc.html": {"x": 1420, "y": 0, "w": 1100, "h": 2400, "title": "Package overview", "page": "setup"}
+  },
+  "order": ["Main.dc.html", "Cluster.dc.html", "Tile.dc.html", "States.dc.html", "Badges.dc.html", "Setup1Install.dc.html", "Setup2Picker.dc.html", "Setup3Editor.dc.html", "Setup4Cluster.dc.html", "Setup5Support.dc.html", "Package.dc.html"],
+  "notes": {
+    "title": {"x": 0, "y": -300, "text": "Liquid Climate: card set", "kind": "title1", "maxW": 2060},
+    "spec": {"x": -460, "y": 0, "w": 380, "size": "s", "fill": "blue", "text": "Spec decisions\n\n- Built on HA climate features: hvac_modes, fan_modes, swing_modes, swing_horizontal_modes, preset_modes, target_temp_step. Dual setpoints (feature 2) render as two knobs on the inner ring.\n- Daikin Onecta auto-detect: humidity, outdoor temp, energy day/week/month, cloud rate limit, error/warning/caution states.\n- Inner ring = setpoint, outer ring = fan (auto, quiet, 1-5). Both draggable.\n- Writes debounced 1.5 s after release; taps coalesce into one call.\n- temperature_sensor option: shows external room sensor, unit reading small.\n- status_entities slot under the dial.\n- Glass tint follows hvac mode. Rich motion, off under prefers-reduced-motion.\n- English only, visual editor, CSS variables for tint, blur, radius."},
+    "setupTitle": {"x": 0, "y": -300, "text": "Liquid Climate: setup and package", "kind": "title1", "maxW": 2520, "page": "setup"},
+    "finding": {"x": -460, "y": 640, "w": 380, "size": "s", "fill": "orange", "page": "setup", "text": "Finding from your HA (13 Nov)\n\nOn Daikin Onecta the climate entity's own device holds only 2 entities (climate + refresh). Humidity, outdoor temp, energy and health live on child devices (regeling, gateway, indoor and outdoor unit) linked by via_device.\n\nSo detection walks the device family, not just the device. Matching uses device_class, unit and translation_key, never the entity name: your sensors are renamed to Dutch."}
+  },
+  "designSystems": []
+}

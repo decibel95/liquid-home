@@ -1,0 +1,323 @@
+{
+  "source": "Liquid Climate 0.11.1, commit 373b340. Recorded by test/cards/tile/extract-lc-style.mjs from the styles of src/cards/tile/liquid-climate-tile.ts and src/cards/badge/liquid-climate-badge.ts (top-level rules with the source line of the selector; at-rules by prelude). Read-only reference for the Liquid Home tile and badge parity test; regenerate only from a Liquid Climate release.",
+  "tile": {
+    ":host": {
+      "line": 253,
+      "display": "block"
+    },
+    ".tile": {
+      "line": 256,
+      "font-family": "'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+      "-webkit-font-smoothing": "antialiased",
+      "font-feature-settings": "'tnum' 1",
+      "position": "relative",
+      "box-sizing": "border-box",
+      "height": "96px",
+      "padding": "0 12px 0 14px",
+      "display": "flex",
+      "align-items": "center",
+      "gap": "14px",
+      "border-radius": "var(--lc-radius, 26px)",
+      "color": "var(--lc-fg)",
+      "background": "var(--lc-bg)",
+      "backdrop-filter": "blur(var(--lc-blur, var(--_blur, 30px))) saturate(170%)",
+      "-webkit-backdrop-filter": "blur(var(--lc-blur, var(--_blur, 30px))) saturate(170%)",
+      "border": "1px solid var(--lc-edge)",
+      "box-shadow": "inset 0 1px 0 var(--lc-shine), 0 20px 40px -20px rgba(0, 0, 0, 0.6)"
+    },
+    "button": {
+      "line": 277,
+      "font": "inherit",
+      "color": "inherit",
+      "cursor": "pointer",
+      "margin": "0",
+      "border": "1px solid var(--lc-btn-edge)",
+      "background": "var(--lc-btn)"
+    },
+    "button:focus-visible": {
+      "line": 285,
+      "outline": "2px solid var(--lc-bright)",
+      "outline-offset": "2px"
+    },
+    "button:disabled": {
+      "line": 289,
+      "cursor": "default"
+    },
+    ".press": {
+      "line": 292,
+      "transition": "transform 0.3s cubic-bezier(0.3, 1.7, 0.5, 1), background-color 0.5s ease, border-color 0.5s ease"
+    },
+    ".press:active:not(:disabled)": {
+      "line": 298,
+      "transform": "scale(0.9)"
+    },
+    ".power": {
+      "line": 301,
+      "width": "50px",
+      "height": "50px",
+      "flex": "none",
+      "border-radius": "16px",
+      "padding": "0",
+      "display": "flex",
+      "align-items": "center",
+      "justify-content": "center"
+    },
+    ".power:disabled": {
+      "line": 311,
+      "opacity": "0.5"
+    },
+    ".body": {
+      "line": 314,
+      "flex": "1 1 auto",
+      "min-width": "0",
+      "display": "flex",
+      "flex-direction": "column",
+      "gap": "3px",
+      "padding": "0",
+      "border": "none",
+      "background": "none",
+      "text-align": "left",
+      "border-radius": "8px"
+    },
+    ".name": {
+      "line": 326,
+      "font-size": "16px",
+      "font-weight": "600",
+      "letter-spacing": "-0.01em",
+      "white-space": "nowrap",
+      "overflow": "hidden",
+      "text-overflow": "ellipsis"
+    },
+    ".sub": {
+      "line": 334,
+      "font-size": "13px",
+      "color": "var(--lc-fg2)",
+      "white-space": "nowrap",
+      "overflow": "hidden",
+      "text-overflow": "ellipsis"
+    },
+    ".sub.err": {
+      "line": 341,
+      "color": "var(--lc-warn)"
+    },
+    ".sr": {
+      "line": 344,
+      "position": "absolute",
+      "width": "1px",
+      "height": "1px",
+      "margin": "-1px",
+      "padding": "0",
+      "overflow": "hidden",
+      "clip": "rect(0 0 0 0)",
+      "white-space": "nowrap",
+      "border": "0"
+    },
+    ".steps": {
+      "line": 355,
+      "display": "flex",
+      "align-items": "center",
+      "gap": "2px",
+      "flex": "none"
+    },
+    ".step": {
+      "line": 361,
+      "width": "44px",
+      "height": "44px",
+      "border-radius": "50%",
+      "padding": "0",
+      "display": "flex",
+      "align-items": "center",
+      "justify-content": "center"
+    },
+    ".step:disabled": {
+      "line": 370,
+      "opacity": "0.3"
+    },
+    ".target": {
+      "line": 373,
+      "width": "64px",
+      "text-align": "center",
+      "font-size": "24px",
+      "font-weight": "300",
+      "letter-spacing": "-0.03em",
+      "white-space": "nowrap"
+    },
+    ".target.range": {
+      "line": 381,
+      "width": "auto",
+      "min-height": "44px",
+      "padding": "0 14px",
+      "border-radius": "22px",
+      "font-size": "20px"
+    },
+    ".flick": {
+      "line": 388,
+      "animation": "lcFlick 2.4s ease-in-out infinite",
+      "transform-origin": "50% 90%"
+    }
+  },
+  "badge": {
+    ":host": {
+      "line": 174,
+      "display": "inline-block",
+      "max-width": "100%"
+    },
+    ".wrap": {
+      "line": 178,
+      "display": "contents"
+    },
+    ".g-dark": {
+      "line": 181,
+      "--lc-ring": "${unsafeCSS(DOT_RING.dark)}"
+    },
+    ".g-light": {
+      "line": 184,
+      "--lc-ring": "${unsafeCSS(DOT_RING.light)}"
+    },
+    ".badge": {
+      "line": 188,
+      "--_size": "var(--ha-badge-size, 36px)",
+      "font": "inherit",
+      "font-family": "'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+      "-webkit-font-smoothing": "antialiased",
+      "font-feature-settings": "'tnum' 1",
+      "position": "relative",
+      "box-sizing": "border-box",
+      "height": "var(--_size)",
+      "min-width": "var(--_size)",
+      "margin": "0",
+      "display": "flex",
+      "align-items": "center",
+      "color": "var(--lc-fg)",
+      "background-color": "var(--lc-bg)",
+      "backdrop-filter": "blur(var(--lc-blur, var(--_blur, 22px))) saturate(180%)",
+      "-webkit-backdrop-filter": "blur(var(--lc-blur, var(--_blur, 22px))) saturate(180%)",
+      "border": "1px solid var(--lc-edge)",
+      "border-radius": "var(--ha-badge-border-radius, calc(var(--ha-badge-size, 36px) / 2))",
+      "box-shadow": "inset 0 1px 0 var(--lc-shine), 0 12px 28px -14px rgba(0, 0, 0, 0.6)",
+      "text-align": "left"
+    },
+    "button.badge": {
+      "line": 212,
+      "cursor": "pointer"
+    },
+    "button.badge:focus-visible": {
+      "line": 215,
+      "outline": "2px solid var(--lc-bright)",
+      "outline-offset": "2px"
+    },
+    ".pill": {
+      "line": 219,
+      "max-width": "100%",
+      "padding": "0 12px",
+      "gap": "var(--ha-space-2, 8px)"
+    },
+    ".round": {
+      "line": 224,
+      "width": "var(--_size)",
+      "padding": "0",
+      "justify-content": "center"
+    },
+    ".ic": {
+      "line": 229,
+      "flex": "none",
+      "display": "flex",
+      "align-items": "center",
+      "justify-content": "center",
+      "color": "var(--lc-bright)"
+    },
+    ".ic svg": {
+      "line": 236,
+      "width": "var(--ha-badge-icon-size, 18px)",
+      "height": "var(--ha-badge-icon-size, 18px)"
+    },
+    ".pill .ic": {
+      "line": 241,
+      "width": "calc(var(--_size) - 8px)",
+      "height": "calc(var(--_size) - 8px)",
+      "margin-inline-start": "-8px",
+      "border-radius": "50%"
+    },
+    ".txt": {
+      "line": 247,
+      "display": "flex",
+      "flex-direction": "column",
+      "min-width": "0"
+    },
+    ".n": {
+      "line": 252,
+      "font-size": "var(--ha-font-size-xs, 10px)",
+      "font-weight": "var(--ha-font-weight-medium, 500)",
+      "line-height": "10px",
+      "letter-spacing": "0.1px",
+      "color": "var(--lc-fg2)",
+      "white-space": "nowrap",
+      "overflow": "hidden",
+      "text-overflow": "ellipsis"
+    },
+    ".v": {
+      "line": 262,
+      "font-size": "var(--ha-badge-font-size, var(--ha-font-size-s, 12px))",
+      "font-weight": "var(--ha-font-weight-medium, 500)",
+      "line-height": "var(--ha-line-height-condensed, 1.2)",
+      "letter-spacing": "0.1px",
+      "white-space": "nowrap"
+    },
+    ".dot": {
+      "line": 269,
+      "position": "absolute",
+      "right": "1px",
+      "top": "1px",
+      "width": "8px",
+      "height": "8px",
+      "box-sizing": "content-box",
+      "border-radius": "50%",
+      "box-shadow": "0 0 0 2px var(--lc-ring)",
+      "animation": "lcDot 2.4s ease-in-out infinite"
+    },
+    ".m-minimal .dot": {
+      "line": 291,
+      "animation": "none"
+    }
+  },
+  "atRules": {
+    "tile": {
+      "@keyframes lcFlick": {
+        "0%, 100%": {
+          "transform": "scale(1) rotate(0)"
+        },
+        "30%": {
+          "transform": "scale(1.06, 0.97) rotate(-3deg)"
+        },
+        "60%": {
+          "transform": "scale(0.97, 1.05) rotate(3deg)"
+        }
+      },
+      "@media (prefers-reduced-motion: reduce)": {
+        ".flick": {
+          "animation": "none"
+        },
+        ".press": {
+          "transition": "none"
+        }
+      }
+    },
+    "badge": {
+      "@keyframes lcDot": {
+        "0%, 100%": {
+          "opacity": "0.5",
+          "transform": "scale(0.85)"
+        },
+        "50%": {
+          "opacity": "1",
+          "transform": "scale(1.1)"
+        }
+      },
+      "@media (prefers-reduced-motion: reduce)": {
+        ".dot": {
+          "animation": "none"
+        }
+      }
+    }
+  }
+}

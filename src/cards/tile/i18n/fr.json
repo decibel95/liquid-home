@@ -1,0 +1,14 @@
+{
+  "card": {
+    "name": "Tuile lumière"
+  },
+  "ariaTile": "Lumière {name}",
+  "power": "Allumer ou éteindre {name}",
+  "stepDown": "Baisser la luminosité",
+  "stepUp": "Augmenter la luminosité",
+  "on": "Allumée",
+  "onKelvin": "Allumée, {kelvin} K",
+  "groupOn": "{on}/{total} allumées",
+  "loading": "Chargement",
+  "entityNotFound": "Entité {entity} introuvable"
+}

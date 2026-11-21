@@ -1,0 +1,20 @@
+{
+  "card": {
+    "name": "Carte pièce"
+  },
+  "title": "Lumières",
+  "summary": "{n}/{total} allumées",
+  "on": "Allumée",
+  "onKelvin": "Allumée, {kelvin} K",
+  "chooseArea": "Choisissez une pièce dans l'éditeur de carte.",
+  "empty": "Aucune lumière dans cette pièce.",
+  "power": "Allumer ou éteindre {name}",
+  "open": "Ouvrir {name}, {state}",
+  "controls": "Commandes de {name}",
+  "modeGroup": "Mode de couleur, {name}",
+  "white": "Blanc",
+  "colour": "Couleur",
+  "brightness": "Luminosité",
+  "stepDown": "Baisser la luminosité",
+  "stepUp": "Augmenter la luminosité"
+}

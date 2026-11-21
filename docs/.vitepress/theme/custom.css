@@ -1,0 +1,7 @@
+/* Docs chrome stays plain: the glass look belongs to the cards only. */
+
+/* Screenshots in two themes: html.dark is set by VitePress. */
+.dark .light-only,
+html:not(.dark) .dark-only {
+  display: none;
+}

@@ -1,0 +1,20 @@
+{
+  "card": {
+    "name": "Raumkarte"
+  },
+  "title": "Lichter",
+  "summary": "{n} von {total} an",
+  "on": "An",
+  "onKelvin": "An, {kelvin} K",
+  "chooseArea": "Wähle einen Bereich im Karteneditor.",
+  "empty": "Keine Lichter in diesem Bereich.",
+  "power": "{name} schalten",
+  "open": "{name} öffnen, {state}",
+  "controls": "Steuerung für {name}",
+  "modeGroup": "Farbmodus, {name}",
+  "white": "Weiß",
+  "colour": "Farbe",
+  "brightness": "Helligkeit",
+  "stepDown": "Helligkeit verringern",
+  "stepUp": "Helligkeit erhöhen"
+}

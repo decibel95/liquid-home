@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Liquid Home slider component</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0b0e14}
+.lc{font-family:'Inter',system-ui,-apple-system,sans-serif;color:#F4F6FA;-webkit-font-smoothing:antialiased;font-feature-settings:'tnum' 1}
+.g-dark{--lc-fg:#f4f6fa;--lc-fg2:rgba(235,240,248,.78);--lc-fg3:rgba(235,240,248,.76);--lc-bg:rgba(18,20,26,.78);--lc-edge:rgba(255,255,255,.12);--lc-shine:rgba(255,255,255,.22);--lc-track:rgba(255,255,255,.14);--lc-bright:#ffffff;--lc-btn:rgba(255,255,255,.05);--lc-btn-edge:rgba(255,255,255,.08);--lc-line:rgba(255,255,255,.09);--lc-rim:rgba(255,255,255,.5);--lc-rim2:rgba(255,255,255,.18);color:var(--lc-fg)}
+.g-light{--lc-fg:#10141b;--lc-fg2:rgba(16,20,27,.62);--lc-fg3:rgba(16,20,27,.62);--lc-bg:rgba(248,249,252,.72);--lc-edge:rgba(0,0,0,.1);--lc-shine:rgba(255,255,255,.7);--lc-track:rgba(16,20,27,.16);--lc-bright:#10141b;--lc-btn:rgba(0,0,0,.04);--lc-btn-edge:rgba(0,0,0,.08);--lc-line:rgba(0,0,0,.1);--lc-rim:rgba(255,255,255,.9);--lc-rim2:rgba(255,255,255,.4);color:var(--lc-fg)}
+.glass{position:relative;box-sizing:border-box;background:var(--lc-bg);-webkit-backdrop-filter:blur(30px) saturate(170%);backdrop-filter:blur(30px) saturate(170%);border:1px solid var(--lc-edge);box-shadow:inset 0 1px 0 var(--lc-shine),0 40px 80px -24px rgba(0,0,0,.45)}
+.rim::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;background:linear-gradient(140deg,var(--lc-rim),rgba(255,255,255,0) 35%,rgba(255,255,255,0) 65%,var(--lc-rim2));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+.orb{position:absolute;border-radius:50%;filter:blur(90px)}
+.k{font-size:12px;font-weight:500;color:rgba(235,240,248,.6)}
+.mono{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px}
+.id{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;font-weight:600;color:#ffb067}
+.sl{position:relative;width:96px;height:280px;box-sizing:border-box;border-radius:26px;background:var(--lc-track);border:1px solid var(--lc-btn-edge);overflow:hidden}
+.sl:focus-visible{outline:2px solid var(--lc-bright);outline-offset:3px}
+.kc{position:absolute;top:3px;width:4px;height:36px;box-sizing:border-box;border-radius:2px;background:#ffffff;border:1px solid #10141b}
+.alt{position:absolute;left:calc(var(--p) - 1px);width:2px;height:6px;border-radius:1px;background:var(--lc-bright)}
+.track{position:relative;height:44px;border-radius:22px;box-sizing:border-box;border:1px solid var(--lc-btn-edge)}
+.spec{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13px}
+.spec span:nth-child(odd){color:rgba(235,240,248,.78)}
+</style>
+</helmet>
+<div class="lc" style="width: 1240px; height: 1420px; position: relative; overflow: hidden; background: #0b0e14; box-sizing: border-box; padding: 48px; display: grid; grid-template-columns: 768px 1fr; gap: 24px 36px; align-content: start">
+  <div class="orb" aria-hidden="true" style="width: 520px; height: 520px; left: -160px; top: 80px; background-color: #24324a; opacity: 0.8"></div>
+  <div class="orb" aria-hidden="true" style="width: 460px; height: 460px; right: -160px; bottom: 60px; background-color: #1d3a3a; opacity: 0.7"></div>
+
+  <header style="position: relative; grid-column: span 2; display: flex; flex-direction: column; gap: 6px">
+    <h1 style="margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.02em">slider</h1>
+    <span style="font-size: 13px; color: rgba(235,240,248,0.78)">One component, one spec, for every brightness and level control in Liquid Home. Colour: Kitchen Lights through entity-colour (#ff4070 dark, #e51f5c light). The vertical slider has no knob: the fill edge shows the level, as in Apple Home.</span>
+  </header>
+
+  <div style="position: relative; display: flex; flex-direction: column; gap: 20px">
+    <section class="g-dark glass rim" style="border-radius: 40px; padding: 24px 28px; display: flex; flex-direction: column; gap: 14px">
+      <span style="font-size: 13px; color: var(--lc-fg2)">Dark glass</span>
+      <div style="display: flex; gap: 24px">
+        <sc-for list="{{dk}}" as="s" hint-placeholder-count="6">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 10px">
+            <span style="font-size: 13px; font-weight: 600">{{s.val}}</span>
+            <div class="sl" role="slider" tabindex="0" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{s.now}}" aria-valuetext="{{s.val}}" aria-label="Brightness, Kitchen Lights" aria-disabled="{{s.dis}}" style="opacity: {{s.op}}; outline: {{s.ol}}; outline-offset: 3px">
+              <div aria-hidden="true" style="position: absolute; left: 0; right: 0; bottom: 0; height: {{s.pct}}%; background: #ff4070"></div>
+            </div>
+            <span style="font-size: 12px; color: var(--lc-fg3); text-align: center; width: 96px">{{s.label}}</span>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <div style="border-radius: 40px; background: #e7e9ee; padding: 0">
+      <section class="g-light glass rim" style="border-radius: 40px; padding: 24px 28px; display: flex; flex-direction: column; gap: 14px">
+        <span style="font-size: 13px; color: var(--lc-fg2)">Light glass</span>
+        <div style="display: flex; gap: 24px">
+          <sc-for list="{{lt}}" as="s" hint-placeholder-count="6">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 10px">
+              <span style="font-size: 13px; font-weight: 600">{{s.val}}</span>
+              <div class="sl" role="slider" tabindex="0" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{s.now}}" aria-valuetext="{{s.val}}" aria-label="Brightness, Kitchen Lights" aria-disabled="{{s.dis}}" style="opacity: {{s.op}}; outline: {{s.ol}}; outline-offset: 3px">
+                <div aria-hidden="true" style="position: absolute; left: 0; right: 0; bottom: 0; height: {{s.pct}}%; background: #e51f5c"></div>
+              </div>
+              <span style="font-size: 12px; color: var(--lc-fg3); text-align: center; width: 96px">{{s.label}}</span>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+    </div>
+
+    <section style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px">
+      <div class="g-dark glass rim" style="border-radius: 26px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+        <span style="font-size: 13px; color: var(--lc-fg2)">Compact <span class="id">TOK-5</span> with marker.compact <span class="id">TOK-6</span> on the spectrum <span class="id">TOK-7</span></span>
+        <div style="display: flex; justify-content: space-between; font-size: 13px"><span style="color: var(--lc-fg2)">Colour temperature</span><span style="font-weight: 600">2631 K</span></div>
+        <div class="track" role="slider" tabindex="0" aria-orientation="horizontal" aria-valuemin="2000" aria-valuemax="6535" aria-valuenow="2631" aria-valuetext="2631 K" aria-label="Colour temperature, Ceiling Lights" style="background: linear-gradient(90deg, #ff890e 0%, #ffa757 15.4%, #ffc18d 33.1%, #ffdabb 55.1%, #ffedde 77.2%, #fffffb 100%)">
+          <span class="kc" aria-hidden="true" style="left: calc(13.9% - 2px)"></span>
+        </div>
+        <div style="font-size: 13px; color: var(--lc-fg2)">Colour</div>
+        <div class="track" role="slider" tabindex="0" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="360" aria-valuenow="345" aria-valuetext="Hue 345" aria-label="Colour, Kitchen Lights" style="background: linear-gradient(90deg, #ff0000, #ffff00 16.7%, #00ff00 33.3%, #00ffff 50%, #0000ff 66.7%, #ff00ff 83.3%, #ff0000)">
+          <span class="kc" aria-hidden="true" style="left: calc(95.8% - 2px)"></span>
+        </div>
+        <div style="font-size: 12px; color: var(--lc-fg3)">Alternative (not recommended): ticks above and below, nothing on the track. 2 x 6px, radius 1, lc-bright; 18.55:1 dark, 17.55:1 light against the glass base.</div>
+        <div style="position: relative; padding: 9px 0; --p: 13.9%">
+          <span class="alt" aria-hidden="true" style="top: 0"></span>
+          <div class="track" role="slider" tabindex="0" aria-orientation="horizontal" aria-valuemin="2000" aria-valuemax="6535" aria-valuenow="2631" aria-valuetext="2631 K" aria-label="Colour temperature, Ceiling Lights, alternative marker" style="background: linear-gradient(90deg, #ff890e 0%, #ffa757 15.4%, #ffc18d 33.1%, #ffdabb 55.1%, #ffedde 77.2%, #fffffb 100%)"></div>
+          <span class="alt" aria-hidden="true" style="bottom: 0"></span>
+        </div>
+        <div style="display: flex; gap: 14px; align-items: center">
+          <div role="switch" tabindex="0" aria-checked="true" aria-label="Entrance Color + White Lights" style="width: 48px; height: 140px; flex: none; box-sizing: border-box; border-radius: 13px; background: #d5dce6; border: 1px solid var(--lc-btn-edge)"></div>
+          <div role="switch" tabindex="0" aria-checked="false" aria-label="Entrance Color + White Lights" style="width: 48px; height: 140px; flex: none; box-sizing: border-box; border-radius: 13px; background: var(--lc-track); border: 1px solid var(--lc-btn-edge)"></div>
+          <span style="font-size: 12px; color: var(--lc-fg3)">Toggle <span class="id">TOK-8</span> for on/off-only lights (derived), on and off, drawn at true half scale (48 x 140, radius 13). In the card it is the regular 96 x 280 frame, radius 26, full or empty, role switch.</span>
+        </div>
+      </div>
+      <div style="border-radius: 26px; background: #e7e9ee">
+        <div class="g-light glass rim" style="border-radius: 26px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+          <span style="font-size: 13px; color: var(--lc-fg2)">Same on light glass. The marker is glass-independent.</span>
+          <div style="display: flex; justify-content: space-between; font-size: 13px"><span style="color: var(--lc-fg2)">Colour temperature</span><span style="font-weight: 600">2631 K</span></div>
+          <div class="track" role="slider" tabindex="0" aria-orientation="horizontal" aria-valuemin="2000" aria-valuemax="6535" aria-valuenow="2631" aria-valuetext="2631 K" aria-label="Colour temperature, Ceiling Lights" style="background: linear-gradient(90deg, #ff890e 0%, #ffa757 15.4%, #ffc18d 33.1%, #ffdabb 55.1%, #ffedde 77.2%, #fffffb 100%)">
+            <span class="kc" aria-hidden="true" style="left: calc(13.9% - 2px)"></span>
+          </div>
+          <div style="font-size: 13px; color: var(--lc-fg2)">Colour</div>
+          <div class="track" role="slider" tabindex="0" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="360" aria-valuenow="345" aria-valuetext="Hue 345" aria-label="Colour, Kitchen Lights" style="background: linear-gradient(90deg, #ff0000, #ffff00 16.7%, #00ff00 33.3%, #00ffff 50%, #0000ff 66.7%, #ff00ff 83.3%, #ff0000)">
+            <span class="kc" aria-hidden="true" style="left: calc(95.8% - 2px)"></span>
+          </div>
+          <div style="font-size: 12px; color: var(--lc-fg3)">Alternative (not recommended): ticks above and below, nothing on the track. 2 x 6px, radius 1, lc-bright; 18.55:1 dark, 17.55:1 light against the glass base.</div>
+          <div style="position: relative; padding: 9px 0; --p: 13.9%">
+          <span class="alt" aria-hidden="true" style="top: 0"></span>
+          <div class="track" role="slider" tabindex="0" aria-orientation="horizontal" aria-valuemin="2000" aria-valuemax="6535" aria-valuenow="2631" aria-valuetext="2631 K" aria-label="Colour temperature, Ceiling Lights, alternative marker" style="background: linear-gradient(90deg, #ff890e 0%, #ffa757 15.4%, #ffc18d 33.1%, #ffdabb 55.1%, #ffedde 77.2%, #fffffb 100%)"></div>
+          <span class="alt" aria-hidden="true" style="bottom: 0"></span>
+          </div>
+          <div style="display: flex; gap: 14px; align-items: center">
+            <div role="switch" tabindex="0" aria-checked="true" aria-label="Entrance Color + White Lights" style="width: 48px; height: 140px; flex: none; box-sizing: border-box; border-radius: 13px; background: #64748b; border: 1px solid var(--lc-btn-edge)"></div>
+            <div role="switch" tabindex="0" aria-checked="false" aria-label="Entrance Color + White Lights" style="width: 48px; height: 140px; flex: none; box-sizing: border-box; border-radius: 13px; background: var(--lc-track); border: 1px solid var(--lc-btn-edge)"></div>
+            <span style="font-size: 12px; color: var(--lc-fg3)">marker.compact: a 4 x 36px bar, radius 2, #ffffff with a 1px #10141b outline, on both glasses; no circle. Either the white or the outline stays at 4.30:1 or more against every spectrum colour (worst #0073ff, hue 213, sampled every 0.1 degree and every 1 K), <span class="id">CON-10</span>.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <aside style="position: relative; display: flex; flex-direction: column; gap: 22px">
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span class="k">Anatomy</span>
+      <div class="spec">
+        <span>Frame <span class="id">TOK-1 2 3</span></span><span>96 x 280px, min height 200px. Radius 26. Track lc-track, edge lc-btn-edge.</span>
+        <span>Fill <span class="id">TOK-4</span></span><span>entity-colour from the bottom, height = brightness, full opacity. No knob: the fill edge is the level. entity-colour guarantees 3:1 of fill against track (TOK-11).</span>
+        <span>Off</span><span>No fill. A tap or drag turns the light on at that level.</span>
+        <span>Unavailable <span class="id">TOK-9</span></span><span>Opacity 0.3 (the disabled step value), aria-disabled, no pointer.</span>
+        <span>Dragging <span class="id">CHO-19</span></span><span>No extra visual. The fill follows the pointer with no transition and the readout updates live. At most one write per 300ms, a final write on release (CHO-9).</span>
+        <span>From HA <span class="id">TOK-10</span></span><span>Fill height eases in 0.8s, the arc's transition. None under reduced motion.</span>
+        <span>Focus <span class="id">TOK-19</span></span><span>focus-ring: 2px lc-bright, offset 3px.</span>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span class="k">Keyboard <span class="id">CHO-8</span></span>
+      <div class="spec">
+        <span class="mono">Up, Right</span><span>+1%</span>
+        <span class="mono">Down, Left</span><span>-1%. From 1% it turns the light off.</span>
+        <span class="mono">Page Up</span><span>+10%</span>
+        <span class="mono">Page Down</span><span>-10%, not below 1%</span>
+        <span class="mono">Home</span><span>1% (lowest on)</span>
+        <span class="mono">End</span><span>100%</span>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span class="k">ARIA</span>
+      <div class="spec">
+        <span class="mono">role</span><span>slider (switch for the on/off toggle)</span>
+        <span class="mono">aria-orientation</span><span>vertical</span>
+        <span class="mono">aria-valuemin / max</span><span>0 / 100 (0 = off)</span>
+        <span class="mono">aria-valuenow</span><span>on: max(1, round(brightness / 255 x 100)), so 180 gives 71 and 1 gives 1, never 0 while on. Off: 0.</span>
+        <span class="mono">aria-valuetext</span><span>"71%" or "Off"</span>
+        <span class="mono">aria-label</span><span>"Brightness, {name}"</span>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span class="k">Sizes</span>
+      <div class="spec">
+        <span>regular</span><span>vertical 96 x 280, light card</span>
+        <span>compact</span><span>horizontal, 44 high, full width, with marker.compact: colour temperature, colour</span>
+        <span>toggle</span><span>regular frame, full or empty, on/off-only lights</span>
+      </div>
+    </div>
+  </aside>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1240,"height":1420}}'>
+class Component extends DCLogic {
+  renderVals() {
+    function s(label, val, pct, o) {
+      o = o || {};
+      return { label: label, val: val, pct: pct, now: pct, op: o.dis ? 0.3 : 1, dis: o.dis ? 'true' : 'false', ol: o.focus ? '2px solid var(--lc-bright)' : 'none' };
+    }
+    var list = [
+      s('Off (Bed Light)', 'Off', 0),
+      s('On', '71%', 71),
+      s('Dimmed (derived, 26)', '10%', 10),
+      s('Dragging, live', '45%', 45),
+      s('Focused', '71%', 71, { focus: true }),
+      s('Unavailable (derived)', 'Unavailable', 0, { dis: true })
+    ];
+    return { dk: list, lt: list };
+  }
+}
+</script>
+</body>
+</html>

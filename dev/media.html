@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Liquid Home media stage</title>
+    <style>
+      /* Home Assistant's default light and dark theme variables, scoped to a root so a split view can hold both. */
+      .theme-light {
+        --primary-text-color: #212121;
+        --secondary-text-color: #727272;
+        --text-primary-color: #ffffff;
+        --divider-color: rgba(0, 0, 0, 0.12);
+        --card-background-color: #ffffff;
+        --primary-color: #03a9f4;
+        --warning-color: #ffa600;
+        --page-bg: #e7e9ee;
+        color-scheme: light;
+      }
+      .theme-dark {
+        --primary-text-color: #e1e1e1;
+        --secondary-text-color: #9b9b9b;
+        --text-primary-color: #ffffff;
+        --divider-color: rgba(225, 225, 225, 0.12);
+        --card-background-color: #1c1c1c;
+        --primary-color: #03a9f4;
+        --warning-color: #ffa600;
+        --page-bg: #14161a;
+        color-scheme: dark;
+      }
+      html, body { margin: 0; background: var(--page-bg, #e7e9ee); }
+      body { font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+      .root { background: var(--page-bg); color: var(--primary-text-color); box-sizing: border-box; }
+      #stage { position: relative; overflow: hidden; width: max-content; }
+      #stage.fixed { width: 1600px; height: 900px; }
+      .root.layer { position: absolute; inset: 0; }
+      #dark-layer { clip-path: polygon(58% 0, 100% 0, 100% 100%, 46% 100%); }
+
+      /* Scene layouts: added together with the scenes (dev/media.ts). */
+      .pad { padding: 44px; }
+      .col { display: flex; flex-direction: column; gap: 14px; }
+      .row { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+
+      /* Pointer for recordings: headless Chrome has no cursor. */
+      #pointer {
+        position: fixed; left: 0; top: 0; width: 22px; height: 22px; margin: 0; padding: 0; border: 0; background: none;
+        pointer-events: none; overflow: visible; inset: auto; transform: translate(-100px, -100px);
+        opacity: 0; transition: opacity 0.3s ease;
+      }
+      #pointer.on { opacity: 1; }
+      #pointer i {
+        display: block; width: 100%; height: 100%; border-radius: 50%; background: rgba(0, 0, 0, 0.12);
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.75), 0 1px 5px rgba(0, 0, 0, 0.22); transition: transform 0.12s;
+      }
+      #pointer.down i { transform: scale(0.7); }
+      html.theme-dark #pointer i { background: rgba(255, 255, 255, 0.2); box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5), 0 1px 5px rgba(0, 0, 0, 0.45); }
+    </style>
+  </head>
+  <body>
+    <div id="stage"></div>
+    <script type="module" src="./media.ts"></script>
+  </body>
+</html>

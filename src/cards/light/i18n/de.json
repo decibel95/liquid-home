@@ -1,0 +1,42 @@
+{
+  "card": {
+    "name": "Lichtkarte",
+    "description": "Glaskarte für ein Licht: eine große Helligkeitsleiste mit den Modi Helligkeit, Weiß und Farbe sowie Effekten.",
+    "loading": "Wird geladen",
+    "entityNotFound": "Entität nicht gefunden: {entity}"
+  },
+  "mode": {
+    "group": "Leistenmodus",
+    "brightness": "Helligkeit",
+    "white": "Weiß",
+    "colour": "Farbe"
+  },
+  "readout": {
+    "brightness": "Helligkeit",
+    "average": "Helligkeit, Durchschnitt",
+    "warmth": "Wärme",
+    "tap": "Tippen zum Schalten",
+    "on": "An",
+    "kelvinUnit": "K"
+  },
+  "sub": {
+    "on": "An",
+    "onKelvin": "An, {kelvin} K",
+    "group": "{on} von {total} an"
+  },
+  "aria": {
+    "brightness": "Helligkeit von {name}",
+    "warmth": "Wärme von {name}",
+    "colour": "Farbe von {name}",
+    "kelvin": "{value} K",
+    "notWhite": "Nicht im Weißmodus",
+    "hue": "Farbton {value}",
+    "power": "{name} schalten",
+    "effect": "Effekt: {value}",
+    "member": "{name}: {value}"
+  },
+  "effect": {
+    "label": "Effekt",
+    "none": "Keine"
+  }
+}

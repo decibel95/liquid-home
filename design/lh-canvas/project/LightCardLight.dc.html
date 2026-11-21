@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Light card, light glass</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#e7e9ee}
+.lc{font-family:'Inter',system-ui,-apple-system,sans-serif;color:#F4F6FA;-webkit-font-smoothing:antialiased;font-feature-settings:'tnum' 1}
+.g-dark{--lc-fg:#f4f6fa;--lc-fg2:rgba(235,240,248,.78);--lc-fg3:rgba(235,240,248,.76);--lc-bg:rgba(18,20,26,.78);--lc-edge:rgba(255,255,255,.12);--lc-shine:rgba(255,255,255,.22);--lc-track:rgba(255,255,255,.14);--lc-bright:#ffffff;--lc-btn:rgba(255,255,255,.05);--lc-btn-edge:rgba(255,255,255,.08);--lc-line:rgba(255,255,255,.09);--lc-rim:rgba(255,255,255,.5);--lc-rim2:rgba(255,255,255,.18);color:var(--lc-fg)}
+.g-light{--lc-fg:#10141b;--lc-fg2:rgba(16,20,27,.62);--lc-fg3:rgba(16,20,27,.62);--lc-bg:rgba(248,249,252,.72);--lc-edge:rgba(0,0,0,.1);--lc-shine:rgba(255,255,255,.7);--lc-track:rgba(16,20,27,.16);--lc-bright:#10141b;--lc-btn:rgba(0,0,0,.04);--lc-btn-edge:rgba(0,0,0,.08);--lc-line:rgba(0,0,0,.1);--lc-rim:rgba(255,255,255,.9);--lc-rim2:rgba(255,255,255,.4);color:var(--lc-fg)}
+.card{position:relative;box-sizing:border-box;padding:22px;border-radius:40px;display:flex;flex-direction:column;gap:16px;color:var(--lc-fg);background:var(--lc-bg);-webkit-backdrop-filter:blur(30px) saturate(170%);backdrop-filter:blur(30px) saturate(170%);border:1px solid var(--lc-edge);box-shadow:inset 0 1px 0 var(--lc-shine),0 40px 80px -24px rgba(0,0,0,.45)}
+.rim::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;background:linear-gradient(140deg,var(--lc-rim),rgba(255,255,255,0) 35%,rgba(255,255,255,0) 65%,var(--lc-rim2));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+.orb{position:absolute;border-radius:50%;filter:blur(90px)}
+button{font:inherit;color:inherit;cursor:pointer;margin:0;border:1px solid var(--lc-btn-edge);background:var(--lc-btn)}
+button:focus-visible,[role=slider]:focus-visible,[role=switch]:focus-visible{outline:2px solid var(--lc-bright);outline-offset:2px}
+[role=slider]:focus-visible{outline-offset:3px}
+button:disabled{cursor:default}
+.press{transition:transform .28s cubic-bezier(.3,1.7,.5,1),background-color .5s ease,border-color .5s ease}
+.press:active:not(:disabled){transform:scale(.93)}
+.body{container-type:inline-size;width:100%}
+.big{font-size:18cqw;font-weight:200;letter-spacing:-.04em;line-height:1}
+.unit{font-size:7cqw;font-weight:300;margin-top:1.5cqw;color:var(--lc-fg2)}
+.sl{position:relative;width:96px;height:280px;flex:none;box-sizing:border-box;border-radius:26px;background:var(--lc-track);border:1px solid var(--lc-btn-edge);overflow:hidden}
+.mode{height:60px;border-radius:18px;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px}
+.mode span{font-size:11px;font-weight:500}
+.chip{height:52px;border-radius:16px;padding:0 12px;display:flex;align-items:center;gap:9px;text-align:left;min-width:0}
+@media (prefers-reduced-motion:reduce){.press{transition:none}}
+</style>
+</helmet>
+<div class="lc" style="width: 1968px; height: 2260px; position: relative; overflow: hidden; background: #e7e9ee; color: #10141b; box-sizing: border-box; padding: 48px; display: flex; flex-direction: column; gap: 28px">
+
+  <header style="position: relative; display: flex; align-items: baseline; gap: 16px">
+    <h1 style="margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.02em">Light card</h1>
+    <span style="font-size: 13px; color: rgba(16,20,27,0.62)">liquid-home-light. The dial's frame with the slider in place of the arc. No mode tint on the glass (CHO-6). Readout 18cqw / 7cqw like the dial (TOK-20). Colour controls: V1, chosen (CHO-20): three mode buttons switch the big pill between brightness, warmth and colour (toned fill, TOK-21). Colour-temperature lights and groups draw the neutral (CHO-1 option B, CHO-4).</span>
+  </header>
+
+  <div style="position: relative; display: grid; grid-template-columns: repeat(4, 444px); gap: 40px 32px; align-items: start">
+    <sc-for list="{{cards}}" as="c" hint-placeholder-count="9">
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <span style="display: flex; flex-direction: column; gap: 2px; font-size: 13px">
+          <span style="font-weight: 600">{{c.state}}</span>
+          <span style="color: {{c.capC}}">{{c.cap}}</span>
+        </span>
+        <article class="card rim {{c.g}}" aria-label="{{c.name}}" style="width: {{c.w}}px">
+          <header style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+            <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+              <h2 style="margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{c.name}}</h2>
+              <span style="font-size: 13px; color: var(--lc-fg2)">{{c.sub}}</span>
+            </span>
+            <button class="press" aria-label="{{c.pwrLabel}}" aria-pressed="{{c.pressed}}" disabled="{{c.dis}}" style="width: 44px; height: 44px; flex: none; border-radius: 50%; padding: 0; display: flex; align-items: center; justify-content: center; background: {{c.pwrBg}}; opacity: {{c.pwrOp}}">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v10 M18.4 6.6a9 9 0 1 1-12.77.04"></path></svg>
+            </button>
+          </header>
+
+          <div class="body">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 280px">
+              <span style="display: flex; flex-direction: column; gap: 8px; min-width: 0">
+                <span style="display: flex; align-items: flex-start">
+                  <span class="big">{{c.big}}</span>
+                  <span class="unit">{{c.unit}}</span>
+                </span>
+                <span style="font-size: 13px; color: var(--lc-fg2)">{{c.what}}</span>
+              </span>
+              <sc-if value="{{c.isToggle}}" hint-placeholder-val="{{ false }}">
+                <div class="sl" role="switch" tabindex="0" aria-checked="true" aria-label="{{c.name}}" style="margin-right: {{c.mr}}px">
+                  <div aria-hidden="true" style="position: absolute; inset: 0; background: {{c.col}}"></div>
+                </div>
+              </sc-if>
+              <sc-if value="{{c.isSlider}}" hint-placeholder-val="{{ true }}">
+                <div class="sl" role="slider" tabindex="0" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{c.pct}}" aria-valuetext="{{c.vt}}" aria-label="{{c.pillLabel}}, {{c.name}}" aria-disabled="{{c.disS}}" style="margin-right: {{c.mr}}px; opacity: {{c.op}}">
+                  <div aria-hidden="true" style="position: absolute; left: 0; right: 0; bottom: 0; height: {{c.pct}}%; background-color: {{c.col}}; background-image: {{c.img}}; background-size: 100% 278px; background-position: bottom"></div>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+
+          <sc-if value="{{c.hasModes}}" hint-placeholder-val="{{ true }}">
+            <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; opacity: {{c.op}}">
+              <sc-for list="{{c.modes}}" as="m" hint-placeholder-count="2">
+                <button class="press mode" aria-pressed="{{m.on}}" disabled="{{c.dis}}" style="background: {{m.bg}}; border-color: {{m.bd}}; color: {{m.fg}}">
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{m.icon}}"></path></svg>
+                  <span>{{m.label}}</span>
+                </button>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{c.hasChips}}" hint-placeholder-val="{{ false }}">
+            <div style="display: grid; grid-template-columns: repeat({{c.chipCols}}, minmax(0, 1fr)); gap: 6px">
+              <sc-for list="{{c.chips}}" as="h" hint-placeholder-count="3">
+                <button class="press chip" aria-label="{{h.k}}: {{h.v}}">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; color: {{h.ic}}"><path d="{{h.icon}}"></path></svg>
+                  <span style="display: flex; flex-direction: column; gap: 1px; min-width: 0">
+                    <span style="font-size: 11px; color: var(--lc-fg3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{h.k}}</span>
+                    <span style="font-size: 13px; font-weight: 600; white-space: nowrap">{{h.v}}</span>
+                  </span>
+                </button>
+              </sc-for>
+            </div>
+          </sc-if>
+        </article>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1968,"height":2260}}'>
+class Component extends DCLogic {
+  rgba(hex, a) {
+    var n = parseInt(hex.slice(1), 16);
+    return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+  }
+  renderVals() {
+    var self = this;
+    var G = 'light';
+    var capReal = G === 'dark' ? 'rgba(235,240,248,0.76)' : 'rgba(16,20,27,0.62)';
+    var capDerived = G === 'dark' ? '#ffb067' : '#7c3a05';
+    var col = {
+      kit: G === 'dark' ? '#ff4070' : '#e51f5c',
+      rgbww: G === 'dark' ? '#ff7f7d' : '#c74c4e',
+      neu: G === 'dark' ? '#d5dce6' : '#64748b'
+    };
+    var SUN = 'M12 8a4 4 0 1 0 0 8 4 4 0 1 0 0-8z M12 2v2 M12 20v2 M4.93 4.93l1.41 1.41 M17.66 17.66l1.41 1.41 M2 12h2 M20 12h2 M6.34 17.66l-1.41 1.41 M19.07 4.93l-1.41 1.41';
+    var RAINBOW = 'M22 17a10 10 0 0 0-20 0 M6 17a6 6 0 0 1 12 0 M10 17a2 2 0 0 1 4 0';
+    var BULB = 'M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5 M9 18h6 M10 22h4';
+    var NONE = 'M12 3a9 9 0 1 0 0 18 9 9 0 1 0 0-18z';
+    var TONED = G === 'dark'
+      ? { k: ['#ff890e', '#ff9a3a', '#ffa95c', '#ffb677', '#ffc18d', '#ffcba1', '#ffd4b2', '#ffddc1', '#d5dce6', '#d5dce6', '#d5dce6', '#d5dce6', '#d5dce6'], h: ['#ff2117', '#ff8000', '#ffff00', '#80ff00', '#00ff00', '#00ff80', '#00ffff', '#0080ff', '#4078ff', '#9562ff', '#ff00ff', '#ff0080', '#ff2117'] }
+      : { k: ['#b15c00', '#ae5f00', '#ac6000', '#a5631f', '#9f6835', '#976841', '#916b4c', '#8b6d54', '#64748b', '#64748b', '#64748b', '#64748b', '#64748b'], h: ['#ea0000', '#b85a00', '#767600', '#3e8200', '#008600', '#00833f', '#008181', '#006fdf', '#0000ff', '#8000ff', '#cb00cb', '#e00070', '#ea0000'] };
+    function grad(stops) { return 'linear-gradient(to top, ' + stops.map(function (x, i) { return x + ' ' + (i * 100 / (stops.length - 1)).toFixed(1) + '%'; }).join(', ') + ')'; }
+    function modes(active, c) {
+      return [['Brightness', BULB, 'bright'], ['White', SUN, 'white'], ['Colour', RAINBOW, 'colour']].map(function (m) {
+        var on = m[2] === active;
+        return { label: m[0], icon: m[1], on: on ? 'true' : 'false', bg: on ? self.rgba(c, 0.2) : 'var(--lc-btn)', bd: on ? self.rgba(c, 0.45) : 'var(--lc-btn-edge)', fg: on ? 'var(--lc-fg)' : 'var(--lc-fg2)' };
+      });
+    }
+    function card(o) {
+      var on = o.on, c = o.col || col.neu, w = o.w || 444;
+      return {
+        g: 'g-' + G, w: w, mr: w < 400 ? 0 : 24, state: o.state, cap: o.cap, capC: o.derived ? capDerived : capReal,
+        name: o.name, sub: o.sub,
+        pressed: on ? 'true' : 'false', dis: !!o.dis, pwrLabel: (on ? 'Turn off ' : 'Turn on ') + o.name,
+        pwrBg: on ? self.rgba(c, 0.28) : 'var(--lc-btn)', pwrOp: o.dis ? 0.5 : 1,
+        big: o.big, unit: o.unit || '', what: o.what,
+        isToggle: !!o.toggle, isSlider: !o.toggle, pct: o.pct || 0, vt: o.vt || o.big,
+        img: on && o.mode === 'white' ? grad(TONED.k) : on && o.mode === 'colour' ? grad(TONED.h) : 'none',
+        pillLabel: o.mode === 'white' ? 'Colour temperature' : o.mode === 'colour' ? 'Colour' : 'Brightness',
+        col: c, op: o.dis ? 0.3 : 1, disS: o.dis ? 'true' : 'false',
+        hasModes: !!o.mode, modes: o.mode ? modes(on ? o.mode : '', c) : [],
+        hasChips: !!o.chips, chips: o.chips || [], chipCols: o.chips ? o.chips.length : 1
+      };
+    }
+    var ceiling = { name: 'Ceiling Lights', sub: 'On, 2631 K', on: true, col: col.neu, big: '2631', unit: 'K', what: 'Warmth', pct: 13.9, vt: '2631 K', mode: 'white' };
+    return {
+      cards: [
+        card(Object.assign({ state: '1. On, colour temperature (White mode)', cap: 'light.ceiling_lights, real' }, ceiling)),
+        card({ state: '2. Colour (Colour mode)', cap: 'light.kitchen_lights, real', name: 'Kitchen Lights', sub: 'On', on: true, col: col.kit, big: '71', unit: '%', what: 'Colour', pct: 95.8, vt: 'Hue 345', mode: 'colour' }),
+        card({ state: '3. Dimmed (Brightness mode)', cap: 'derived: Kitchen Lights at brightness 26', derived: true, name: 'Kitchen Lights', sub: 'On', on: true, col: col.kit, big: '10', unit: '%', what: 'Brightness', pct: 10, vt: '10%', mode: 'bright' }),
+        card({ state: '4. Off', cap: 'light.bed_light, real', name: 'Bed Light', sub: 'Off', on: false, big: 'Off', what: 'Brightness', pct: 0, vt: 'Off', mode: 'none', chips: [{ k: 'Effect', v: 'None', icon: NONE, ic: 'var(--lc-fg2)' }] }),
+        card({ state: '5. Unavailable', cap: 'derived: Office RGBW Lights', derived: true, name: 'Office RGBW Lights', sub: 'Unavailable', on: false, dis: true, big: '--', what: 'Brightness', pct: 0, vt: 'Unavailable', mode: 'none' }),
+        card({ state: '6. Brightness only', cap: 'derived: Ceiling Lights, modes [brightness]', derived: true, name: 'Ceiling Lights', sub: 'On', on: true, col: col.neu, big: '71', unit: '%', what: 'Brightness', pct: 71, vt: '71%' }),
+        card({ state: '7. On/off only', cap: 'derived: Entrance Color + White Lights, modes [onoff]', derived: true, name: 'Entrance Color + White Lights', sub: 'On', on: true, col: col.neu, big: 'On', what: 'Tap to switch', toggle: true }),
+        card({ state: '8. Light group', cap: 'derived: Living Room Lights, 3 members', derived: true, name: 'Living Room Lights', sub: '3 of 3 on', on: true, col: col.neu, big: '71', unit: '%', what: 'Brightness, average', pct: 71, vt: '71%',
+          chips: [{ k: 'Ceiling Lights', v: '71%', icon: BULB, ic: col.neu }, { k: 'Living Room RGBWW', v: '71%', icon: BULB, ic: col.rgbww }, { k: 'Entrance', v: '71%', icon: BULB, ic: col.kit }] }),
+        card(Object.assign({}, ceiling, { state: '9. Narrow card, 320px (Brightness mode)', cap: 'light.ceiling_lights, real; readout scales with the card (18cqw)', w: 320, big: '71', unit: '%', what: 'Brightness', pct: 71, vt: '71%', mode: 'bright' }))
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
