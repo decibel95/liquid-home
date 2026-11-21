@@ -3,7 +3,9 @@
 All notable changes to Liquid Home. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 <!-- #region entries -->
-## 0.1.0
+## 0.1.1
+
+This is the first release of Liquid Home. Version 0.1.0 was tagged but never released because of a build setup problem.
 
 The first version of Liquid Home: glass cards for your Home Assistant lights.
 

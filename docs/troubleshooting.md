@@ -6,7 +6,7 @@ Symptoms: "Custom element doesn't exist: liquid-home-light-card", or an empty bo
 
 1. Check the resource. Settings, Dashboards, three dots, Resources. There must be an entry for `/local/liquid-home/liquid-home.js` (or the path HACS added) of type JavaScript module.
 2. Check the card type. The four types are `custom:liquid-home-light-card`, `custom:liquid-home-tile`, `custom:liquid-home-badge` and `custom:liquid-home-room`.
-3. Hard refresh the browser (Ctrl+F5, or Cmd+Shift+R). Home Assistant caches `/local/` files for a long time: after you replace the file, add a version to the URL, for example `/local/liquid-home/liquid-home.js?v=0.1.0`.
+3. Hard refresh the browser (Ctrl+F5, or Cmd+Shift+R). Home Assistant caches `/local/` files for a long time: after you replace the file, add a version to the URL, for example `/local/liquid-home/liquid-home.js?v=0.1.1`.
 4. Open the browser console. A load error there names the cause.
 5. Check the Home Assistant version. Liquid Home needs 2025.1.0 or newer.
 

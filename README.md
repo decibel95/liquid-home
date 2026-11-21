@@ -2,7 +2,7 @@
 
 Glass cards for Home Assistant lights: a light card, a tile, a badge and a room card, each with a visual editor.
 
-Status: first release, version 0.1.0.
+Status: first release, version 0.1.1.
 
 Documentation: https://decibel95.github.io/liquid-home
 
