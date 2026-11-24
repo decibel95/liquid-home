@@ -3,6 +3,11 @@
 All notable changes to Liquid Home. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 <!-- #region entries -->
+## 0.2.1
+
+### Changed
+- A full README with screenshots of every card, installation steps for the Home Assistant Marketplace, HACS and a manual install, and every card option. The cards themselves are unchanged.
+
 ## 0.2.0
 
 ### Added

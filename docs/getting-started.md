@@ -5,7 +5,21 @@
 - Home Assistant 2025.1.0 or newer.
 - At least one `light` entity.
 
+## Install with the Home Assistant Marketplace (recommended) {#install-marketplace}
+
+Home Assistant 2026.11 and newer has a built-in Marketplace under Settings, Marketplace (for administrators). Liquid Home is not in the Marketplace catalog yet, so you add it by link.
+
+1. Open Settings, Marketplace. The first time, read "Before you install from the Marketplace", tick "I understand the risks and agree" and select Continue.
+2. Select Add from link at the top right. Adding by link needs a GitHub connection; the Marketplace asks you to connect GitHub if you have not yet.
+3. Enter `https://github.com/decibel95/liquid-home` as the GitHub link and choose the type Dashboard.
+4. Open Liquid Home and select Install, then reload the browser.
+
+The Marketplace downloads all three release files into `/config/www/community/liquid-home/` and adds the dashboard resource for you. If your dashboards use YAML resources (`lovelace: resource_mode: yaml`), it does not add the resource: add `/local/community/liquid-home/liquid-home.js` yourself, as a JavaScript module. The install dialog shows the exact URL to add.
+
 ## Install with HACS {#install-hacs}
+
+For older Home Assistant versions, or if you use HACS.
+
 
 1. Open HACS, choose the menu in the top right and pick Custom repositories.
 2. Add `https://github.com/decibel95/liquid-home` with the category Dashboard.
