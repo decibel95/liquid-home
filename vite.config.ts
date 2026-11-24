@@ -1,10 +1,46 @@
-import { defineConfig } from 'vite';
+import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { defineConfig, type Plugin } from 'vite';
 import pkg from './package.json';
+
+const require = createRequire(import.meta.url);
+
+/**
+ * The Inter font and its licence (from liquid-core) go next to dist/liquid-home.js, byte for byte. src/register.ts
+ * loads the font from there at runtime; the release attaches all three files (OFL condition 2: the licence travels
+ * with the font). On the dev server src/register.ts resolves the font to /src/liquid-inter.woff2, served from core.
+ *
+ * Contract with src/register.ts: the dev route below is '/src/' + the file name that register.ts resolves
+ * ('./liquid-inter.woff2' next to src/register.ts), which must be a key of FONT_ASSETS. test/font.test.ts checks it.
+ */
+export const FONT_ASSETS = {
+  'liquid-inter.woff2': '@decibel95/liquid-core/fonts/liquid-inter.woff2',
+  'liquid-inter-OFL.txt': '@decibel95/liquid-core/fonts/OFL.txt',
+} as const;
+
+function fontAssets(): Plugin {
+  return {
+    name: 'lh-font-assets',
+    configureServer(server) {
+      server.middlewares.use('/src/liquid-inter.woff2', (_req, res) => {
+        // Route name = register.ts's './liquid-inter.woff2' (see the contract at FONT_ASSETS).
+        res.setHeader('Content-Type', 'font/woff2');
+        res.end(readFileSync(require.resolve(FONT_ASSETS['liquid-inter.woff2'])));
+      });
+    },
+    generateBundle() {
+      for (const [fileName, from] of Object.entries(FONT_ASSETS)) {
+        this.emitFile({ type: 'asset', fileName, source: readFileSync(require.resolve(from)) });
+      }
+    },
+  };
+}
 
 export default defineConfig({
   define: { __LH_VERSION__: JSON.stringify(pkg.version) },
   // One copy of Lit across liquid-core and this bundle (CI also checks `npm ls lit`).
   resolve: { dedupe: ['lit', 'lit-html', 'lit-element', '@lit/reactive-element'] },
+  plugins: [fontAssets()],
   build: {
     target: 'es2022',
     outDir: 'dist',

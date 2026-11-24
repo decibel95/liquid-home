@@ -15,7 +15,7 @@ entity: light.ceiling_lights
 - The power button turns the light on or off. While on it is tinted with the light's colour.
 - The status line reads `On`, `On, 2631 K` for a light in colour temperature, `Off`, `Unavailable`, or `2 of 3 on` for a light group.
 - The steppers lower and raise the brightness by 10 % per press, between 1 % and 100 %. They go through the same 300 ms throttle as the light card, see [How changes are sent](/cards/light#light-writes). A light that only switches on and off has no steppers.
-- Tapping the name and status does what `tap_action` says. By default it opens the [light card](/cards/light) as a sheet, a modal dialog above the dashboard. Escape, the close button or a click outside closes it.
+- Tapping the name and status does what `tap_action` says. By default it opens the [light card](/cards/light) as a sheet, a modal dialog above the dashboard. Escape, the close button or a click outside closes it. The history button next to the close button closes the sheet and opens the Home Assistant history for that light.
 - The tile, the light card in its sheet and any other Liquid Home card on the same light share one writer, so their changes go out together.
 
 ## Options {#tile-options}

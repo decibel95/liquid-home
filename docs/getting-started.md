@@ -13,10 +13,12 @@
 
 ## Install by hand {#install-manual}
 
-1. Download `liquid-home.js` from the latest release.
-2. Copy it to `config/www/liquid-home/liquid-home.js`.
+1. Download all three files from the latest release: `liquid-home.js`, `liquid-inter.woff2` (the Inter font) and `liquid-inter-OFL.txt` (the font licence).
+2. Copy all three into the same folder, `config/www/liquid-home/`. The card loads the font from next to itself.
 3. Under Settings, Dashboards, three dots, Resources add `/local/liquid-home/liquid-home.js` as a JavaScript module.
 4. Hard refresh the browser.
+
+Liquid Home ships the Inter font, so the cards look the same on every device, with no internet connection needed. Without `liquid-inter.woff2` next to `liquid-home.js` the cards still work and fall back to an installed Inter or the system font.
 
 ## Add a card {#add-card}
 

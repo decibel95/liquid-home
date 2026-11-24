@@ -15,7 +15,7 @@ area: living_room
 
 - The title is `title`, else the name of the area, else `Lights`. The header also reads how many lights are on, for example `1 of 3 on`.
 - Tap a tile to select that light. The strip below shows its name and status, White and Colour buttons when the light supports them, and brightness steppers (10 % per press).
-- The name in the strip, and the White and Colour buttons, open the [light card](/cards/light) as a sheet for that light.
+- The name in the strip, and the White and Colour buttons, open the [light card](/cards/light) as a sheet for that light. The sheet has a history button next to the close button that opens the Home Assistant history for that light.
 - The header power button turns the room off when any light is on, and on otherwise, in one service call. With a power entity, its state decides. See [Power entity](#room-power-entity).
 - With `source: area` the card lists every light in that area, whether the light or its device is assigned to it, hidden and disabled lights excluded. A card with no area and no entities shows a placeholder that asks you to choose an area.
 

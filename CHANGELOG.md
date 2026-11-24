@@ -3,6 +3,13 @@
 All notable changes to Liquid Home. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 <!-- #region entries -->
+## 0.2.0
+
+### Added
+- The light sheet has a history button next to the close button. It closes the sheet and opens the Home Assistant history for that light.
+- Liquid Home now ships the Inter font with the card, so cards look the same on every device. No internet connection needed.
+- Manual installs: copy the new files `liquid-inter.woff2` and `liquid-inter-OFL.txt` from the release into the same folder as `liquid-home.js`. With HACS this happens on its own.
+
 ## 0.1.1
 
 This is the first release of Liquid Home. Version 0.1.0 was tagged but never released because of a build setup problem.

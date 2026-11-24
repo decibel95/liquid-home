@@ -43,7 +43,10 @@ jobs:
             echo "::error::CHANGELOG.md has no section for $version. Add a '## $version' entry before tagging."
             exit 1
           }
-          cp dist/liquid-home.js release-assets/liquid-home.js
+          # The bundle, the Inter font it loads from next to itself and the font's licence (OFL condition 2).
+          for f in liquid-home.js liquid-inter.woff2 liquid-inter-OFL.txt; do
+            cp "dist/$f" "release-assets/$f"
+          done
           cat release-assets/notes.md
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
@@ -68,18 +71,27 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
+          # HACS downloads every asset of the release next to each other, so the font and its licence go with the bundle.
+          assets="liquid-home.js liquid-inter.woff2 liquid-inter-OFL.txt"
+          for a in $assets; do
+            [ -f "release-assets/$a" ] || { echo "::error::release-assets/$a is missing." >&2; exit 1; }
+          done
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
             names="$(gh release view "$GITHUB_REF_NAME" --json assets --jq '.assets[].name' 2>/dev/null || true)"
-            if printf '%s\n' "$names" | grep -qx 'liquid-home.js'; then
-              echo "Release $GITHUB_REF_NAME already exists with liquid-home.js, nothing to do."
+            missing=""
+            for a in $assets; do
+              printf '%s\n' "$names" | grep -qxF "$a" || missing="$missing release-assets/$a"
+            done
+            if [ -z "$missing" ]; then
+              echo "Release $GITHUB_REF_NAME already exists with all assets, nothing to do."
               exit 0
             fi
-            echo "Release $GITHUB_REF_NAME exists without liquid-home.js, uploading it."
-            gh release upload "$GITHUB_REF_NAME" release-assets/liquid-home.js --clobber
+            echo "Release $GITHUB_REF_NAME exists without:$missing, uploading."
+            gh release upload "$GITHUB_REF_NAME" $missing --clobber
             exit 0
           fi
           flags=""
           case "$GITHUB_REF_NAME" in
             *-*) flags="--prerelease" ;;
           esac
-          gh release create "$GITHUB_REF_NAME" release-assets/liquid-home.js --verify-tag --title "$GITHUB_REF_NAME" --notes-file release-assets/notes.md $flags
+          gh release create "$GITHUB_REF_NAME" release-assets/liquid-home.js release-assets/liquid-inter.woff2 release-assets/liquid-inter-OFL.txt --verify-tag --title "$GITHUB_REF_NAME" --notes-file release-assets/notes.md $flags

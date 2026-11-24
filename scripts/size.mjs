@@ -6,8 +6,11 @@
  * Also measures the liquid-core share (a fixture bundle of everything Liquid Home imports from core, budget 85,000
  * bytes raw, scripts/e2e/core-share.mjs). That runs for the default invocation (`npm run size`) and with --core, and
  * is skipped when a file is named or with --no-core.
+ *
+ * The default invocation also prints the size of the font files next to the bundle (dist/liquid-inter.woff2 and
+ * dist/liquid-inter-OFL.txt). They are separate files, not part of the JavaScript budget.
  */
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 
 export const MAX_RAW = 220_000;
@@ -27,6 +30,11 @@ try {
 const raw = data.length;
 const gzip = gzipSync(data, { level: 9 }).length;
 console.log(`${file}: ${raw} bytes raw (budget ${MAX_RAW}), ${gzip} bytes gzip (budget ${MAX_GZIP})`);
+if (positional.length === 0) {
+  for (const extra of ['dist/liquid-inter.woff2', 'dist/liquid-inter-OFL.txt']) {
+    if (existsSync(extra)) console.log(`${extra}: ${statSync(extra).size} bytes (separate file, not in the JS budget)`);
+  }
+}
 
 const over = [];
 if (withCore) {

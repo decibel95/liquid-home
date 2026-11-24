@@ -1,3 +1,11 @@
+Liquid Home includes the Inter font (liquid-inter.woff2, a subset of Inter 4.1 built by liquid-core), used under the SIL Open Font License, Version 1.1.
+
+Copyright (c) 2016 The Inter Project Authors (https://github.com/rsms/inter)
+
+The full licence text ships next to the font as liquid-inter-OFL.txt (in every release, and in dist/ after a build). The same text is fonts/OFL.txt in @decibel95/liquid-core.
+
+---
+
 Liquid Home includes icon paths from Lucide (lucide-static 0.460.0), used under the ISC licence.
 
 ISC License

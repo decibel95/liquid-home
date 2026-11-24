@@ -17,6 +17,7 @@ entity: light.kitchen_lights
 - The mode buttons below the pill switch what the pill sets: Brightness, White (colour temperature) and Colour (hue). A mode shows only when the light supports it.
 - A light with an effect list gets an effect chip. A light group shows one chip per member.
 - The power button in the header turns the light on or off.
+- When the light card opens as a sheet (from a tile, a badge or a room card), the sheet has a history button next to the close button. It closes the sheet and opens the Home Assistant history page for that light. There is no history chart of its own.
 - An unavailable light reads Unavailable, and its power, mode and effect buttons are disabled.
 
 <img src="/media/light-drag.webp" alt="Dragging the brightness pill up and back down" loading="lazy">

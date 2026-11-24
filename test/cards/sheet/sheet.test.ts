@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { LitElement, html } from 'lit';
 import type { HomeAssistant } from '@decibel95/liquid-core';
 import '../../../src/cards/sheet';
@@ -145,6 +145,38 @@ describe('liquid-home-sheet', () => {
     h.remove();
     await nextFrame();
     expect(sheet.isOpen).toBe(false);
+  });
+
+  it('shows a history button for the light, which closes the sheet and then navigates to its history', async () => {
+    const { h } = await host();
+    openLightSheet(h, config('light.kitchen_lights'));
+    const { sheet } = await opened();
+    const btn = sheet.shadowRoot!.querySelector('button.history') as HTMLButtonElement | null;
+    expect(btn).not.toBeNull();
+    expect(btn!.getAttribute('aria-label')).toBeTruthy();
+    const log: string[] = [];
+    const push = vi.spyOn(window.history, 'pushState').mockImplementation((_d, _t, u) => void log.push(`push ${u}:open=${sheet.isOpen}`));
+    const onLoc = () => log.push('location-changed');
+    window.addEventListener('location-changed', onLoc);
+    btn!.click();
+    await settle();
+    window.removeEventListener('location-changed', onLoc);
+    push.mockRestore();
+    expect(sheet.isOpen).toBe(false);
+    expect(log).toEqual(['push /history?entity_id=light.kitchen_lights:open=false', 'location-changed']);
+  });
+
+  it('a member light opened from the card gets its own history, and reconfigure follows the entity', async () => {
+    const { h } = await host();
+    openLightSheet(h, config('light.kitchen_lights'));
+    const { sheet } = await opened();
+    reconfigureLightSheet(h, config('light.ceiling_lights'));
+    await sheet.updateComplete;
+    const push = vi.spyOn(window.history, 'pushState').mockImplementation(() => undefined);
+    (sheet.shadowRoot!.querySelector('button.history') as HTMLButtonElement).click();
+    await settle();
+    expect(push).toHaveBeenCalledWith(expect.anything(), '', '/history?entity_id=light.ceiling_lights');
+    push.mockRestore();
   });
 
   it('reconfigure and close act only for the element that opened it', async () => {

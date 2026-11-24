@@ -1,3 +1,4 @@
+import { ensureLiquidFont } from '@decibel95/liquid-core';
 import { DOCS_URL, TAGS } from './const';
 
 /** One entry of Home Assistant's card or badge picker. */
@@ -58,3 +59,12 @@ for (const entry of [PICKER.light, PICKER.tile, PICKER.badge, PICKER.room]) regi
 // The badge is in both lists, as the Liquid Climate badge.
 window.customBadges = window.customBadges || [];
 register(window.customBadges, PICKER.badge);
+
+// The Inter font ships next to the bundle (liquid-inter.woff2, copied there by the build and attached to the release),
+// as the liquid-core README ("Font") describes. @vite-ignore keeps the runtime URL (no inlined font); the bundle's own
+// query (HACS serves it as ?hacstag=...) is copied so a new release also refreshes the cached font.
+// Contract with vite.config.ts: this file name must be a key of FONT_ASSETS (build output and the dev route
+// /src/liquid-inter.woff2); test/font.test.ts checks it.
+const u = new URL(/* @vite-ignore */ './liquid-inter.woff2', import.meta.url);
+u.search = new URL(import.meta.url).search;
+ensureLiquidFont(u.href);

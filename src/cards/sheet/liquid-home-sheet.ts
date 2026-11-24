@@ -14,8 +14,12 @@ type LightCardElement = HTMLElement & {
 /** HA's own hass, for an owner that has none (opened from the page itself). */
 export const pageHass = (): HomeAssistant | undefined => (document.querySelector('home-assistant') as SheetOwner | null)?.hass;
 
-/** The core sheet reads `look`; light card configs carry it optionally until normalized. */
-const asSheetConfig = (config: LightCardConfig): LightCardConfig & SheetConfig => ({ ...config, look: { ...defaultLook, ...(config.look ?? {}) } });
+/** The core sheet reads `look` (light card configs carry it optionally until normalized) and `historyEntityId` (the history button). */
+const asSheetConfig = (config: LightCardConfig): LightCardConfig & SheetConfig => ({
+  ...config,
+  look: { ...defaultLook, ...(config.look ?? {}) },
+  historyEntityId: config.entity,
+});
 
 /**
  * The light card in a modal sheet (core LiquidSheetBase): a native <dialog> in the top layer with the card's own

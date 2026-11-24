@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it } from 'vitest';
-import { FOCUS, focusRing } from '@decibel95/liquid-core';
+import { FOCUS, focusRing, LIQUID_FONT_FAMILY, LIQUID_FONT_STACK } from '@decibel95/liquid-core';
 import '../../../src/cards/tile';
 import '../../../src/cards/badge';
 import { badgeChrome as badgeStyles, tileChrome as tileStyles } from '@decibel95/liquid-core';
@@ -15,8 +15,17 @@ import { $, cssAtRules, cssRules, fakeHass, type AnyEl } from './helpers';
  */
 
 type Rules = Record<string, Record<string, string | number>>;
-const lcTile = LC.tile as Rules;
-const lcBadge = LC.badge as Rules;
+
+/**
+ * The one intended difference from Liquid Climate 0.11.1 (liquid-core README, "Font"): the font stack puts the shipped
+ * 'Liquid Inter' face first, then Liquid Climate's stack unchanged.
+ */
+const withLiquidInter = (rules: Rules): Rules =>
+  Object.fromEntries(
+    Object.entries(rules).map(([sel, d]) => [sel, 'font-family' in d ? { ...d, 'font-family': `'${LIQUID_FONT_FAMILY}', ${d['font-family']}` } : d]),
+  );
+const lcTile = withLiquidInter(LC.tile as Rules);
+const lcBadge = withLiquidInter(LC.badge as Rules);
 
 /** Liquid Climate rules Liquid Home does not carry, each with its reason. */
 const NOT_CARRIED = {
@@ -49,6 +58,14 @@ function declaredParity(lc: Rules, mine: Record<string, Record<string, string>>,
 }
 
 describe('declared styles equal Liquid Climate 0.11.1', () => {
+  it("the font stack is Liquid Climate's with 'Liquid Inter' first, and nothing else differs in it", () => {
+    for (const rules of [LC.tile, LC.badge] as Rules[]) {
+      const fonts = Object.values(rules).filter((d) => 'font-family' in d);
+      expect(fonts.length).toBeGreaterThan(0);
+      for (const d of fonts) expect(`'${LIQUID_FONT_FAMILY}', ${d['font-family']}`).toBe(LIQUID_FONT_STACK);
+    }
+  });
+
   it('tile', () => declaredParity(lcTile, cssRules(tileStyles.cssText), NOT_CARRIED.tile));
   it('badge', () => declaredParity(lcBadge, cssRules(badgeStyles.cssText), NOT_CARRIED.badge));
 
