@@ -30,6 +30,8 @@ The same card in both glass styles.
 <img class="light-only" src="/media/light-light.png" alt="The light card in light glass" loading="lazy">
 <img class="dark-only" src="/media/light-dark.png" alt="The light card in dark glass" loading="lazy">
 
+<img src="/media/readme/glass-split.png" alt="The light card in dark glass on a dark background next to the same card in light glass on a light background" loading="lazy">
+
 ## Blur {#theming-blur}
 
 The blur costs rendering time on slow devices. `look.blur: 0` turns it off. See [Troubleshooting](/troubleshooting#troubleshooting-slow).

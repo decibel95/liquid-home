@@ -9,6 +9,9 @@
 
 Home Assistant 2026.11 and newer has a built-in Marketplace under Settings, Marketplace (for administrators). Liquid Home is not in the Marketplace catalog yet, so you add it by link.
 
+<img class="light-only" src="/media/readme/marketplace-entry-light.png" alt="The Home Assistant Settings page with the Marketplace entry" loading="lazy">
+<img class="dark-only" src="/media/readme/marketplace-entry-dark.png" alt="The Home Assistant Settings page with the Marketplace entry" loading="lazy">
+
 1. Open Settings, Marketplace. The first time, read "Before you install from the Marketplace", tick "I understand the risks and agree" and select Continue.
 2. Select Add from link at the top right. Adding by link needs a GitHub connection; the Marketplace asks you to connect GitHub if you have not yet.
 3. Enter `https://github.com/decibel95/liquid-home` as the GitHub link and choose the type Dashboard.
@@ -19,7 +22,6 @@ The Marketplace downloads all three release files into `/config/www/community/li
 ## Install with HACS {#install-hacs}
 
 For older Home Assistant versions, or if you use HACS.
-
 
 1. Open HACS, choose the menu in the top right and pick Custom repositories.
 2. Add `https://github.com/decibel95/liquid-home` with the category Dashboard.
@@ -56,4 +58,6 @@ See the pages of the [light card](/cards/light), [tile](/cards/tile), [badge](/c
 
 ## Next to Liquid Climate {#next-to-climate}
 
-Liquid Home and Liquid Climate use the same glass and the same theme variables, and run side by side on one dashboard. Each is its own resource.
+[Liquid Climate](https://github.com/decibel95/liquid-climate) is the sister card set: glass cards for climate entities, water heaters and humidifiers. Liquid Home and Liquid Climate use the same glass, the same theme variables and the same Inter font, and run side by side on one dashboard. Each is its own resource, so you can install one or both.
+
+The shared parts (the glass, the pill, the sheet, the font and the shared translations) live in the [liquid-core](https://github.com/decibel95/liquid-core) library. It comes from npm as [@decibel95/liquid-core](https://www.npmjs.com/package/@decibel95/liquid-core) and is bundled into `liquid-home.js`, so there is nothing extra to install.

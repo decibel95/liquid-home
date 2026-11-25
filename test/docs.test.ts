@@ -18,7 +18,7 @@ import { ANIMATIONS } from '../scripts/media/animations.mjs';
 
 // The markdown sources of the docs site (node_modules, the build output and public are not in these globs).
 const pages = import.meta.glob(['../docs/*.md', '../docs/cards/*.md'], { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
-const media = Object.keys(import.meta.glob('../docs/public/media/*')).map((f) => f.slice('../docs/public'.length));
+const media = Object.keys(import.meta.glob('../docs/public/media/**/*')).map((f) => f.slice('../docs/public'.length));
 
 /** The page path ("/cards/light") of a markdown source. */
 const pagePath = (file: string) => file.replace('../docs', '').replace(/\.md$/, '').replace(/\/index$/, '') || '/';
@@ -294,7 +294,7 @@ describe('docs media', () => {
   it('every /media/ reference in the pages is a file in docs/public/media', () => {
     let seen = 0;
     for (const [file, text] of Object.entries(pages)) {
-      for (const m of text.matchAll(/\/media\/[\w.-]+/g)) {
+      for (const m of text.matchAll(/\/media\/[\w./-]+/g)) {
         seen++;
         expect(media, `${file} references ${m[0]}`).toContain(m[0]);
       }

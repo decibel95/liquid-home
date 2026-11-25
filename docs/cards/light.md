@@ -5,6 +5,9 @@ A full glass card for one light: a big vertical brightness pill, a readout, and 
 <img class="light-only" src="/media/light-light.png" alt="The light card in light glass" loading="lazy">
 <img class="dark-only" src="/media/light-dark.png" alt="The light card in dark glass" loading="lazy">
 
+<img class="light-only" src="/media/readme/modes-light.png" alt="Three light cards: Brightness, White and Colour mode" loading="lazy">
+<img class="dark-only" src="/media/readme/modes-dark.png" alt="Three light cards: Brightness, White and Colour mode" loading="lazy">
+
 ```yaml
 type: custom:liquid-home-light-card
 entity: light.kitchen_lights
@@ -19,6 +22,9 @@ entity: light.kitchen_lights
 - The power button in the header turns the light on or off.
 - When the light card opens as a sheet (from a tile, a badge or a room card), the sheet has a history button next to the close button. It closes the sheet and opens the Home Assistant history page for that light. There is no history chart of its own.
 - An unavailable light reads Unavailable, and its power, mode and effect buttons are disabled.
+
+<img class="light-only" src="/media/readme/sheet-light.png" alt="The light card open as a sheet, with the power, history and close buttons in the header" loading="lazy">
+<img class="dark-only" src="/media/readme/sheet-dark.png" alt="The light card open as a sheet, with the power, history and close buttons in the header" loading="lazy">
 
 <img src="/media/light-drag.webp" alt="Dragging the brightness pill up and back down" loading="lazy">
 

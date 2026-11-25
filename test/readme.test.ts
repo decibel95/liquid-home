@@ -14,10 +14,16 @@ describe('README images', () => {
     for (const path of links) expect(tracked.has(path), path).toBe(true);
   });
 
-  it('every readme PNG is used in the README', () => {
+  it('every readme PNG is used in the README or a docs page', () => {
     const files = readdirSync(`${root}docs/public/media/readme`).filter((f) => f.endsWith('.png'));
     expect(files.length).toBeGreaterThan(0);
-    for (const f of files) expect(readme.includes(`${RAW}docs/public/media/readme/${f}`), f).toBe(true);
+    const docs = [`${root}docs`, `${root}docs/cards`]
+      .flatMap((d) => readdirSync(d).filter((f) => f.endsWith('.md')).map((f) => readFileSync(`${d}/${f}`, 'utf8')))
+      .join('\n');
+    for (const f of files) {
+      const used = readme.includes(`${RAW}docs/public/media/readme/${f}`) || docs.includes(`/media/readme/${f}`);
+      expect(used, f).toBe(true);
+    }
   });
 
   it('passes the HACS images rule', () => {

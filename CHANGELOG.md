@@ -3,6 +3,11 @@
 All notable changes to Liquid Home. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 <!-- #region entries -->
+## 0.2.2
+
+### Changed
+- A shorter README: screenshots, how to install, and a link to the documentation. All card options now live on the documentation site. The cards themselves are unchanged.
+
 ## 0.2.1
 
 ### Changed

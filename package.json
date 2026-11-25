@@ -1,6 +1,6 @@
 {
   "name": "liquid-home",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Liquid Home: glass light card, tile, badge and room card for Home Assistant lights",
   "license": "MIT",
   "type": "module",
