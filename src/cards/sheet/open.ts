@@ -55,3 +55,20 @@ export function closeLightSheet(host: HTMLElement): void {
 
 /** The shared sheet, for tests and the dev harness. */
 export const lightSheet = (): LiquidHomeSheet | undefined => shared;
+
+/** What openEntitySheet takes: a card config of any domain (cover and fan cards, plan 2.9). */
+export interface EntitySheetConfig {
+  type: string;
+  entity: string;
+  [option: string]: unknown;
+}
+
+/**
+ * Opens the card of the entity's domain (light, cover or fan card) as a sheet over `host`, the same sheet as
+ * openLightSheet: History for the entity, Close, focus return, following the host's hass. A call while the sheet is
+ * open does nothing.
+ */
+export function openEntitySheet(host: HTMLElement, config: EntitySheetConfig): void {
+  // Safe: the sheet only reads `entity` and `look` and hands the rest to the hosted card's own setConfig.
+  openLightSheet(host, config as unknown as LightCardConfig);
+}

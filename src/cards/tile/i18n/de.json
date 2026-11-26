@@ -1,8 +1,10 @@
 {
   "card": {
-    "name": "Licht-Kachel"
+    "name": "Kachel"
   },
   "ariaTile": "{name} Licht",
+  "ariaCover": "{name} Rollladen",
+  "ariaFan": "{name} Ventilator",
   "power": "{name} schalten",
   "stepDown": "Helligkeit verringern",
   "stepUp": "Helligkeit erhöhen",

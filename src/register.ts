@@ -26,24 +26,38 @@ export const PICKER = {
     preview: true,
     documentationURL: `${DOCS_URL}/cards/light`,
   },
+  cover: {
+    type: TAGS.cover,
+    name: 'Liquid Home cover card',
+    description: 'Glass card for one cover: a big position pill with open, stop and close buttons, and tilt.',
+    preview: true,
+    documentationURL: `${DOCS_URL}/cards/cover`,
+  },
+  fan: {
+    type: TAGS.fan,
+    name: 'Liquid Home fan card',
+    description: 'Glass card for one fan: a big speed pill with power, oscillate, direction and presets.',
+    preview: true,
+    documentationURL: `${DOCS_URL}/cards/fan`,
+  },
   tile: {
     type: TAGS.tile,
     name: 'Liquid Home tile',
-    description: 'Compact glass row for a light: power, status, brightness steppers. Tap to open the light card as a sheet.',
+    description: 'Compact glass row for a light, cover or fan: icon action, status and steps. Tap to open its card as a sheet.',
     preview: true,
     documentationURL: `${DOCS_URL}/cards/tile`,
   },
   badge: {
     type: TAGS.badge,
     name: 'Liquid Home badge',
-    description: 'Glass status pill for a light: on or off and its brightness.',
+    description: 'Glass status pill for a light, cover or fan: its state and level.',
     preview: true,
     documentationURL: `${DOCS_URL}/cards/badge`,
   },
   room: {
     type: TAGS.room,
     name: 'Liquid Home room',
-    description: 'Every light of a room in one glass card: a tile per light, a strip for the selected one and a header power button.',
+    description: 'The lights, covers and fans of a room in one glass card: a tile for each, a strip for the selected one and a header power button for the lights.',
     preview: true,
     documentationURL: `${DOCS_URL}/cards/room`,
   },
@@ -55,7 +69,7 @@ function register(list: PickerEntry[], entry: PickerEntry) {
 }
 
 window.customCards = window.customCards || [];
-for (const entry of [PICKER.light, PICKER.tile, PICKER.badge, PICKER.room]) register(window.customCards, entry);
+for (const entry of [PICKER.light, PICKER.cover, PICKER.fan, PICKER.tile, PICKER.badge, PICKER.room]) register(window.customCards, entry);
 // The badge is in both lists, as the Liquid Climate badge.
 window.customBadges = window.customBadges || [];
 register(window.customBadges, PICKER.badge);

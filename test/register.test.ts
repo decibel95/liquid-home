@@ -2,7 +2,7 @@
 import { afterAll, describe, expect, it, vi } from 'vitest';
 import { DOCS_URL, TAGS } from '../src/const';
 
-/** The documented tags: four cards, their four editors and the internal sheet. */
+/** The documented tags: six cards, their six editors and the internal sheet (plan section 4). */
 const DOCUMENTED = [
   'liquid-home-light-card',
   'liquid-home-light-card-editor',
@@ -12,6 +12,10 @@ const DOCUMENTED = [
   'liquid-home-badge-editor',
   'liquid-home-room',
   'liquid-home-room-editor',
+  'liquid-home-cover-card',
+  'liquid-home-cover-card-editor',
+  'liquid-home-fan-card',
+  'liquid-home-fan-card-editor',
   'liquid-home-sheet',
 ];
 
@@ -44,6 +48,8 @@ describe('custom elements (plan 2.3, 4.2)', () => {
       [TAGS.tile, TAGS.tileEditor],
       [TAGS.badge, TAGS.badgeEditor],
       [TAGS.room, TAGS.roomEditor],
+      [TAGS.cover, TAGS.coverEditor],
+      [TAGS.fan, TAGS.fanEditor],
     ]) {
       const Card = customElements.get(card) as unknown as {
         getConfigElement(): Promise<HTMLElement>;
@@ -63,20 +69,48 @@ describe('custom elements (plan 2.3, 4.2)', () => {
 });
 
 describe('picker entries (plan 2.3, D-16)', () => {
-  it('lists the light card, tile, badge and room once each, next to Liquid Climate', async () => {
+  it('lists the light, cover and fan cards, tile, badge and room once each, next to Liquid Climate', async () => {
     vi.resetModules();
     await import('../src/register');
     const ours = window.customCards!.filter((c) => c.type.startsWith('liquid-home-'));
-    expect(ours.map((c) => c.type)).toEqual([TAGS.light, TAGS.tile, TAGS.badge, TAGS.room]);
-    expect(ours.map((c) => c.name)).toEqual(['Liquid Home light card', 'Liquid Home tile', 'Liquid Home badge', 'Liquid Home room']);
+    expect(ours.map((c) => c.type)).toEqual([TAGS.light, TAGS.cover, TAGS.fan, TAGS.tile, TAGS.badge, TAGS.room]);
+    expect(ours.map((c) => c.name)).toEqual([
+      'Liquid Home light card',
+      'Liquid Home cover card',
+      'Liquid Home fan card',
+      'Liquid Home tile',
+      'Liquid Home badge',
+      'Liquid Home room',
+    ]);
     expect(window.customCards![0].type).toBe('liquid-climate-card');
     expect(new Set(window.customCards!.map((c) => c.type)).size).toBe(window.customCards!.length);
     for (const c of ours) {
       expect(c.preview).toBe(true);
       expect(c.description.length).toBeGreaterThan(10);
-      expect(c.documentationURL).toBe(`${DOCS_URL}/cards/${c.type === TAGS.light ? 'light' : c.type.replace('liquid-home-', '')}`);
+      expect(c.documentationURL).toBe(`${DOCS_URL}/cards/${c.type.replace('liquid-home-', '').replace('-card', '')}`);
       expect(c.type.startsWith('custom:')).toBe(false);
     }
+  });
+
+  it('tile, badge and room describe lights, covers and fans; the cover and fan cards their own domain', () => {
+    const by = (type: string) => window.customCards!.find((c) => c.type === type)!.description;
+    for (const type of [TAGS.tile, TAGS.badge, TAGS.room]) expect(by(type)).toMatch(/lights?, covers? (and|or) fans?/);
+    expect(by(TAGS.cover)).toContain('cover');
+    expect(by(TAGS.fan)).toContain('fan');
+  });
+
+  it('every card offers a stub config of its own type and domain for the picker preview', async () => {
+    const { makeMixedHass } = await import('./cards/room/helpers');
+    const { hass } = makeMixedHass();
+    const stub = (tag: string) => (customElements.get(tag) as unknown as { getStubConfig(h: unknown): Record<string, unknown> }).getStubConfig(hass);
+    expect(stub(TAGS.light)).toMatchObject({ type: `custom:${TAGS.light}`, entity: expect.stringMatching(/^light\./) });
+    expect(stub(TAGS.cover)).toMatchObject({ type: `custom:${TAGS.cover}`, entity: expect.stringMatching(/^cover\./) });
+    expect(stub(TAGS.fan)).toMatchObject({ type: `custom:${TAGS.fan}`, entity: expect.stringMatching(/^fan\./) });
+    expect(stub(TAGS.tile)).toMatchObject({ type: `custom:${TAGS.tile}`, entity: expect.stringMatching(/^light\./) });
+    expect(stub(TAGS.badge)).toMatchObject({ type: `custom:${TAGS.badge}`, entity: expect.stringMatching(/^light\./) });
+    expect(stub(TAGS.room)).toMatchObject({ type: `custom:${TAGS.room}`, source: 'area', area: expect.any(String) });
+    // Without hass (HA can call it before states are in): an example entity, still a valid config of that card.
+    for (const tag of [TAGS.cover, TAGS.fan]) expect(() => (customElements.get(tag) as any).getStubConfig(undefined)).not.toThrow();
   });
 
   it('lists the badge in the badge picker once, next to the Liquid Climate badge', () => {

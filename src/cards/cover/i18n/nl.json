@@ -1,0 +1,50 @@
+{
+  "card": {
+    "name": "Bedekkingskaart",
+    "description": "Glazen kaart voor één bedekking: een verticale balk voor de positie met knoppen voor openen, stoppen en sluiten.",
+    "loading": "Laden",
+    "entityNotFound": "Entiteit niet gevonden: {entity}"
+  },
+  "mode": {
+    "group": "Modus van de balk",
+    "position": "Positie",
+    "tilt": "Kanteling"
+  },
+  "action": {
+    "group": "Bediening van de bedekking",
+    "open": "Openen",
+    "stop": "Stoppen",
+    "close": "Sluiten",
+    "openTilt": "Kanteling openen",
+    "stopTilt": "Kanteling stoppen",
+    "closeTilt": "Kanteling sluiten"
+  },
+  "state": {
+    "open": "Open",
+    "closed": "Dicht",
+    "opening": "Gaat open",
+    "closing": "Gaat dicht"
+  },
+  "readout": {
+    "position": "Positie",
+    "tilt": "Kanteling",
+    "tap": "Tik om te schakelen"
+  },
+  "sub": {
+    "tilt": "{state}, kanteling {value}"
+  },
+  "aria": {
+    "position": "Positie, {name}",
+    "tilt": "Kanteling, {name}",
+    "held": "{value}, nu {now}",
+    "toggle": "Schakelen, {name}",
+    "toggleTilt": "Kanteling schakelen, {name}",
+    "stop": "Stoppen, {name}"
+  },
+  "step": {
+    "close": "10 % sluiten",
+    "open": "10 % openen",
+    "closeTilt": "Kanteling 10 % sluiten",
+    "openTilt": "Kanteling 10 % openen"
+  }
+}

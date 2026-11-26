@@ -1,0 +1,50 @@
+{
+  "card": {
+    "name": "Carte volet",
+    "description": "Carte en verre pour un volet : une pastille verticale de position avec des boutons pour ouvrir, arrêter et fermer.",
+    "loading": "Chargement",
+    "entityNotFound": "Entité introuvable : {entity}"
+  },
+  "mode": {
+    "group": "Mode de la pastille",
+    "position": "Position",
+    "tilt": "Inclinaison"
+  },
+  "action": {
+    "group": "Commandes du volet",
+    "open": "Ouvrir",
+    "stop": "Arrêter",
+    "close": "Fermer",
+    "openTilt": "Ouvrir l'inclinaison",
+    "stopTilt": "Arrêter l'inclinaison",
+    "closeTilt": "Fermer l'inclinaison"
+  },
+  "state": {
+    "open": "Ouvert",
+    "closed": "Fermé",
+    "opening": "Ouverture",
+    "closing": "Fermeture"
+  },
+  "readout": {
+    "position": "Position",
+    "tilt": "Inclinaison",
+    "tap": "Appuyer pour basculer"
+  },
+  "sub": {
+    "tilt": "{state}, inclinaison {value}"
+  },
+  "aria": {
+    "position": "Position, {name}",
+    "tilt": "Inclinaison, {name}",
+    "held": "{value}, actuellement {now}",
+    "toggle": "Basculer, {name}",
+    "toggleTilt": "Basculer l'inclinaison, {name}",
+    "stop": "Arrêter, {name}"
+  },
+  "step": {
+    "close": "Fermer de 10 %",
+    "open": "Ouvrir de 10 %",
+    "closeTilt": "Fermer l'inclinaison de 10 %",
+    "openTilt": "Ouvrir l'inclinaison de 10 %"
+  }
+}

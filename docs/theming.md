@@ -1,6 +1,6 @@
 # Theming {#theming}
 
-All four cards use the same glass and the same theme variables as [Liquid Climate](https://decibel95.github.io/liquid-climate). One theme setting moves both products together. card-mod is not required.
+All six cards use the same glass and the same theme variables as [Liquid Climate](https://decibel95.github.io/liquid-climate). One theme setting moves both products together. card-mod is not required.
 
 ## Look options {#theming-look}
 

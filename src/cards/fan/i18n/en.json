@@ -1,0 +1,38 @@
+{
+  "card": {
+    "name": "Fan card",
+    "description": "Glass card for one fan: a vertical speed pill with a power button and preset modes.",
+    "loading": "Loading",
+    "entityNotFound": "Entity not found: {entity}"
+  },
+  "readout": {
+    "speed": "Speed",
+    "preset": "Preset",
+    "tap": "Tap to switch",
+    "on": "On"
+  },
+  "sub": {
+    "on": "On",
+    "onOscillating": "On, oscillating",
+    "onReverse": "On, reverse",
+    "onOscillatingReverse": "On, oscillating, reverse"
+  },
+  "row": {
+    "group": "Fan controls",
+    "oscillate": "Oscillate",
+    "reverse": "Reverse"
+  },
+  "preset": {
+    "label": "Preset",
+    "none": "None"
+  },
+  "step": {
+    "slower": "Slower",
+    "faster": "Faster"
+  },
+  "aria": {
+    "power": "Switch {name}",
+    "speed": "Speed, {name}",
+    "preset": "Preset: {value}"
+  }
+}

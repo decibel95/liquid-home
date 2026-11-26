@@ -1,6 +1,8 @@
 import type { HomeAssistant } from '@decibel95/liquid-core';
 import type { SlotMount } from './types';
 import '../../src/cards/room';
+import { createCoverSim } from '../../test/covers/sim';
+import { applyFanCall, FAN_FIXTURES, type FanState } from '../../test/fans/fixtures';
 
 /** The three layouts of the room card (the Liquid Climate cluster's container widths): wide, medium, narrow. */
 const WIDTHS = [
@@ -31,15 +33,64 @@ export function withRegistry(hass: HomeAssistant, ids: Record<string, string>): 
   return { ...hass, entities, devices, areas: { [AREA]: { area_id: AREA, name: 'Living Room' } } };
 }
 
+/** DERIVED, as the test HA Living Room (plan 2.11): covers through their device or the entity, fans as entities. */
+const COVERS_VIA_DEVICE = ['cover.hall_window', 'cover.living_room_window'];
+const DIRECT = ['cover.garage_door', 'fan.living_room_fan', 'fan.lh_fixture_onoff', 'fan.lh_fixture_ten'];
+
+/** withRegistry plus the covers and fans of the mixed room: the Garage Door stands in for the test HA blind fixture. */
+export function withMixedRegistry(hass: HomeAssistant, ids: Record<string, string>): HomeAssistant {
+  const h = withRegistry(hass, ids);
+  const entities = { ...h.entities };
+  const devices = { ...h.devices };
+  for (const id of COVERS_VIA_DEVICE) {
+    const device = `dev_${id.slice('cover.'.length)}`;
+    devices[device] = { id: device, area_id: AREA };
+    entities[id] = { entity_id: id, device_id: device, platform: 'demo' };
+  }
+  for (const id of DIRECT) entities[id] = { entity_id: id, platform: 'demo', area_id: AREA };
+  return { ...h, entities, devices };
+}
+
 /**
- * Dev harness slot of the room card. Two configurations, each on dark and light glass at the three widths:
+ * Dev harness slot of the room card. Three configurations, each on dark and light glass at the three widths:
  * - CHO-12 (list): one member on (Ceiling Lights, 2631 K), one off (Living Room RGBWW), one unavailable (Office RGBW),
  *   with the derived group as power entity.
  * - Area: every light in the Living Room area (the group members, the dimmed Kitchen Lights, the unavailable Office
  *   light) with the group as power entity; Entrance is on/off-only.
+ * - Mixed (0.3, P2-CHO-17 to 19): the same area with `domains: [light, cover, fan]`: the lights, Hall Window and Living
+ *   Room Window (device area), the Garage Door and three fans (entity area). Covers run on the cover simulator (echo
+ *   250 ms, motor 10 % per second), fans as HA's demo fan after 0.8 s; calls are logged.
+ * `?room=mixed` shows only the mixed room, `?glass=dark|light` one glass (for screenshots).
  */
 export const mount: SlotMount = ({ container, hass, ids, onHass, log }) => {
-  const configs = [
+  const params = new URLSearchParams(location.search);
+  const only = params.get('room');
+  const glasses = GLASSES.filter((g) => !params.get('glass') || params.get('glass') === g);
+  const sim = createCoverSim({ travelMs: 4000, onCall: (c) => log(`${new Date().toLocaleTimeString()}  ${c.domain}.${c.service} ${JSON.stringify(c.data)}`) });
+  const fans: Record<string, FanState> = {};
+  for (const make of [FAN_FIXTURES.off, FAN_FIXTURES.onoff, FAN_FIXTURES.ten]) {
+    const f = make();
+    fans[f.entity_id] = f;
+  }
+  let base = hass;
+  /** The harness hass with the cover simulator's states and the fans on top; cover and fan calls go to their fakes. */
+  const mixedHass = (): HomeAssistant =>
+    ({
+      ...withMixedRegistry(base, ids),
+      states: { ...base.states, ...sim.hass.states, ...fans },
+      callService: async (domain: string, service: string, data: Record<string, unknown> = {}) => {
+        if (domain === 'cover') return sim.hass.callService(domain, service, data);
+        if (domain !== 'fan') return base.callService(domain, service, data);
+        log(`${new Date().toLocaleTimeString()}  fan.${service} ${JSON.stringify(data)}`);
+        setTimeout(() => {
+          const id = data.entity_id as string;
+          if (fans[id]) fans[id] = applyFanCall(fans[id], service, data);
+          publish();
+        }, 800);
+      },
+    }) as HomeAssistant;
+
+  const allConfigs = [
     {
       label: 'CHO-12: one on, one off, one unavailable (source list)',
       config: {
@@ -53,12 +104,20 @@ export const mount: SlotMount = ({ container, hass, ids, onHass, log }) => {
       label: 'Area living_room with the group as power entity (source inferred: area)',
       config: { type: 'custom:liquid-home-room', area: AREA, power_entity: GROUP },
     },
+    {
+      key: 'mixed',
+      label: 'Mixed: area living_room with domains light, cover and fan (0.3)',
+      config: { type: 'custom:liquid-home-room', area: AREA, domains: ['light', 'cover', 'fan'] },
+    },
   ];
+  const configs = allConfigs.filter((c) => !only || ('key' in c && c.key === only));
 
   container.style.flexDirection = 'column';
-  const cards: HTMLElement[] = [];
-  for (const { label, config } of configs) {
-    for (const glass of GLASSES) {
+  const cards: { card: HTMLElement; mixed: boolean }[] = [];
+  for (const entry of configs) {
+    const { label, config } = entry;
+    const mixed = 'key' in entry;
+    for (const glass of glasses) {
       const heading = document.createElement('p');
       heading.className = 'note';
       heading.textContent = `${label}, ${glass} glass`;
@@ -67,24 +126,26 @@ export const mount: SlotMount = ({ container, hass, ids, onHass, log }) => {
       row.style.cssText = 'display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start';
       for (const w of WIDTHS) {
         const box = document.createElement('div');
-        box.dataset.room = `${'area' in config ? 'area' : 'list'}-${glass}-${w.key}`;
+        box.dataset.room = `${mixed ? 'mixed' : 'area' in config ? 'area' : 'list'}-${glass}-${w.key}`;
         box.style.cssText = `width:${w.px}px;max-width:100%`;
         const card = document.createElement('liquid-home-room') as HTMLElement & { setConfig(c: unknown): void; hass: HomeAssistant };
         card.setConfig({ ...config, look: { glass } });
-        card.hass = withRegistry(hass, ids);
-        card.addEventListener('click', (e) => {
-          const target = e.composedPath()[0] as HTMLElement | undefined;
-          if (target?.closest?.('.who, .mode')) log(`room: openLightSheet() called (stub until P12)`);
-        });
+        card.hass = mixed ? mixedHass() : withRegistry(hass, ids);
         box.append(card);
         row.append(box);
-        cards.push(card);
+        cards.push({ card, mixed });
       }
       container.append(row);
     }
   }
+  function publish() {
+    const plain = withRegistry(base, ids);
+    const mixed = mixedHass();
+    for (const c of cards) (c.card as unknown as { hass: HomeAssistant }).hass = c.mixed ? mixed : plain;
+  }
+  sim.onHass(() => publish());
   onHass((next) => {
-    const h = withRegistry(next, ids);
-    for (const c of cards) (c as unknown as { hass: HomeAssistant }).hass = h;
+    base = next;
+    publish();
   });
 };

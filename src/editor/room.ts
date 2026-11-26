@@ -2,14 +2,20 @@ import { html, nothing, type TemplateResult } from 'lit';
 import { state } from 'lit/decorators.js';
 import type { CardKey } from '../const';
 import type { RawConfig } from '../config';
-import { isGroup, isLightEntity } from '../lights';
-import { normalizeConfig, pruneConfig, type RoomConfig, type RoomSource } from '../cards/room/config';
-import { firstAreaWithLights, roomMembers, roomTitle } from '../cards/room/members';
+import { isGroup } from '../lights';
+import { DEFAULT_DOMAINS, ROOM_DOMAINS, normalizeConfig, pruneConfig, roomDomains, type RoomConfig, type RoomDomain, type RoomSource } from '../cards/room/config';
+import { domainOf, firstAreaWithLights, roomMembers, roomTitle } from '../cards/room/members';
 import { LiquidHomeEditor } from './base';
 
+/** The domain labels of the multi-select, in display order. */
+const DOMAIN_LABELS: Record<RoomDomain, string> = { light: 'editor.lights', cover: 'editor.covers', fan: 'editor.fans' };
+/** The add input's example id per first domain. */
+const EXAMPLE: Record<RoomDomain, string> = { light: 'light.kitchen', cover: 'cover.living_room_window', fan: 'fan.living_room_fan' };
+
 /**
- * Room editor, as the Liquid Climate cluster editor: title, where the lights come from (one area, with lights to
- * leave out, or an ordered list with optional names), the power entity and the look. The editor always writes `source`.
+ * Room editor, as the Liquid Climate cluster editor: title, the domains the room shows (lights, covers, fans), where
+ * its entities come from (one area, with entities to leave out, or an ordered list with optional names), the power
+ * entity (lights only) and the look. The editor always writes `source`; `domains` only when it is not lights only.
  */
 export class LiquidHomeRoomEditor extends LiquidHomeEditor<RoomConfig> {
   protected readonly _card: CardKey = 'room';
@@ -58,16 +64,73 @@ export class LiquidHomeRoomEditor extends LiquidHomeEditor<RoomConfig> {
     return item && typeof item === 'object' && typeof id === 'string' ? id : '';
   }
 
-  /** A light id that exists in Home Assistant. */
-  private _isKnownLight(id: string): boolean {
-    return isLightEntity(id) && !!this.hass?.states[id];
+  /** An id of one of these domains that exists in Home Assistant. */
+  private _isKnown(id: string, domains: readonly RoomDomain[]): boolean {
+    return domains.includes(domainOf(id)!) && !!this.hass?.states[id];
+  }
+
+  /** The room's domains, lights only unless set. */
+  private _domains(cfg: RoomConfig): RoomDomain[] {
+    return roomDomains(cfg.domains);
+  }
+
+  /** Lights only (the 0.2 room): the editor keeps its light wording. */
+  private _lightsOnly(cfg: RoomConfig): boolean {
+    return this._domains(cfg).join() === DEFAULT_DOMAINS.join();
+  }
+
+  /** The text key for a lights-only room, or its domain-neutral twin (`<key>Any`, or the given one). */
+  private _k(cfg: RoomConfig, key: string, any = `${key}Any`): string {
+    return `editor.${this._lightsOnly(cfg) ? key : any}`;
+  }
+
+  /**
+   * The domains as a multiple choice on the core segmented control (aria-pressed), as the light card's modes; the last
+   * one picked cannot be unpicked. A list room drops its entries of a domain that is unpicked (the card would refuse
+   * them); an area room just stops showing them.
+   */
+  private _domainField(cfg: RoomConfig): TemplateResult {
+    const label = this._t('editor.domains');
+    const current = this._domains(cfg);
+    return html`<div class="field">
+      <span class="lbl">${label}</span>
+      <div class="seg" role="group" aria-label=${label}>
+        ${ROOM_DOMAINS.map((d) => {
+          const on = current.includes(d);
+          return html`<button
+            aria-pressed=${on ? 'true' : 'false'}
+            class=${on ? 'on' : ''}
+            ?disabled=${on && current.length === 1}
+            @click=${() => {
+              const domains = ROOM_DOMAINS.filter((x) => (x === d ? !on : current.includes(x)));
+              this._powerInvalid = false;
+              // Entries that name no light, cover or fan are kept as they are (the list keeps what it cannot show).
+              const keep = (item: unknown) => {
+                const dm = domainOf(this._idOf(item));
+                return !dm || domains.includes(dm);
+              };
+              this._fire((c) => ({
+                ...c,
+                domains,
+                ...(c.source === 'list' && Array.isArray(c.entities) ? { entities: c.entities.filter(keep) } : {}),
+              }));
+            }}
+          >
+            ${this._t(DOMAIN_LABELS[d])}
+          </button>`;
+        })}
+      </div>
+    </div>`;
   }
 
   protected override render(): TemplateResult {
     const cfg = this._config;
     if (!cfg || !this.hass) return html``;
     const areas = Object.values(this.hass.areas ?? {}).sort((a, b) => a.name.localeCompare(b.name));
+    const domains = this._domains(cfg);
+    const ids = this._ids(domains);
     const lights = this._lights();
+    const members = this._t(this._k(cfg, 'lights', 'entities'));
     return html`<div class="body">
       <label class="field">
         <span class="lbl">${this._t('editor.title')}</span>
@@ -78,6 +141,7 @@ export class LiquidHomeRoomEditor extends LiquidHomeEditor<RoomConfig> {
           @change=${(e: Event) => this._fire({ title: (e.target as HTMLInputElement).value.trim() || undefined })}
         />
       </label>
+      ${this._domainField(cfg)}
       ${this._seg<RoomSource>(
         this._t('editor.source'),
         cfg.source,
@@ -108,14 +172,22 @@ export class LiquidHomeRoomEditor extends LiquidHomeEditor<RoomConfig> {
       }
       ${
         cfg.source === 'area'
-          ? html`<div class="field" role="group" aria-label=${this._t('editor.lights')}>
-              <span class="lbl">${this._t('editor.lights')}</span>
+          ? html`<div class="field" role="group" aria-label=${members}>
+              <span class="lbl">${members}</span>
               ${this._areaLights(cfg)}
-              <span class="hint">${this._t('editor.noteArea')}</span>
+              <span class="hint">${this._t(this._k(cfg, 'noteArea'))}</span>
             </div>`
-          : this._listLights(cfg, lights)
+          : this._listLights(cfg, ids, members)
       }
-      <div class="field">
+      ${domains.includes('light') ? this._power(cfg, lights) : nothing}
+      ${this._head('look', 'editor.tabLook')} ${this._look(cfg.look)}
+      <span class="hint">${this._t('editor.yamlHint')}</span>
+    </div>`;
+  }
+
+  /** The header power entity: a light id input with the light groups first in its suggestions. Lights only. */
+  private _power(cfg: RoomConfig, lights: string[]): TemplateResult {
+    return html`<div class="field">
         <div class="lblrow">
           <span class="lbl" id="lh-power-label">${this._t('editor.powerEntity')}</span>${this._help('power-entity', 'editor.powerEntity')}
         </div>
@@ -128,7 +200,7 @@ export class LiquidHomeRoomEditor extends LiquidHomeEditor<RoomConfig> {
           @change=${(e: Event) => {
             const input = e.target as HTMLInputElement;
             const id = input.value.trim();
-            this._powerInvalid = !!id && !this._isKnownLight(id);
+            this._powerInvalid = !!id && !this._isKnown(id, ['light']);
             if (this._powerInvalid) input.value = cfg.power_entity ?? '';
             else this._fire({ power_entity: id || undefined });
           }}
@@ -140,17 +212,14 @@ export class LiquidHomeRoomEditor extends LiquidHomeEditor<RoomConfig> {
         </datalist>
         <span class="hint">${this._t('editor.powerHint')}</span>
         ${this._powerInvalid ? html`<span class="hint" role="alert">${this._t('editor.powerInvalid')}</span>` : nothing}
-      </div>
-      ${this._head('look', 'editor.tabLook')} ${this._look(cfg.look)}
-      <span class="hint">${this._t('editor.yamlHint')}</span>
-    </div>`;
+      </div>`;
   }
 
-  /** Every light of the area, each with a switch: off means it is in `exclude`. */
+  /** Every entity of the area of the room's domains, each with a switch: off means it is in `exclude`. */
   private _areaLights(cfg: RoomConfig): TemplateResult | TemplateResult[] {
     if (!cfg.area) return [];
     const all = roomMembers(this.hass!, { ...cfg, exclude: [] });
-    if (!all.length) return html`<span class="hint">${this._t('editor.noLights')}</span>`;
+    if (!all.length) return html`<span class="hint">${this._t(this._k(cfg, 'noLights', 'noEntities'))}</span>`;
     const exclude = cfg.exclude ?? [];
     return all.map((m) => {
       const shown = !exclude.includes(m.entity);
@@ -173,10 +242,12 @@ export class LiquidHomeRoomEditor extends LiquidHomeEditor<RoomConfig> {
   }
 
   /**
-   * The listed lights in order, each in its own group: its name override, then Up, Down and Remove on the core
-   * segmented control. Below them the input that adds a light, with every light not listed yet as a suggestion.
+   * The listed entities in order, each in its own group: its name override, then Up, Down and Remove on the core
+   * segmented control. Below them the input that adds one of the room's domains, with every such entity not listed yet
+   * as a suggestion.
    */
-  private _listLights(cfg: RoomConfig, lights: string[]): TemplateResult {
+  private _listLights(cfg: RoomConfig, ids: string[], label: string): TemplateResult {
+    const domains = this._domains(cfg);
     const raw: unknown[] = Array.isArray(cfg.entities) ? cfg.entities : [];
     // The rows are the items that name a light; the raw items (unknown keys, odd entries) are what gets saved.
     const rows = raw.map((item, at) => ({ item, at, entity: this._idOf(item) })).filter((r) => r.entity);
@@ -221,25 +292,25 @@ export class LiquidHomeRoomEditor extends LiquidHomeEditor<RoomConfig> {
     // One display: contents wrapper (core's .look) keeps the body's spacing between the lights (and keeps happy-dom's
     // template markers in place, see core lookFields).
     return html`<div class="look">
-      <span class="lbl">${this._t('editor.lights')}</span>
+      <span class="lbl">${label}</span>
       ${lines}
       <label class="field">
-        <span class="lbl">${this._t('editor.addLight')}</span>
+        <span class="lbl">${this._t(this._k(cfg, 'addLight', 'addEntity'))}</span>
         <input
           type="text"
           list="lh-room-ids"
-          placeholder="light.kitchen"
+          placeholder=${EXAMPLE[domains[0]]}
           @change=${(ev: Event) => {
             const input = ev.target as HTMLInputElement;
             const id = input.value.trim();
             input.value = '';
-            if (this._isKnownLight(id) && !rows.some((r) => r.entity === id)) save([...raw, id]);
+            if (this._isKnown(id, domains) && !rows.some((r) => r.entity === id)) save([...raw, id]);
           }}
         />
         <datalist id="lh-room-ids">
-          ${lights.filter((id) => !rows.some((r) => r.entity === id)).map((id) => html`<option value=${id}>${this._friendly(id)}</option>`)}
+          ${ids.filter((id) => !rows.some((r) => r.entity === id)).map((id) => html`<option value=${id}>${this._friendly(id)}</option>`)}
         </datalist>
-        <span class="hint">${this._t('editor.noteList')}</span>
+        <span class="hint">${this._t(this._k(cfg, 'noteList'))}</span>
       </label>
     </div>`;
   }

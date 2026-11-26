@@ -37,6 +37,8 @@ try {
     mount('liquid-home-light-card', { entity: hassBox.ids.dimmed }, root, 'lh-card'),
     mount('liquid-climate-card', { entity: hassBox.climateIds[0] }, root, 'lc-card'),
   ];
+  els.push(mount('liquid-home-cover-card', { entity: hassBox.coverId }, root, 'lh-cover'));
+  els.push(mount('liquid-home-fan-card', { entity: hassBox.fanId }, root, 'lh-fan'));
   const badges = document.createElement('div');
   badges.id = 'badges';
   root.append(badges);

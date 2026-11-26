@@ -2,6 +2,9 @@ import { CARD_TYPES, CONFIG_VERSION } from '../../const';
 import { defaultLook, pruneDefaults, type LookConfig, type RawConfig } from '../../config';
 import { migrateConfig } from '../../migrate';
 import { normalizeConfig as normalizeLightConfig, type LightCardConfig } from '../light/config';
+import { normalizeConfig as normalizeCoverConfig } from '../cover/config';
+import { defaultConfig as fanDefaults, normalizeConfig as normalizeFanConfig } from '../fan/config';
+import { tileDomain, type TileDomain } from './text';
 
 /** What a tap on the tile body or on a badge does, as in Liquid Climate. */
 export type TapAction = 'sheet' | 'more-info' | 'none';
@@ -9,10 +12,15 @@ export const TAP_ACTIONS: readonly TapAction[] = ['sheet', 'more-info', 'none'];
 
 export const tapAction = (v: unknown, fallback: TapAction): TapAction => (TAP_ACTIONS.includes(v as TapAction) ? (v as TapAction) : fallback);
 
-/** The tile opens the light card as a sheet: light card options can sit here and are passed on. */
-export interface TileConfig extends Omit<LightCardConfig, 'type'> {
+/**
+ * The tile opens the card of its entity's domain (light, cover or fan card) as a sheet: that card's options can sit
+ * here and are passed on (`controls` of the light and fan cards, `write_hold`, `look`).
+ */
+export interface TileConfig extends Omit<LightCardConfig, 'type' | 'controls'> {
   type: string;
-  /** Tap on the name and status: open the light card (default), HA's more-info dialog, or nothing. */
+  /** Light card `modes` and `effects`, fan card `presets`. */
+  controls?: LightCardConfig['controls'] & { presets?: boolean };
+  /** Tap on the name and status: open the card of the entity (default), HA's more-info dialog, or nothing. */
   tap_action?: TapAction;
 }
 
@@ -29,26 +37,48 @@ export const defaultConfig = {
   config_version: CONFIG_VERSION,
 };
 
+/** The card each domain opens in the sheet, and that card's normalizer for the options the tile passes on. */
+const CARDS: Record<TileDomain, { type: string; normalize: (raw: RawConfig) => RawConfig }> = {
+  light: { type: CARD_TYPES.light, normalize: normalizeLightConfig },
+  cover: { type: CARD_TYPES.cover, normalize: normalizeCoverConfig },
+  fan: { type: CARD_TYPES.fan, normalize: normalizeFanConfig },
+};
+
+/** The domain a config is for; a config without a valid entity reads as a light (the 0.2 tile). */
+const domainOf = (cfg: { entity?: unknown }): TileDomain => tileDomain(cfg.entity) ?? 'light';
+
 /**
- * Migrated config with every default filled in. Unknown values fall back to their default. The light card options
- * the tile passes on to its sheet (name, controls, write_hold, look) go through the light card's own normalizer, so
- * a tile and the card it opens read them identically.
+ * Migrated config with every default filled in. Unknown values fall back to their default. The card options the
+ * tile passes on to its sheet (name, controls, write_hold, look) go through the normalizer of the card it opens (light,
+ * cover or fan card), so a tile and the card it opens read them identically.
  */
 export function normalizeConfig(raw: RawConfig): NormalizedTileConfig {
   const cfg = migrateConfig({ type: defaultConfig.type, ...raw });
-  const { type: _light, ...light } = normalizeLightConfig({ ...cfg, type: CARD_TYPES.light });
+  const card = CARDS[domainOf(cfg)];
+  const { type: _card, ...opts } = card.normalize({ ...cfg, type: card.type });
   return {
     type: cfg.type,
-    ...light,
+    ...(opts as Omit<NormalizedTileConfig, 'type' | 'tap_action'>),
     tap_action: tapAction(cfg.tap_action, defaultConfig.tap_action),
   };
 }
 
-/** The light card config the tile opens as a sheet: its light card options without its own keys. */
-export function sheetConfig(cfg: TileConfig): LightCardConfig {
-  const { tap_action: _tap, ...rest } = cfg;
-  return { ...rest, type: CARD_TYPES.light };
+/** What openEntitySheet takes for the tile: the card of the entity's domain with the tile's card options. */
+export interface TileSheetConfig extends Omit<TileConfig, 'tap_action'> {
+  type: string;
+  entity: string;
+  [option: string]: unknown;
 }
 
-/** What an editor writes: only non-default options. */
-export const pruneConfig = (config: TileConfig): Partial<TileConfig> => pruneDefaults(config, defaultConfig);
+/** The card config the tile opens as a sheet: its card options without its own keys, typed by the entity's domain. */
+export function sheetConfig(cfg: TileConfig): TileSheetConfig {
+  const { tap_action: _tap, ...rest } = cfg;
+  return { ...rest, type: CARDS[domainOf(cfg)].type };
+}
+
+/**
+ * What an editor writes: only non-default options. A fan tile's `controls.presets: true` is the fan card's default
+ * (the light keys stay as they were).
+ */
+export const pruneConfig = (config: TileConfig): Partial<TileConfig> =>
+  pruneDefaults(config, domainOf(config) === 'fan' ? { ...defaultConfig, controls: fanDefaults.controls } : defaultConfig);

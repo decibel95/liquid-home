@@ -4,10 +4,10 @@ import { LitElement, html } from 'lit';
 import type { HomeAssistant } from '@decibel95/liquid-core';
 import '../../../src/cards/sheet';
 import { LiquidHomeSheet } from '../../../src/cards/sheet/liquid-home-sheet';
-import { closeLightSheet, lightSheet, openLightSheet, reconfigureLightSheet } from '../../../src/cards/sheet/open';
+import { closeLightSheet, lightSheet, openEntitySheet, openLightSheet, reconfigureLightSheet } from '../../../src/cards/sheet/open';
 import { normalizeConfig } from '../../../src/cards/light/config';
 import { fakeHass, settle, type AnyEl } from '../tile/helpers';
-import { defineStubLightCard, type StubLightCard } from './stub-light-card';
+import { defineStubLightCard, StubLightCard } from './stub-light-card';
 import { cssRules } from '../tile/helpers';
 
 defineStubLightCard();
@@ -292,5 +292,71 @@ describe('module boundaries', () => {
 
   it('openLightSheet keeps its (host, config) signature; the options are an optional third parameter', () => {
     expect(openLightSheet.length).toBe(2);
+  });
+});
+
+/** Test stand-ins for the cover and fan cards (the real ones are other pieces): the sheet's Lovelace surface. */
+for (const tag of ['liquid-home-cover-card', 'liquid-home-fan-card']) {
+  if (!customElements.get(tag)) customElements.define(tag, class extends StubLightCard {});
+}
+
+describe('openEntitySheet (plan 2.9)', () => {
+  it.each([
+    ['cover.hall_window', 'liquid-home-cover-card'],
+    ['fan.living_room_fan', 'liquid-home-fan-card'],
+    ['light.kitchen_lights', 'liquid-home-light-card'],
+  ])('%s opens %s with the config, Close and History', async (entity, tag) => {
+    const { h } = await host();
+    openEntitySheet(h, { type: 'custom:x', entity });
+    await settle();
+    const sheet = lightSheet()!;
+    await sheet.updateComplete;
+    await settle();
+    const card = sheet.shadowRoot!.querySelector(tag) as StubLightCard | null;
+    expect(card).not.toBeNull();
+    expect(sheet.shadowRoot!.querySelectorAll('liquid-home-light-card, liquid-home-cover-card, liquid-home-fan-card').length).toBe(1);
+    expect(card!.config!.entity).toBe(entity);
+    expect(card!.config!.historyEntityId).toBe(entity);
+    expect(sheet.shadowRoot!.querySelector('button.close, [slot="header-action"]')).not.toBeNull();
+  });
+
+  it.each(['cover.hall_window', 'fan.living_room_fan'])('History in the %s sheet closes it, then pushes /history and location-changed', async (entity) => {
+    const { h } = await host();
+    openEntitySheet(h, { type: 'custom:x', entity });
+    await settle();
+    const sheet = lightSheet()!;
+    await sheet.updateComplete;
+    await settle();
+    const btn = sheet.shadowRoot!.querySelector('button.history') as HTMLButtonElement | null;
+    expect(btn).not.toBeNull();
+    const log: string[] = [];
+    const push = vi.spyOn(window.history, 'pushState').mockImplementation((_d, _t, u) => void log.push(`push ${u}:open=${sheet.isOpen}`));
+    let evt: CustomEvent | undefined;
+    const onLoc = (e: Event) => {
+      evt = e as CustomEvent;
+      log.push('location-changed');
+    };
+    window.addEventListener('location-changed', onLoc);
+    btn!.click();
+    await settle();
+    window.removeEventListener('location-changed', onLoc);
+    push.mockRestore();
+    expect(sheet.isOpen).toBe(false);
+    expect(evt!.bubbles).toBe(true);
+    expect(evt!.composed).toBe(true);
+    expect(log).toEqual([`push /history?entity_id=${entity}:open=false`, 'location-changed']);
+  });
+
+  it('Close closes a fan sheet', async () => {
+    const { h } = await host();
+    openEntitySheet(h, { type: 'custom:x', entity: 'fan.living_room_fan' });
+    await settle();
+    const sheet = lightSheet()!;
+    await sheet.updateComplete;
+    await settle();
+    const close = sheet.shadowRoot!.querySelector('button.close') as HTMLButtonElement | null;
+    expect(close).not.toBeNull();
+    close!.click();
+    expect(sheet.isOpen).toBe(false);
   });
 });

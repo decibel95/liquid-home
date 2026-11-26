@@ -19,7 +19,7 @@ test.describe('tags defined by liquid-home.js on its own', () => {
     expect(names.length).toBeGreaterThan(0);
     expect(names.filter((n) => !n.startsWith('liquid-home-'))).toEqual([]);
     expect(names.filter((n) => !(Object.values(TAGS) as string[]).includes(n))).toEqual([]);
-    for (const tag of [TAGS.light, TAGS.tile, TAGS.badge, TAGS.room]) expect(names, tag).toContain(tag);
+    for (const tag of [TAGS.light, TAGS.tile, TAGS.badge, TAGS.room, TAGS.cover, TAGS.fan]) expect(names, tag).toContain(tag);
   });
 
   test('loading the bundle twice defines every tag once and does not throw', async ({ page }) => {

@@ -1,0 +1,38 @@
+{
+  "card": {
+    "name": "Ventilatorkaart",
+    "description": "Glazen kaart voor één ventilator: een verticale balk voor de snelheid met een aan/uit-knop en voorinstellingen.",
+    "loading": "Laden",
+    "entityNotFound": "Entiteit niet gevonden: {entity}"
+  },
+  "readout": {
+    "speed": "Snelheid",
+    "preset": "Voorinstelling",
+    "tap": "Tik om te schakelen",
+    "on": "Aan"
+  },
+  "sub": {
+    "on": "Aan",
+    "onOscillating": "Aan, oscillerend",
+    "onReverse": "Aan, omgekeerd",
+    "onOscillatingReverse": "Aan, oscillerend, omgekeerd"
+  },
+  "row": {
+    "group": "Ventilatorbediening",
+    "oscillate": "Oscilleren",
+    "reverse": "Omkeren"
+  },
+  "preset": {
+    "label": "Voorinstelling",
+    "none": "Geen"
+  },
+  "step": {
+    "slower": "Langzamer",
+    "faster": "Sneller"
+  },
+  "aria": {
+    "power": "{name} aan of uit",
+    "speed": "Snelheid, {name}",
+    "preset": "Voorinstelling: {value}"
+  }
+}

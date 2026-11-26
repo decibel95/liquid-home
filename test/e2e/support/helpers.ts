@@ -82,6 +82,8 @@ export interface FocusInfo {
   role: string | null;
   label: string | null;
   mode: string | null;
+  /** `data-action` of the cover row buttons and the fan row buttons. */
+  action: string | null;
   pressed: string | null;
   top: number;
   left: number;
@@ -98,6 +100,7 @@ export async function focusedElement(page: Page): Promise<FocusInfo | null> {
       role: el.getAttribute('role'),
       label: el.getAttribute('aria-label'),
       mode: el.getAttribute('data-mode'),
+      action: el.getAttribute('data-action'),
       pressed: el.getAttribute('aria-pressed'),
       top: Math.round(r.top + scrollY),
       left: Math.round(r.left + scrollX),

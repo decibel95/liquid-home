@@ -1,8 +1,10 @@
 {
   "card": {
-    "name": "Light tile"
+    "name": "Tile"
   },
   "ariaTile": "{name} light",
+  "ariaCover": "{name} cover",
+  "ariaFan": "{name} fan",
   "power": "Switch {name}",
   "stepDown": "Lower brightness",
   "stepUp": "Raise brightness",

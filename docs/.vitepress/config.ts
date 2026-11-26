@@ -7,7 +7,7 @@ const base = process.env.DOCS_BASE || new URL(DOCS_URL).pathname.replace(/\/?$/,
 
 export default defineConfig({
   title: 'Liquid Home',
-  description: 'Glass light cards for Home Assistant: light card, tile, badge and room card.',
+  description: 'Glass cards for Home Assistant lights, covers and fans: light, cover and fan cards, tile, badge and room card.',
   base,
   cleanUrls: true,
   lastUpdated: false,
@@ -25,6 +25,8 @@ export default defineConfig({
         text: 'Cards',
         items: [
           { text: 'Light card', link: '/cards/light' },
+          { text: 'Cover card', link: '/cards/cover' },
+          { text: 'Fan card', link: '/cards/fan' },
           { text: 'Tile', link: '/cards/tile' },
           { text: 'Badge', link: '/cards/badge' },
           { text: 'Room card', link: '/cards/room' },

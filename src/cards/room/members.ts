@@ -1,7 +1,9 @@
 import type { HomeAssistant } from '@decibel95/liquid-core';
 import { t } from '../../i18n';
 import { isLightEntity } from '../../lights';
-import { roomEntries, type RoomConfig } from './config';
+import { isCoverEntity } from '../../covers';
+import { isFanEntity } from '../../fans';
+import { DEFAULT_DOMAINS, ROOM_DOMAINS, roomEntries, type RoomConfig, type RoomDomain } from './config';
 
 /** The registries a room reads: the same ones the Liquid Climate cluster groups its rooms by. */
 type Registries = Pick<HomeAssistant, 'states' | 'entities' | 'devices' | 'areas'>;
@@ -14,6 +16,27 @@ export interface RoomMember {
 
 /** A light entity id: the one check of the light domain (src/lights). */
 export const isLight = isLightEntity;
+
+/** The room domain of an entity id (light, cover or fan), or undefined for any other entity. */
+export function domainOf(id: unknown): RoomDomain | undefined {
+  if (isLightEntity(id)) return 'light';
+  if (isCoverEntity(id)) return 'cover';
+  if (isFanEntity(id)) return 'fan';
+  return undefined;
+}
+
+/**
+ * Why a `list` entry cannot be a member of a room with these domains, as the setConfig error: the entity's own domain
+ * when it is a cover or fan the room does not show, else the domains the room accepts. Undefined when it is fine.
+ */
+export function entryError(id: string, domains: readonly RoomDomain[] = DEFAULT_DOMAINS): string | undefined {
+  const d = domainOf(id);
+  if (d && domains.includes(d)) return undefined;
+  if (d) return `"${id}" in entities is a ${d}, and domains does not include ${d}`;
+  const allowed = ROOM_DOMAINS.filter((x) => domains.includes(x));
+  const list = allowed.length > 1 ? `${allowed.slice(0, -1).join(', ')} or ${allowed[allowed.length - 1]}` : allowed[0];
+  return `"${id}" in entities is not a ${list}`;
+}
 
 /** The entity's own area, else its device's area (as the Liquid Climate cluster's areaOf). */
 export function areaOf(hass: Partial<Registries>, entityId: string): string | undefined {
@@ -36,30 +59,35 @@ export function entityName(hass: Partial<Registries>, entityId: string): string 
 const byText = (a: string, b: string) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true });
 
 /**
- * The lights of an area: every visible light whose own area or whose device's area is `area`, by name. The configured
- * `power_entity` is left out, since the header button already stands for it.
+ * The members of an area: every visible entity of an allowed domain whose own area or whose device's area is `area`,
+ * grouped by domain (lights, covers, fans), each group by name. The configured `power_entity` is left out, since the
+ * header button already stands for it.
  */
-function areaLights(hass: Partial<Registries>, area: string, skip: string[]): string[] {
+function areaEntities(hass: Partial<Registries>, area: string, skip: string[], domains: readonly RoomDomain[] = DEFAULT_DOMAINS): string[] {
   const ids = new Set([...Object.keys(hass.states ?? {}), ...Object.keys(hass.entities ?? {})]);
+  const rank = (id: string) => domains.indexOf(domainOf(id)!);
   return [...ids]
-    .filter((id) => isLight(id) && !skip.includes(id) && !isHiddenEntity(hass, id) && areaOf(hass, id) === area)
-    .sort((a, b) => byText(entityName(hass, a), entityName(hass, b)) || (a < b ? -1 : 1));
+    .filter((id) => rank(id) >= 0 && !skip.includes(id) && !isHiddenEntity(hass, id) && areaOf(hass, id) === area)
+    .sort((a, b) => rank(a) - rank(b) || byText(entityName(hass, a), entityName(hass, b)) || (a < b ? -1 : 1));
 }
 
 /**
- * The room's lights in display order. `list`: the `entities` in their own order (lights only). `area`: every light in
- * the area, minus `exclude` and the power entity. No area and no entities: none, and the card shows its placeholder.
+ * The room's members in display order, of the configured `domains` only (default lights, as 0.2). `list`: the
+ * `entities` in their own order. `area`: every entity of those domains in the area (its own area or its device's),
+ * lights first, then covers, then fans, minus `exclude` and the power entity. No area and no entities: none, and the
+ * card shows its placeholder.
  */
-export function roomMembers(hass: Partial<Registries>, cfg: Pick<RoomConfig, 'source' | 'area' | 'entities' | 'exclude' | 'power_entity'>): RoomMember[] {
+export function roomMembers(hass: Partial<Registries>, cfg: Pick<RoomConfig, 'source' | 'area' | 'entities' | 'exclude' | 'power_entity' | 'domains'>): RoomMember[] {
   const exclude = cfg.exclude ?? [];
+  const domains = cfg.domains ?? DEFAULT_DOMAINS;
   if (cfg.source === 'list') {
     return roomEntries(cfg)
-      .filter((e) => isLight(e.entity) && !exclude.includes(e.entity))
+      .filter((e) => domains.includes(domainOf(e.entity)!) && !exclude.includes(e.entity))
       .map((e) => ({ entity: e.entity, name: e.name || entityName(hass, e.entity) }));
   }
   if (!cfg.area) return [];
   const skip = [...exclude, ...(cfg.power_entity ? [cfg.power_entity] : [])];
-  return areaLights(hass, cfg.area, skip).map((id) => ({ entity: id, name: entityName(hass, id) }));
+  return areaEntities(hass, cfg.area, skip, domains).map((id) => ({ entity: id, name: entityName(hass, id) }));
 }
 
 /** Nothing to show yet: an area card without an area, or a list without entities (the "choose an area" placeholder). */
@@ -78,5 +106,5 @@ export function roomTitle(hass: Partial<Registries> & { language?: string }, cfg
 export function firstAreaWithLights(hass: Partial<Registries> | undefined): string | undefined {
   if (!hass?.areas) return undefined;
   const areas = Object.values(hass.areas).sort((a, b) => byText(a.name, b.name) || (a.area_id < b.area_id ? -1 : 1));
-  return areas.find((a) => areaLights(hass, a.area_id, []).length > 0)?.area_id;
+  return areas.find((a) => areaEntities(hass, a.area_id, []).length > 0)?.area_id;
 }

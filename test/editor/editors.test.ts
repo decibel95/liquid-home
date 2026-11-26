@@ -4,7 +4,7 @@ import type { HomeAssistant } from '@decibel95/liquid-core';
 import '../../src/index';
 import anchors from '../../docs/anchors.json';
 import { CARD_TYPES, DOCS_URL, TAGS } from '../../src/const';
-import { AREA, GROUP, makeHass } from '../cards/room/helpers';
+import { AREA, BLIND, GROUP, makeHass, makeMixedHass } from '../cards/room/helpers';
 
 type AnyEl = HTMLElement & Record<string, any>;
 type Cfg = Record<string, any>;
@@ -222,8 +222,8 @@ describe('tile editor', () => {
       `${DOCS_URL}/cards/tile#tile-look`,
     ]);
     const tap = $$(el, '.seg[role="radiogroup"]')[0];
-    expect([...tap.querySelectorAll('button')].map(text)).toEqual(['Open light card', 'More info', 'Nothing']);
-    expect(tap.querySelector('[aria-checked="true"]')!.textContent!.trim()).toBe('Open light card');
+    expect([...tap.querySelectorAll('button')].map(text)).toEqual(['Open card', 'More info', 'Nothing']);
+    expect(tap.querySelector('[aria-checked="true"]')!.textContent!.trim()).toBe('Open card');
   });
 
   it('tap_action: sheet is the default; more-info and none are written', async () => {
@@ -236,7 +236,7 @@ describe('tile editor', () => {
     });
     await click(el, button(el, 'Nothing'));
     expect(last().tap_action).toBe('none');
-    await click(el, button(el, 'Open light card'));
+    await click(el, button(el, 'Open card'));
     expect(last()).toEqual({ ...base, config_version: 1 });
   });
 
@@ -270,7 +270,7 @@ describe('badge editor', () => {
     const { el } = await mount(TAGS.badgeEditor, base);
     expect(helpLinks(el)).toEqual([`${DOCS_URL}/cards/badge#badge-entity`, `${DOCS_URL}/cards/badge#badge-tap-action`, `${DOCS_URL}/cards/badge#badge-look`]);
     const tap = $$(el, '.seg[role="radiogroup"]')[0];
-    expect([...tap.querySelectorAll('button')].map(text)).toEqual(['More info', 'Open light card', 'Nothing']);
+    expect([...tap.querySelectorAll('button')].map(text)).toEqual(['More info', 'Open card', 'Nothing']);
     expect(text(tap.querySelector('[aria-checked="true"]')!)).toBe('More info');
   });
 
@@ -278,7 +278,7 @@ describe('badge editor', () => {
     const { el, last } = await mount(TAGS.badgeEditor, base);
     await click(el, switchFor(el, 'Icon only'));
     expect(last()).toEqual({ ...base, icon_only: true, config_version: 1 });
-    await click(el, button(el, 'Open light card'));
+    await click(el, button(el, 'Open card'));
     expect(last()).toEqual({
       ...base,
       icon_only: true,
@@ -509,14 +509,277 @@ describe('room editor', () => {
   });
 });
 
+describe('tile and badge editors: lights, covers and fans (plan 2.6)', () => {
+  it.each([TAGS.tileEditor, TAGS.badgeEditor])('%s lists light, cover and fan entities, lights first, with a neutral placeholder', async (tag) => {
+    const { el } = await mount(tag, { type: tag === TAGS.tileEditor ? CARD_TYPES.tile : CARD_TYPES.badge }, makeMixedHass().hass);
+    const select = inputByLabel(el, 'Entity') as unknown as HTMLSelectElement;
+    const options = [...select.querySelectorAll('option')];
+    expect(text(options[0])).toBe('Choose an entity');
+    const values = options.slice(1).map((o) => o.value);
+    expect(values).toContain('light.ceiling_lights');
+    expect(values).toContain('cover.hall_window');
+    expect(values).toContain('fan.lh_fixture_ten');
+    expect(values.every((v) => /^(light|cover|fan)\./.test(v))).toBe(true);
+    const domains = values.map((v) => v.split('.')[0]);
+    expect(domains.indexOf('cover')).toBeGreaterThan(domains.lastIndexOf('light'));
+    expect(domains.indexOf('fan')).toBeGreaterThan(domains.lastIndexOf('cover'));
+  });
+
+  it('a light tile switched to a fan writes no light defaults; the fan presets switch off is passed on', async () => {
+    const { el, last } = await mount(TAGS.tileEditor, { type: CARD_TYPES.tile, entity: 'light.ceiling_lights', write_hold: 30 }, makeMixedHass().hass);
+    await change(el, inputByLabel(el, 'Entity') as unknown as HTMLSelectElement, 'fan.lh_fixture_ten');
+    expect(last()).toEqual({ type: CARD_TYPES.tile, entity: 'fan.lh_fixture_ten', write_hold: 30, config_version: 1 });
+    await change(el, inputByLabel(el, 'Entity') as unknown as HTMLSelectElement, 'cover.hall_window');
+    expect(last()).toEqual({ type: CARD_TYPES.tile, entity: 'cover.hall_window', write_hold: 30, config_version: 1 });
+    await change(el, inputByLabel(el, 'Entity') as unknown as HTMLSelectElement, 'light.kitchen_lights');
+    expect(last()).toEqual({ type: CARD_TYPES.tile, entity: 'light.kitchen_lights', write_hold: 30, config_version: 1 });
+  });
+
+  it('the tile hint says which card options pass on', async () => {
+    const { el } = await mount(TAGS.tileEditor, { type: CARD_TYPES.tile, entity: 'fan.lh_fixture_ten' }, makeMixedHass().hass);
+    const hint = text(el.shadowRoot!.querySelector('.body > .hint:last-child')!);
+    expect(hint).toContain('presets for a fan');
+    expect(hint).toContain('write hold for a light, cover or fan');
+  });
+
+  it.each([
+    [CARD_TYPES.tile, 'cover.hall_window', { controls: { modes: ['white'] }, write_hold: 60 }],
+    [CARD_TYPES.tile, 'fan.lh_fixture_ten', { controls: { presets: false }, write_hold: 30 }],
+    [CARD_TYPES.badge, 'cover.hall_window', { tap_action: 'sheet', icon_only: true }],
+    [CARD_TYPES.badge, 'fan.lh_fixture_onoff', { tap_action: 'sheet' }],
+  ])('%s round-trips a %s config', async (type, entity, extra) => {
+    const yaml = { type, entity, name: 'X', ...extra, look: { glass: 'dark' }, config_version: 1 };
+    const { el, last } = await mount(type === CARD_TYPES.tile ? TAGS.tileEditor : TAGS.badgeEditor, yaml, makeMixedHass().hass);
+    await click(el, button(el, 'Dark'));
+    expect(last()).toEqual(yaml);
+  });
+});
+
+describe('cover card editor', () => {
+  const base = { type: CARD_TYPES.cover, entity: 'cover.hall_window' };
+  const hass = () => makeMixedHass().hass;
+
+  it('Setup, Controls and Look tabs, as the light card editor', async () => {
+    const { el } = await mount(TAGS.coverEditor, base, hass());
+    expect($$(el, '[role="tab"]').map(text)).toEqual(['Setup', 'Controls', 'Look']);
+    expect(helpLinks(el)).toEqual([`${DOCS_URL}/cards/cover#cover-entity`]);
+    await click(el, button(el, 'Controls'));
+    expect(helpLinks(el)).toEqual([`${DOCS_URL}/cards/cover#cover-controls`, `${DOCS_URL}/cards/cover#cover-write-hold`]);
+    await click(el, button(el, 'Look'));
+    expect(helpLinks(el)).toEqual([`${DOCS_URL}/cards/cover#cover-look`]);
+  });
+
+  it('entity: a select over the covers only; an empty config asks for an entity', async () => {
+    const { el, last } = await mount(TAGS.coverEditor, { type: CARD_TYPES.cover }, hass());
+    const select = inputByLabel(el, 'Entity') as unknown as HTMLSelectElement;
+    const options = [...select.querySelectorAll('option')];
+    expect(text(options[0])).toBe('Choose an entity');
+    expect(options.slice(1).every((o) => o.value.startsWith('cover.'))).toBe(true);
+    expect(options.map((o) => o.value)).toContain(BLIND);
+    await change(el, select, 'cover.living_room_window');
+    expect(last()).toEqual({ type: CARD_TYPES.cover, entity: 'cover.living_room_window', config_version: 1 });
+  });
+
+  it('name and write hold: written only when not the default', async () => {
+    const { el, last } = await mount(TAGS.coverEditor, base, hass());
+    const name = inputByLabel(el, 'Name');
+    expect(name.placeholder).toBe('Hall Window');
+    await change(el, name, 'Hall');
+    expect(last()).toEqual({ ...base, name: 'Hall', config_version: 1 });
+    await click(el, button(el, 'Controls'));
+    await click(el, button(el, '60 s'));
+    expect(last()).toEqual({ ...base, name: 'Hall', write_hold: 60, config_version: 1 });
+    await click(el, button(el, '10 s'));
+    expect(last()).toEqual({ ...base, name: 'Hall', config_version: 1 });
+  });
+
+  it('round-trips every option of plan section 4 and keeps unknown keys', async () => {
+    const yaml = {
+      type: CARD_TYPES.cover,
+      entity: 'cover.living_room_window',
+      name: 'Window',
+      write_hold: 30,
+      look: { glass: 'light', blur: 24, motion: 'subtle' },
+      grid_options: { columns: 6 },
+      config_version: 1,
+    };
+    const { el, last } = await mount(TAGS.coverEditor, yaml, hass());
+    await click(el, button(el, 'Look'));
+    await click(el, button(el, 'Light'));
+    expect(last()).toEqual(yaml);
+  });
+});
+
+describe('fan card editor', () => {
+  const base = { type: CARD_TYPES.fan, entity: 'fan.lh_fixture_ten' };
+  const hass = () => makeMixedHass().hass;
+
+  it('Setup, Controls and Look tabs, as the light card editor', async () => {
+    const { el } = await mount(TAGS.fanEditor, base, hass());
+    expect($$(el, '[role="tab"]').map(text)).toEqual(['Setup', 'Controls', 'Look']);
+    expect(helpLinks(el)).toEqual([`${DOCS_URL}/cards/fan#fan-entity`]);
+    await click(el, button(el, 'Controls'));
+    expect(helpLinks(el)).toEqual([`${DOCS_URL}/cards/fan#fan-controls`, `${DOCS_URL}/cards/fan#fan-write-hold`]);
+    await click(el, button(el, 'Look'));
+    expect(helpLinks(el)).toEqual([`${DOCS_URL}/cards/fan#fan-look`]);
+  });
+
+  it('entity: a select over the fans only', async () => {
+    const { el } = await mount(TAGS.fanEditor, base, hass());
+    const options = [...(inputByLabel(el, 'Entity') as unknown as HTMLSelectElement).querySelectorAll('option')].map((o) => o.value);
+    expect(options).toContain('fan.lh_fixture_onoff');
+    expect(options.every((v) => v.startsWith('fan.'))).toBe(true);
+  });
+
+  it('controls.presets: a switch with the preset count, written only when off', async () => {
+    const { el, last } = await mount(TAGS.fanEditor, base, hass());
+    await click(el, button(el, 'Controls'));
+    const sw = switchFor(el, 'Presets');
+    expect(sw.getAttribute('aria-checked')).toBe('true');
+    expect(sw.disabled).toBe(false);
+    expect(text(sw.parentElement!)).toContain('2 presets');
+    await click(el, sw);
+    expect(last()).toEqual({ ...base, controls: { presets: false }, config_version: 1 });
+    await click(el, switchFor(el, 'Presets'));
+    expect(last()).toEqual({ ...base, config_version: 1 });
+  });
+
+  it('controls.presets: off and disabled on a fan without presets, whatever the config says', async () => {
+    const { el } = await mount(TAGS.fanEditor, { ...base, entity: 'fan.lh_fixture_onoff' }, hass());
+    await click(el, button(el, 'Controls'));
+    const sw = switchFor(el, 'Presets');
+    expect(sw.getAttribute('aria-checked')).toBe('false');
+    expect(sw.disabled).toBe(true);
+    expect(text(sw.parentElement!)).toContain('Not supported by this fan');
+  });
+
+  it('write hold: 10, 30 or 60 s; 10 is the default', async () => {
+    const { el, last } = await mount(TAGS.fanEditor, base, hass());
+    await click(el, button(el, 'Controls'));
+    await click(el, button(el, '30 s'));
+    expect(last()).toEqual({ ...base, write_hold: 30, config_version: 1 });
+    await click(el, button(el, '10 s'));
+    expect(last()).toEqual({ ...base, config_version: 1 });
+  });
+
+  it('round-trips every option of plan section 4 and keeps unknown keys', async () => {
+    const yaml = {
+      type: CARD_TYPES.fan,
+      entity: 'fan.living_room_fan',
+      name: 'Fan',
+      controls: { presets: false },
+      write_hold: 60,
+      look: { glass: 'dark', blur: 12, motion: 'minimal' },
+      grid_options: { columns: 6 },
+      config_version: 1,
+    };
+    const { el, last } = await mount(TAGS.fanEditor, yaml, hass());
+    await click(el, button(el, 'Look'));
+    await click(el, button(el, 'Dark'));
+    expect(last()).toEqual(yaml);
+  });
+});
+
+describe('room editor: domains (plan 2.7)', () => {
+  const area = { type: CARD_TYPES.room, source: 'area', area: AREA };
+  const hass = () => makeMixedHass().hass;
+  const domainButtons = (el: AnyEl) => [...$$(el, '.seg[role="group"]')[0].querySelectorAll('button')] as HTMLButtonElement[];
+
+  it('a multi-select of Lights, Covers and Fans; lights only is the default and is never written', async () => {
+    const { el, last } = await mount(TAGS.roomEditor, area, hass());
+    const group = $$(el, '.seg[role="group"]')[0];
+    expect(group.getAttribute('aria-label')).toBe('Domains');
+    expect(domainButtons(el).map(text)).toEqual(['Lights', 'Covers', 'Fans']);
+    expect(domainButtons(el).map((b) => b.getAttribute('aria-pressed'))).toEqual(['true', 'false', 'false']);
+    // The last one picked cannot be unpicked.
+    expect(domainButtons(el)[0].disabled).toBe(true);
+    await click(el, button(el, 'Fans'));
+    expect(last()).toEqual({ ...area, domains: ['light', 'fan'], config_version: 1 });
+    await click(el, button(el, 'Covers'));
+    // Display order, whatever the click order.
+    expect(last().domains).toEqual(['light', 'cover', 'fan']);
+    await click(el, button(el, 'Covers'));
+    await click(el, button(el, 'Fans'));
+    expect(last()).toEqual({ ...area, config_version: 1 });
+  });
+
+  it('area: the switches follow the domains (covers and fans of the area, the neutral wording)', async () => {
+    const { el } = await mount(TAGS.roomEditor, area, hass());
+    const shown = () => $$(el, 'button[role="switch"]').map((b) => b.getAttribute('aria-label'));
+    expect(shown()).toContain('Show Ceiling Lights');
+    expect(shown()).not.toContain('Show Hall Window');
+    expect($$(el, '.field[role="group"]')[0].getAttribute('aria-label')).toBe('Lights');
+    await click(el, button(el, 'Covers'));
+    await click(el, button(el, 'Fans'));
+    expect(shown()).toEqual(expect.arrayContaining(['Show Ceiling Lights', 'Show Hall Window', 'Show Blind', 'Show Ten Speed Fan']));
+    // Not in the area, or hidden: not offered.
+    expect(shown()).not.toContain('Show Garage Door');
+    expect(shown()).not.toContain('Show Ceiling Fan');
+    expect($$(el, '.field[role="group"]')[0].getAttribute('aria-label')).toBe('Entities');
+    await click(el, button(el, 'Lights'));
+    expect(shown()).not.toContain('Show Ceiling Lights');
+    expect(shown()).toContain('Show Hall Window');
+  });
+
+  it('power entity: shown only while lights are picked; the saved value stays (the card ignores it)', async () => {
+    const { el, last } = await mount(TAGS.roomEditor, { ...area, power_entity: GROUP, domains: ['light', 'cover'] }, hass());
+    expect(() => inputByLabel(el, 'Power entity')).not.toThrow();
+    await click(el, button(el, 'Lights'));
+    expect(() => inputByLabel(el, 'Power entity')).toThrow();
+    expect(last()).toEqual({ ...area, power_entity: GROUP, domains: ['cover'], config_version: 1 });
+    expect(helpLinks(el)).not.toContain(`${DOCS_URL}/cards/room#room-power-entity`);
+    await click(el, button(el, 'Lights'));
+    expect(inputByLabel(el, 'Power entity').value).toBe(GROUP);
+  });
+
+  it('list: the add input takes the picked domains only and suggests them; unpicking a domain drops its entries', async () => {
+    const list = { type: CARD_TYPES.room, source: 'list', domains: ['light', 'cover'], entities: ['light.ceiling_lights'] };
+    const { el, last } = await mount(TAGS.roomEditor, list, hass());
+    const add = inputByLabel(el, 'Add an entity');
+    const suggested = [...el.shadowRoot!.querySelectorAll('#lh-room-ids option')].map((o) => o.getAttribute('value'));
+    expect(suggested).toContain('cover.hall_window');
+    expect(suggested).not.toContain('fan.lh_fixture_ten');
+    expect(suggested).not.toContain('light.ceiling_lights');
+    await change(el, add, 'fan.lh_fixture_ten');
+    await change(el, add, 'cover.not_there');
+    await change(el, add, 'cover.hall_window');
+    expect(last()).toEqual({ ...list, entities: ['light.ceiling_lights', 'cover.hall_window'], config_version: 1 });
+    await click(el, button(el, 'Covers'));
+    expect(last()).toEqual({ type: CARD_TYPES.room, source: 'list', entities: ['light.ceiling_lights'], config_version: 1 });
+    // The saved config is one the card accepts.
+    const card = document.createElement(TAGS.room) as AnyEl;
+    expect(() => card.setConfig(last())).not.toThrow();
+  });
+
+  it('switching an area room with covers to Choose lists its covers and fans too', async () => {
+    const { el, last } = await mount(TAGS.roomEditor, { ...area, domains: ['cover', 'fan'] }, hass());
+    await click(el, button(el, 'Choose'));
+    expect(last().entities).toEqual(expect.arrayContaining(['cover.hall_window', BLIND, 'fan.lh_fixture_ten']));
+    expect(last().entities.some((e: string) => e.startsWith('light.'))).toBe(false);
+    expect(last().domains).toEqual(['cover', 'fan']);
+  });
+
+  it('round-trips a room with every domain (area and list)', async () => {
+    const a = { type: CARD_TYPES.room, source: 'area', domains: ['light', 'cover', 'fan'], area: AREA, power_entity: GROUP, exclude: [BLIND], look: { motion: 'subtle' }, config_version: 1 };
+    const { el, last } = await mount(TAGS.roomEditor, a, hass());
+    await click(el, button(el, 'Subtle'));
+    expect(last()).toEqual(a);
+    const l = { type: CARD_TYPES.room, source: 'list', domains: ['cover', 'fan'], entities: [{ entity: 'cover.hall_window', name: 'Hall' }, 'fan.lh_fixture_ten'], config_version: 1, look: { glass: 'dark' } };
+    const { el: el2, last: last2 } = await mount(TAGS.roomEditor, l, hass());
+    await click(el2, button(el2, 'Dark'));
+    expect(last2()).toEqual(l);
+  });
+});
+
 describe('every editor', () => {
   const editors: [string, Cfg][] = [
     [TAGS.lightEditor, { type: CARD_TYPES.light, entity: 'light.ceiling_lights' }],
     [TAGS.tileEditor, { type: CARD_TYPES.tile, entity: 'light.ceiling_lights' }],
     [TAGS.badgeEditor, { type: CARD_TYPES.badge, entity: 'light.ceiling_lights' }],
     [TAGS.roomEditor, { type: CARD_TYPES.room, area: AREA }],
+    [TAGS.coverEditor, { type: CARD_TYPES.cover, entity: 'cover.hall_window' }],
+    [TAGS.fanEditor, { type: CARD_TYPES.fan, entity: 'fan.lh_fixture_ten' }],
   ];
-
   it.each(editors)('%s does not save anything on setConfig', async (tag, cfg) => {
     const { fired } = await mount(tag, cfg);
     expect(fired).toEqual([]);

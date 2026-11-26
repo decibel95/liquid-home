@@ -1,0 +1,38 @@
+{
+  "card": {
+    "name": "Carte ventilateur",
+    "description": "Carte en verre pour un ventilateur : une pastille verticale de vitesse avec un bouton marche/arrêt et des préréglages.",
+    "loading": "Chargement",
+    "entityNotFound": "Entité introuvable : {entity}"
+  },
+  "readout": {
+    "speed": "Vitesse",
+    "preset": "Préréglage",
+    "tap": "Appuyer pour basculer",
+    "on": "Allumé"
+  },
+  "sub": {
+    "on": "Allumé",
+    "onOscillating": "Allumé, oscillant",
+    "onReverse": "Allumé, inversé",
+    "onOscillatingReverse": "Allumé, oscillant, inversé"
+  },
+  "row": {
+    "group": "Commandes du ventilateur",
+    "oscillate": "Oscillation",
+    "reverse": "Inverser"
+  },
+  "preset": {
+    "label": "Préréglage",
+    "none": "Aucun"
+  },
+  "step": {
+    "slower": "Plus lent",
+    "faster": "Plus rapide"
+  },
+  "aria": {
+    "power": "Allumer ou éteindre {name}",
+    "speed": "Vitesse, {name}",
+    "preset": "Préréglage : {value}"
+  }
+}

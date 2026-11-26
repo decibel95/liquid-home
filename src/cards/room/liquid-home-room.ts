@@ -20,14 +20,38 @@ import { defaultLook } from '../../config';
 import { CARD_TYPES, TAGS } from '../../const';
 import { t } from '../../i18n';
 import { normalizeConfig as normalizeLightConfig, type LightCardConfig } from '../light/config';
-import { closeLightSheet, lightSheet, openLightSheet, reconfigureLightSheet, type LightSheetOptions } from '../sheet/open';
-import { normalizeConfig, roomEntries, type RoomConfig } from './config';
-import { firstAreaWithLights, isLight, needsSetup, roomMembers, roomTitle, type RoomMember } from './members';
-import { memberView, powerState, roomSummary, type MemberView } from './model';
+import { defaultConfig as coverDefaults } from '../cover/config';
+import { defaultConfig as fanDefaults } from '../fan/config';
+import { closeLightSheet, lightSheet, openEntitySheet, openLightSheet, reconfigureLightSheet, type EntitySheetConfig, type LightSheetOptions } from '../sheet/open';
+import { DEFAULT_DOMAINS, normalizeConfig, roomEntries, type RoomConfig } from './config';
+import { domainOf, entryError, firstAreaWithLights, isLight, needsSetup, roomMembers, roomTitle, type RoomMember } from './members';
+import { coverMemberView, fanMemberView, memberView, powerState, roomSummary, type CoverMemberView, type FanMemberView, type MemberView, type RoomView } from './model';
 import { roomStyles } from './styles';
 import { brightnessPatch, groupMembers, LIGHT_ERROR_KEY, lightWriters, neutralColour, stepLevel, type LightWriter } from '../../lights';
+import { coverMode, coverWriters, rowActions, rowHidden, stepState as coverStepState, type CoverAction, type CoverWriter } from '../../covers';
+import { fanView, fanWriters, powerDisabled, powerPatch, stepFan, stepState as fanStepState, type FanWriter } from '../../fans';
 
 type Glass = 'dark' | 'light';
+type AnyWriter = LightWriter | CoverWriter | FanWriter;
+
+/** One registry per domain: the room, the tiles and the sheet of one entity share its writer (plan 2.4, 2.5). */
+const REGISTRIES = { light: lightWriters, cover: coverWriters, fan: fanWriters };
+/** The cover row icons, as the cover card (src/cards/cover/card.ts). */
+const ROW_ICONS = { open: ICONS.chevronUp, stop: ICONS.stop, close: ICONS.chevronDown };
+
+/** A strip action button (cover Open, Stop, Close; fan power and Oscillate): the room's mode button. */
+interface StripAction {
+  icon: string;
+  /** The power glyph draws at the step stroke, as the header power (the prototype's room strip). */
+  stroke?: 'step';
+  label: string;
+  disabled: boolean;
+  /** Drawn with the active tint (cover Stop while moving, fan on, oscillating). */
+  active: boolean;
+  /** aria-pressed on toggles (fan power, Oscillate); actions (cover row) have none. */
+  pressed?: boolean;
+  run: () => void;
+}
 
 
 /**
@@ -38,10 +62,13 @@ export class LiquidHomeRoom extends LitElement {
   @property({ attribute: false }) hass!: HomeAssistant;
   @state() private _config?: RoomConfig;
   @state() private _tick = 0;
-  /** The light the strip controls. Pinned during render (not a reactive state, so that is allowed). */
+  /** The member the strip controls. Pinned during render (not a reactive state, so that is allowed). */
   private _selected?: string;
-  /** One lease per member: the product-wide writer of that light (src/lights), shared with tiles and the sheet. */
-  private _leases = new Map<string, WriterLease<LightWriter>>();
+  /**
+   * One lease per member: the product-wide writer of that light, cover or fan (src/lights, src/covers, src/fans),
+   * shared with tiles and the sheet.
+   */
+  private _leases = new Map<string, WriterLease<AnyWriter>>();
   private _watched: string[] = [];
   /** A failed header power call, spoken through the alert span. Emptied when the next press starts. */
   @state() private _powerError = '';
@@ -51,15 +78,17 @@ export class LiquidHomeRoom extends LitElement {
   setConfig(raw: Record<string, unknown>): void {
     if (!raw || typeof raw !== 'object') throw new Error('Liquid Home: invalid room card config');
     const next = normalizeConfig(raw);
-    const bad = roomEntries(next).find((e) => !isLight(e.entity));
-    if (bad) throw new Error(`Liquid Home: "${bad.entity}" in entities is not a light`);
+    for (const e of roomEntries(next)) {
+      const err = entryError(e.entity, next.domains);
+      if (err) throw new Error(`Liquid Home: ${err}`);
+    }
     if (next.power_entity && !isLight(next.power_entity)) throw new Error(`Liquid Home: power_entity "${next.power_entity}" is not a light`);
     this._config = next;
     this._watched = [];
-    // The light card this room opened follows the new config (its name override and look), or closes when the room
-    // no longer holds that light (a list source without it, or it is excluded now).
+    // The card this room opened follows the new config (its name override and look), or closes when the room no
+    // longer holds that member (a list source without it, it is excluded now, or its domain left `domains`).
     const open = lightSheet()?.owner === this ? lightSheet()!.entity : undefined;
-    if (open && this._stillMember(open)) reconfigureLightSheet(this, this.lightConfig(open));
+    if (open && this._stillMember(open)) reconfigureLightSheet(this, this.sheetConfig(open) as LightCardConfig);
     else if (open) closeLightSheet(this);
   }
 
@@ -104,12 +133,16 @@ export class LiquidHomeRoom extends LitElement {
 
   // ---- Members ---------------------------------------------------------
 
-  private _writer(entity: string): LightWriter | undefined {
+  /** The shared writer of a member, from the registry of its domain. */
+  private _writer(entity: string): LightWriter | undefined;
+  private _writer<W extends AnyWriter>(entity: string): W | undefined;
+  private _writer(entity: string): AnyWriter | undefined {
     // Detached: no new leases (disconnectedCallback would not release them); read what exists.
     if (!this.isConnected) return this._leases.get(entity)?.current;
     let lease = this._leases.get(entity);
     if (!lease) {
-      lease = new WriterLease(lightWriters, () => this._tick++);
+      const registry = REGISTRIES[domainOf(entity) ?? 'light'] as unknown as ConstructorParameters<typeof WriterLease<AnyWriter>>[0];
+      lease = new WriterLease<AnyWriter>(registry, () => this._tick++);
       this._leases.set(entity, lease);
     }
     const w = lease.get(entity);
@@ -117,17 +150,38 @@ export class LiquidHomeRoom extends LitElement {
     return w;
   }
 
-  /** Member views in display order. Releases the writers of lights that left the room. */
-  private _views(cfg: RoomConfig, glass: Glass): MemberView[] {
+  /**
+   * The writer of a cover or fan this card is about to write through, with the hold time of the cover and fan cards
+   * (`write_hold`, default 10 s): the card that interacts sets it, as those cards do. The room has no option of its own.
+   */
+  private _interacting<W extends CoverWriter | FanWriter>(entity: string): W | undefined {
+    const w = this._writer<W>(entity);
+    if (w) w.hold = domainOf(entity) === 'fan' ? fanDefaults.write_hold : coverDefaults.write_hold;
+    return w;
+  }
+
+  /** The view of one member, by its domain. */
+  private _view(m: RoomMember, glass: Glass): RoomView {
+    const d = domainOf(m.entity);
+    if (d === 'cover') {
+      this._writer(m.entity);
+      return coverMemberView(this.hass, m, glass);
+    }
+    if (d === 'fan') return fanMemberView(this.hass, m, glass, this._writer<FanWriter>(m.entity)?.local);
+    return memberView(this.hass, m, glass, this._writer(m.entity)?.local);
+  }
+
+  /** Member views in display order. Releases the writers of members that left the room. */
+  private _views(cfg: RoomConfig, glass: Glass): RoomView[] {
     const members = roomMembers(this.hass, cfg);
-    const views = members.map((m) => memberView(this.hass, m, glass, this._writer(m.entity)?.local));
+    const views = members.map((m) => this._view(m, glass));
     const ids = new Set(members.map((m) => m.entity));
     for (const [id, lease] of this._leases) {
       if (ids.has(id)) continue;
       lease.release();
       this._leases.delete(id);
     }
-    const groupMembers = views.flatMap((v) => (v.group ? (v.stateObj!.attributes.entity_id as string[]) : []));
+    const groupMembers = views.flatMap((v) => (v.domain === 'light' && v.group ? (v.stateObj!.attributes.entity_id as string[]) : []));
     this._watched = [...ids, ...groupMembers, ...(cfg.power_entity ? [cfg.power_entity] : [])];
     return views;
   }
@@ -140,6 +194,7 @@ export class LiquidHomeRoom extends LitElement {
     this.requestUpdate();
   }
 
+  /** The header power button: lights only (P2-CHO-17), `views` are the light members. */
   private _power(views: MemberView[]) {
     const p = powerState(this.hass, views, this._config?.power_entity);
     if (!p.call) return;
@@ -178,12 +233,40 @@ export class LiquidHomeRoom extends LitElement {
     if (w && next) w.set(brightnessPatch(next));
   }
 
+  /** A cover step (Q2 a): 10 % from the writer's baseline; taps coalesce into one call 500 ms after the last one. */
+  private _coverStep(member: RoomMember, dir: 1 | -1) {
+    this._interacting<CoverWriter>(member.entity)?.step(dir);
+  }
+
+  /** A discrete cover action (Open, Stop, Close): at once, ending every hold and pending step of the cover. */
+  private _coverAct(member: RoomMember, action: CoverAction) {
+    this._interacting<CoverWriter>(member.entity)?.act(action);
+  }
+
+  /** A fan step (Q7 b): from the view with this writer's pending step, throttled 300 ms plus a final call. */
+  private _fanStep(member: RoomMember, dir: 1 | -1) {
+    const w = this._interacting<FanWriter>(member.entity);
+    const s = this.hass.states[member.entity];
+    if (w && s) stepFan(w, fanView(s, w.local), dir);
+  }
+
   /** Whether `entity` is still one of this room's lights under the current config (and hass, for an area source). */
   private _stillMember(entity: string): boolean {
     const cfg = this._config;
     if (!cfg) return false;
     if (this.hass) return roomMembers(this.hass, cfg).some((m) => m.entity === entity);
     return roomEntries(cfg).some((e) => e.entity === entity) && !(cfg.exclude ?? []).includes(entity);
+  }
+
+  /**
+   * The card config for a member's sheet, by its domain: the light, cover or fan card with the member's entity, its
+   * name override and this card's look.
+   */
+  sheetConfig(entity: string): EntitySheetConfig {
+    const d = domainOf(entity);
+    if (d !== 'cover' && d !== 'fan') return this.lightConfig(entity) as unknown as EntitySheetConfig;
+    const entry = roomEntries(this._config ?? {}).find((e) => e.entity === entity);
+    return { type: CARD_TYPES[d], entity, ...(entry?.name ? { name: entry.name } : {}), look: this._config?.look };
   }
 
   /** The light card config for a member's sheet: its entity, its name override and this card's look. */
@@ -197,9 +280,13 @@ export class LiquidHomeRoom extends LitElement {
     });
   }
 
-  /** The strip's name opens the light card; White and Colour open it in that pill mode (as the prototype). */
+  /**
+   * The strip's name opens the member's card in the sheet, with History (plan 2.9); White and Colour open the light
+   * card in that pill mode (as the prototype).
+   */
   private _open(member: RoomMember, opts?: LightSheetOptions) {
-    openLightSheet(this, this.lightConfig(member.entity), opts);
+    if (domainOf(member.entity) === 'light') openLightSheet(this, this.lightConfig(member.entity), opts);
+    else openEntitySheet(this, this.sheetConfig(member.entity));
   }
 
   // ---- Rendering -------------------------------------------------------
@@ -212,11 +299,11 @@ export class LiquidHomeRoom extends LitElement {
    * The room tile's name: the light, its big value and its status, in the order the tile shows them, so it holds every
    * word the tile shows (WCAG 2.5.3, "Kitchen Lights, 10%, On"). An unavailable light's "--" is left out.
    */
-  private _tileLabel(v: MemberView): string {
+  private _tileLabel(v: RoomView): string {
     return [v.member.name, ...(v.available ? [`${v.value}${v.unit}`] : []), v.status].join(', ');
   }
 
-  private _roomTile(v: MemberView, selected: boolean) {
+  private _roomTile(v: RoomView, selected: boolean) {
     return html`<button
       class="room press ${selected ? 'sel' : ''} ${v.available ? '' : 'unavail'}"
       aria-pressed=${selected ? 'true' : 'false'}
@@ -225,7 +312,7 @@ export class LiquidHomeRoom extends LitElement {
     >
       <span class="rhead">
         <span class="rname">${v.member.name}</span>
-        <span class="ricon" style=${styleMap({ color: v.on ? v.colour : 'var(--lc-fg3)' })}>${this._icon(ICONS.bulb, CLUSTER_ICON.room)}</span>
+        <span class="ricon" style=${styleMap({ color: v.on ? v.colour : 'var(--lc-fg3)' })}>${this._icon(ICONS[v.glyph], CLUSTER_ICON.room)}</span>
       </span>
       <span class="rv" aria-hidden="true"><span class="big">${v.value}</span>${v.unit ? html`<span class="deg">${v.unit}</span>` : nothing}</span>
       <span class="foot" title=${v.status}>${v.status}</span>
@@ -253,13 +340,44 @@ export class LiquidHomeRoom extends LitElement {
     </button>`;
   }
 
-  private _strip(v: MemberView) {
+  /** A strip action: the room's mode button, with the active tint of the light mode buttons in the neutral (P2-COL-1). */
+  private _actionButton(a: StripAction, colour: string) {
+    const active = a.active && !a.disabled;
+    return html`<button
+      class="press mode"
+      ?disabled=${a.disabled}
+      aria-label=${a.label}
+      aria-pressed=${a.pressed === undefined ? nothing : a.pressed ? 'true' : 'false'}
+      style=${styleMap({
+        background: active ? rgba(colour, TINT.tile) : undefined,
+        borderColor: active ? rgba(colour, TINT.tileEdge) : undefined,
+        color: active ? 'var(--lc-bright)' : 'var(--lc-fg2)',
+      })}
+      @click=${() => !a.disabled && a.run()}
+    >
+      ${this._icon(a.icon, a.stroke ? CLUSTER_ICON.step : CLUSTER_ICON.mode)}
+    </button>`;
+  }
+
+  /** The strip's minus and plus around the value (the light strip's steps, `aria-disabled` keeps focus). */
+  private _steps(o: { label: string; text: string; minus: string; plus: string; minusOff: boolean; plusOff: boolean; step: (dir: 1 | -1) => void }) {
+    return html`<div class="steps">
+      <button class="press step" aria-label=${o.minus} aria-disabled=${o.minusOff ? 'true' : 'false'} @click=${() => !o.minusOff && o.step(-1)}>
+        ${this._icon(ICONS.minus, CLUSTER_ICON.step)}
+      </button>
+      <span class="target" aria-live="polite" aria-atomic="true"><span class="sr">${o.label} </span>${o.text}</span>
+      <button class="press step" aria-label=${o.plus} aria-disabled=${o.plusOff ? 'true' : 'false'} @click=${() => !o.plusOff && o.step(1)}>
+        ${this._icon(ICONS.plus, CLUSTER_ICON.step)}
+      </button>
+    </div>`;
+  }
+
+  /** The strip of any domain: the name button (opens the sheet with History), the actions and the steps. */
+  private _stripFrame(v: RoomView, group: { label: string; buttons: TemplateResult[] } | null, steps: TemplateResult | typeof nothing) {
     const name = v.member.name;
     const err = this._leases.get(v.member.entity)?.current?.error;
     const verb = err ?? v.status;
-    const modes = v.white || v.colourMode;
-    const can = v.on && !v.onOffOnly && v.pct != null;
-    return html`<div class="strip ${modes ? '' : 'nomodes'}" role="group" aria-label=${t(this.hass, 'room.controls', { name })}>
+    return html`<div class="strip ${group ? '' : 'nomodes'}" role="group" aria-label=${t(this.hass, 'room.controls', { name })}>
       <button class="who" aria-haspopup="dialog" aria-label=${t(this.hass, 'room.open', { name, state: verb })} @click=${() => this._open(v.member)}>
         <span class="wtext">
           <span class="sname">${name}</span>
@@ -267,35 +385,111 @@ export class LiquidHomeRoom extends LitElement {
         </span>
         <span class="chev">${this._icon(CHEVRON, CLUSTER_ICON.chevron)}</span>
       </button>
-      ${modes
-        ? html`<div class="modes" role="group" aria-label=${t(this.hass, 'room.modeGroup', { name })}>
-            ${this._modeButton(v, 'white')}${this._modeButton(v, 'colour')}
-          </div>`
-        : nothing}
-      <div class="steps">
-        ${v.onOffOnly
-          ? html`<span class="target" aria-live="polite" aria-atomic="true">${v.value}</span>`
-          : html`<button
-                class="press step"
-                aria-label=${t(this.hass, 'room.stepDown')}
-                aria-disabled=${!can || v.pct! <= 1 ? 'true' : 'false'}
-                @click=${() => this._step(v.member, -1)}
-              >
-                ${this._icon(ICONS.minus, CLUSTER_ICON.step)}
-              </button>
-              <span class="target" aria-live="polite" aria-atomic="true"
-                ><span class="sr">${t(this.hass, 'room.brightness')} </span>${v.value}${v.unit}</span
-              >
-              <button
-                class="press step"
-                aria-label=${t(this.hass, 'room.stepUp')}
-                aria-disabled=${!can || v.pct! >= 100 ? 'true' : 'false'}
-                @click=${() => this._step(v.member, 1)}
-              >
-                ${this._icon(ICONS.plus, CLUSTER_ICON.step)}
-              </button>`}
-      </div>
+      ${group ? html`<div class="modes" role="group" aria-label=${group.label}>${group.buttons}</div>` : nothing} ${steps}
     </div>`;
+  }
+
+  /**
+   * A cover's strip (P2-CHO-18): Open, Stop, Close (each with its feature bit, disabled per HA canOpen and canClose,
+   * Stop tinted while moving, the tilt forms on a tilt-only cover) and the 10 % steps through the shared writer.
+   */
+  private _coverStrip(v: CoverMemberView) {
+    const s = v.stateObj;
+    const mode = coverMode(s);
+    const actions: StripAction[] = rowHidden(s, mode)
+      ? []
+      : rowActions(s, mode)
+          .filter((a) => a.visible)
+          .map((a) => ({ icon: ROW_ICONS[a.button], label: t(this.hass, a.label), disabled: a.disabled, active: a.active, run: () => this._coverAct(v.member, a.action) }));
+    const w = this._leases.get(v.member.entity)?.current as CoverWriter | undefined;
+    const st = coverStepState(s, w?.queue.pending);
+    const colour = v.colour;
+    const group = actions.length
+      ? { label: t(this.hass, 'cover.action.group'), buttons: actions.map((a) => this._actionButton(a, colour)) }
+      : null;
+    const steps = st.show
+      ? this._steps({
+          label: t(this.hass, st.key === 'tilt_position' ? 'cover.readout.tilt' : 'cover.readout.position'),
+          text: !v.available || st.value === null ? '--' : t(this.hass, 'core.percent', { value: Math.round(st.value) }),
+          minus: t(this.hass, st.minusLabel),
+          plus: t(this.hass, st.plusLabel),
+          minusOff: st.minusDisabled,
+          plusOff: st.plusDisabled,
+          step: (dir) => this._coverStep(v.member, dir),
+        })
+      : nothing;
+    return this._stripFrame(v, group, steps);
+  }
+
+  /**
+   * A fan's strip (P2-CHO-18): power (with TURN_ON or TURN_OFF, gated as the fan card's power) and Oscillate (with its
+   * bit), and the speed steps on a speed fan. Direction and presets stay on the card.
+   */
+  private _fanStrip(v: FanMemberView) {
+    const f = v.fan;
+    const name = v.member.name;
+    const actions: StripAction[] = [];
+    if (f?.hasPower) {
+      actions.push({
+        icon: ICONS.power,
+        stroke: 'step',
+        label: t(this.hass, 'fan.aria.power', { name }),
+        disabled: powerDisabled(f),
+        active: f.on,
+        pressed: f.on,
+        run: () => this._interacting<FanWriter>(v.member.entity)?.sendNow(powerPatch(!f.on)),
+      });
+    }
+    if (f?.hasOscillate) {
+      actions.push({
+        icon: ICONS.swingH,
+        label: t(this.hass, 'fan.row.oscillate'),
+        disabled: !f.available,
+        active: f.oscillating,
+        pressed: f.oscillating,
+        run: () => this._interacting<FanWriter>(v.member.entity)?.sendNow({ oscillating: !f.oscillating }),
+      });
+    }
+    const group = actions.length ? { label: t(this.hass, 'fan.row.group'), buttons: actions.map((a) => this._actionButton(a, v.colour)) } : null;
+    const st = f ? fanStepState(this.hass, f) : undefined;
+    const steps = st?.show
+      ? this._steps({
+          label: t(this.hass, 'fan.readout.speed'),
+          text: st.text,
+          minus: t(this.hass, st.minusKey),
+          plus: t(this.hass, st.plusKey),
+          minusOff: st.minusDisabled,
+          plusOff: st.plusDisabled,
+          step: (dir) => this._fanStep(v.member, dir),
+        })
+      : nothing;
+    return this._stripFrame(v, group, steps);
+  }
+
+  /** A light's strip: White and Colour (open the light card in that pill mode) and the brightness steps. */
+  private _strip(v: MemberView) {
+    const name = v.member.name;
+    const modes = v.white || v.colourMode;
+    const can = v.on && !v.onOffOnly && v.pct != null;
+    const group = modes ? { label: t(this.hass, 'room.modeGroup', { name }), buttons: [this._modeButton(v, 'white'), this._modeButton(v, 'colour')] } : null;
+    const steps = v.onOffOnly
+      ? html`<div class="steps"><span class="target" aria-live="polite" aria-atomic="true">${v.value}</span></div>`
+      : this._steps({
+          label: t(this.hass, 'room.brightness'),
+          text: `${v.value}${v.unit}`,
+          minus: t(this.hass, 'room.stepDown'),
+          plus: t(this.hass, 'room.stepUp'),
+          minusOff: !can || v.pct! <= 1,
+          plusOff: !can || v.pct! >= 100,
+          step: (dir) => this._step(v.member, dir),
+        });
+    return this._stripFrame(v, group, steps);
+  }
+
+  private _stripFor(v: RoomView) {
+    if (v.domain === 'cover') return this._coverStrip(v);
+    if (v.domain === 'fan') return this._fanStrip(v);
+    return this._strip(v);
   }
 
   protected override render(): TemplateResult {
@@ -307,7 +501,11 @@ export class LiquidHomeRoom extends LitElement {
     // Pin the selection: the first light at first, and the first light again when the selected one left.
     const selected = views.find((v) => v.member.entity === this._selected) ?? views[0];
     this._selected = selected?.member.entity;
-    const power = powerState(this.hass, views, cfg.power_entity);
+    const lights = views.filter((v): v is MemberView => v.domain === 'light');
+    const power = powerState(this.hass, lights, cfg.power_entity);
+    // P2-CHO-17: the header power switches lights only, so it shows only in a room with lights (or a power entity).
+    const showPower = (cfg.domains ?? DEFAULT_DOMAINS).includes('light') && (lights.length > 0 || !!cfg.power_entity);
+    const lightsOnly = (cfg.domains ?? DEFAULT_DOMAINS).every((d) => d === 'light');
     const powerName = (cfg.power_entity && this.hass.states[cfg.power_entity]?.attributes.friendly_name) || title;
     const neutral = neutralColour(glass);
     const w = selected ? this._leases.get(selected.member.entity)?.current : undefined;
@@ -322,22 +520,22 @@ export class LiquidHomeRoom extends LitElement {
             <h2>${title}</h2>
             ${views.length ? html`<span class="sum">${roomSummary(this.hass, views)}</span>` : nothing}
           </div>
-          ${views.length || cfg.power_entity
+          ${showPower
             ? html`<button
                 class="press step power"
                 aria-label=${t(this.hass, 'room.power', { name: powerName })}
                 aria-pressed=${power.on ? 'true' : 'false'}
                 ?disabled=${power.disabled}
                 style=${styleMap({ background: power.on ? rgba(neutral, TINT.power) : undefined })}
-                @click=${() => this._power(views)}
+                @click=${() => this._power(lights)}
               >
                 ${this._icon(ICONS.power, CLUSTER_ICON.step)}
               </button>`
             : nothing}
         </header>
         ${views.length ? html`<div class="rooms">${views.map((v) => this._roomTile(v, v === selected))}</div>` : nothing}
-        ${views.length ? nothing : html`<p class="empty">${t(this.hass, setup ? 'room.chooseArea' : 'room.empty')}</p>`}
-        ${selected ? this._strip(selected) : nothing}
+        ${views.length ? nothing : html`<p class="empty">${t(this.hass, setup ? 'room.chooseArea' : lightsOnly ? 'room.empty' : 'room.emptyAny')}</p>`}
+        ${selected ? this._stripFor(selected) : nothing}
       </section>
       <span class="sr" role="alert">${announce}</span>
     `;

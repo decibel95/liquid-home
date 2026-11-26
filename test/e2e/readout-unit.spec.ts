@@ -21,3 +21,28 @@ test('light card readout unit has line-height equal to its font-size under a 1.6
   expect(parseFloat(m.lineHeight)).toBeCloseTo(parseFloat(m.fontSize), 1);
   expect(errors).toEqual([]);
 });
+
+/** The same rule for the cover and the fan card (plan 2.4, 2.5): the unit beside the percentage keeps line-height = font-size. */
+for (const [name, query, card, expected] of [
+  ['cover', 'cover=hall', '#slot-cover liquid-home-cover-card', '10'],
+  ['fan', 'fan=pct67', '#slot-fan liquid-home-fan-card', '67'],
+] as const) {
+  test(`${name} card readout unit has line-height equal to its font-size under a 1.6 host line-height`, async ({ page }) => {
+    const errors = watchErrors(page);
+    await stubFavicon(page);
+    await page.goto(`/dev/?${query}&glass=dark`);
+    await expect(page.locator(`${card} [role="slider"]`).first()).toHaveAttribute('aria-valuenow', expected);
+    await page.evaluate(() => {
+      document.body.style.lineHeight = '1.6';
+    });
+    const m = await page.evaluate((sel) => {
+      const unit = document.querySelector(sel)!.shadowRoot!.querySelector('.ro-v .unit')!;
+      const cs = getComputedStyle(unit);
+      return { lineHeight: cs.lineHeight, fontSize: cs.fontSize, bodyLineHeight: getComputedStyle(document.body).lineHeight };
+    }, card);
+    expect(m.bodyLineHeight).not.toBe('normal');
+    expect(parseFloat(m.fontSize)).toBeGreaterThan(0);
+    expect(parseFloat(m.lineHeight)).toBeCloseTo(parseFloat(m.fontSize), 1);
+    expect(errors).toEqual([]);
+  });
+}

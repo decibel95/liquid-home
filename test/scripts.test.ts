@@ -135,8 +135,8 @@ describe('scripts/size.mjs', () => {
     expect(run('scripts/size.mjs', file(new Uint8Array(220_000))).status).toBe(0);
   });
 
-  it('fails above 62,000 bytes gzip even when raw is within budget', () => {
-    const r = run('scripts/size.mjs', file(noise(100_000)));
+  it('fails above 66,000 bytes gzip even when raw is within budget', () => {
+    const r = run('scripts/size.mjs', file(noise(67_000)));
     expect(r.status).toBe(1);
     expect(r.stderr).toContain('gzip');
   });

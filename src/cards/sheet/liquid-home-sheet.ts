@@ -11,6 +11,12 @@ type LightCardElement = HTMLElement & {
   setPillMode?: (mode: LightMode) => void;
 };
 
+/** The card a sheet hosts for an entity: the cover and fan cards by domain, the light card otherwise (plan 2.9). */
+export function sheetCardTag(entity: string): string {
+  const domain = entity.split('.')[0];
+  return domain === 'cover' ? TAGS.cover : domain === 'fan' ? TAGS.fan : TAGS.light;
+}
+
 /** HA's own hass, for an owner that has none (opened from the page itself). */
 export const pageHass = (): HomeAssistant | undefined => (document.querySelector('home-assistant') as SheetOwner | null)?.hass;
 
@@ -26,16 +32,18 @@ const asSheetConfig = (config: LightCardConfig): LightCardConfig & SheetConfig =
  * glass, the backdrop, the open animation (none under reduced motion or look.motion minimal) and Close in the
  * card's header (slot "header-action"). Opened with core openFor(): the card follows its owner's hass, takes the
  * owner's --lc-radius and --lc-blur, and the sheet closes when the owner leaves the page (a synchronous move keeps it).
- * The light card is created by tag name, so this module never imports it. One sheet serves the document (open.ts).
+ * The cover and fan cards are hosted the same way (by the entity's domain). The card is created by tag name, so this module never imports it. One sheet serves the document (open.ts).
  */
 export class LiquidHomeSheet extends LiquidSheetBase<LightCardConfig & SheetConfig> {
   private _owner?: SheetOwner;
   private _entity?: string;
+  /** The tag of the card being created, picked from the entity's domain in openFor. */
+  private _tag: string = TAGS.light;
   /** The pill mode for the card being created (the room's White and Colour buttons); not stored anywhere. */
   private _mode?: LightMode;
 
   protected override createContent(): HTMLElement {
-    const card = document.createElement(TAGS.light) as LightCardElement;
+    const card = document.createElement(this._tag) as LightCardElement;
     if (this._mode) card.setPillMode?.(this._mode);
     return card;
   }
@@ -61,6 +69,7 @@ export class LiquidHomeSheet extends LiquidSheetBase<LightCardConfig & SheetConf
     }
     this._owner = owner;
     this._entity = config.entity;
+    this._tag = sheetCardTag(config.entity);
     this._mode = mode;
     // open() creates the content before its first await, so the mode is only read for this card.
     const opening = super.openFor(owner, asSheetConfig(config), returnTo ?? owner);

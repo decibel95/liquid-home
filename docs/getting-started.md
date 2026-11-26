@@ -3,29 +3,37 @@
 ## Requirements {#requirements}
 
 - Home Assistant 2025.1.0 or newer.
-- At least one `light` entity.
+- At least one `light`, `cover` or `fan` entity.
 
-## Install with the Home Assistant Marketplace (recommended) {#install-marketplace}
+## Install {#install-hacs}
 
-Home Assistant 2026.11 and newer has a built-in Marketplace under Settings, Marketplace (for administrators). Liquid Home is not in the Marketplace catalog yet, so you add it by link.
+The resource `/local/community/liquid-home/liquid-home.js` is added automatically.
+
+### Marketplace (Home Assistant 2026.11 and newer) {#install-marketplace}
+
+Home Assistant 2026.11 and newer has a built-in Marketplace under Settings, Marketplace (for administrators).
 
 <img class="light-only" src="/media/readme/marketplace-entry-light.png" alt="The Home Assistant Settings page with the Marketplace entry" loading="lazy">
 <img class="dark-only" src="/media/readme/marketplace-entry-dark.png" alt="The Home Assistant Settings page with the Marketplace entry" loading="lazy">
 
 1. Open Settings, Marketplace. The first time, read "Before you install from the Marketplace", tick "I understand the risks and agree" and select Continue.
-2. Select Add from link at the top right. Adding by link needs a GitHub connection; the Marketplace asks you to connect GitHub if you have not yet.
-3. Enter `https://github.com/decibel95/liquid-home` as the GitHub link and choose the type Dashboard.
-4. Open Liquid Home and select Install, then reload the browser.
+2. Search for **Liquid Home**, or use the [Open in Home Assistant](https://my.home-assistant.io/redirect/hacs_repository/?owner=decibel95&repository=liquid-home&category=plugin) link.
+3. Select Install, then reload the browser.
 
 The Marketplace downloads all three release files into `/config/www/community/liquid-home/` and adds the dashboard resource for you. If your dashboards use YAML resources (`lovelace: resource_mode: yaml`), it does not add the resource: add `/local/community/liquid-home/liquid-home.js` yourself, as a JavaScript module. The install dialog shows the exact URL to add.
 
-## Install with HACS {#install-hacs}
+### HACS (older Home Assistant) {#install-hacs-classic}
 
-For older Home Assistant versions, or if you use HACS.
+1. Open HACS and search for **Liquid Home**.
+2. Download it.
+3. Reload the browser.
 
-1. Open HACS, choose the menu in the top right and pick Custom repositories.
-2. Add `https://github.com/decibel95/liquid-home` with the category Dashboard.
-3. Install Liquid Home, then reload the browser.
+### Add by link (fallback) {#install-by-link}
+
+If Liquid Home does not show up in the search, add it as a custom repository.
+
+- Marketplace: select **Add from link** at the top right (it needs a GitHub connection; the Marketplace asks you to connect GitHub if you have not yet). Enter `https://github.com/decibel95/liquid-home` and choose the type Dashboard.
+- HACS: open the menu (three dots), choose Custom repositories, enter the same URL with the category Dashboard, then download Liquid Home.
 
 ## Install by hand {#install-manual}
 
@@ -38,23 +46,25 @@ Liquid Home ships the Inter font, so the cards look the same on every device, wi
 
 ## Add a card {#add-card}
 
-The four cards are in the card picker:
+The six cards are in the card picker:
 
 | Picker name | Type |
 |-------------|------|
 | Liquid Home light card | `custom:liquid-home-light-card` |
+| Liquid Home cover card | `custom:liquid-home-cover-card` |
+| Liquid Home fan card | `custom:liquid-home-fan-card` |
 | Liquid Home tile | `custom:liquid-home-tile` |
 | Liquid Home badge | `custom:liquid-home-badge` |
 | Liquid Home room | `custom:liquid-home-room` |
 
-The badge is also in the badge picker (Edit dashboard, Badges). Every card has a visual editor, and the YAML works as well:
+The tile, badge and room card take lights, covers and fans. The badge is also in the badge picker (Edit dashboard, Badges). Every card has a visual editor, and the YAML works as well:
 
 ```yaml
 type: custom:liquid-home-light-card
 entity: light.kitchen_lights
 ```
 
-See the pages of the [light card](/cards/light), [tile](/cards/tile), [badge](/cards/badge) and [room card](/cards/room) for every option.
+See the pages of the [light card](/cards/light), [cover card](/cards/cover), [fan card](/cards/fan), [tile](/cards/tile), [badge](/cards/badge) and [room card](/cards/room) for every option.
 
 ## Next to Liquid Climate {#next-to-climate}
 

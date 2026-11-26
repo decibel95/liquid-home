@@ -1,14 +1,13 @@
 import { CARD_TYPES, CONFIG_VERSION } from '../../const';
 import { defaultLook, pruneDefaults, withLook, type LookConfig, type RawConfig } from '../../config';
 import { migrateConfig } from '../../migrate';
-import { tapAction, type TapAction } from '../tile/config';
-import type { LightCardConfig } from '../light/config';
+import { sheetConfig as tileSheetConfig, tapAction, type TapAction, type TileSheetConfig } from '../tile/config';
 
 export interface BadgeConfig {
   type: string;
   entity: string;
   name?: string;
-  /** Tap: HA's more-info dialog (default, as the Liquid Climate badge), the light card as a sheet, or nothing. */
+  /** Tap: HA's more-info dialog (default, as the Liquid Climate badge), the entity's card as a sheet with History, or nothing; never a toggle (Q9 a). */
   tap_action?: TapAction;
   /** Only the round icon, without name and value (as the Liquid Climate badge). */
   icon_only?: boolean;
@@ -43,10 +42,10 @@ export function normalizeConfig(raw: RawConfig): NormalizedBadgeConfig {
   };
 }
 
-/** The light card config a badge opens as a sheet: its options without the badge's own keys. */
-export function sheetConfig(cfg: BadgeConfig): LightCardConfig {
-  const { tap_action: _tap, icon_only: _icon, ...rest } = cfg;
-  return { ...rest, type: CARD_TYPES.light };
+/** The card config a badge opens as a sheet (light, cover or fan card by the entity's domain): its options without the badge's own keys. */
+export function sheetConfig(cfg: BadgeConfig): TileSheetConfig {
+  const { icon_only: _icon, ...rest } = cfg;
+  return tileSheetConfig(rest);
 }
 
 /** What an editor writes: only non-default options. */

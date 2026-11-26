@@ -1,7 +1,7 @@
 {
   "name": "liquid-home",
-  "version": "0.2.2",
-  "description": "Liquid Home: glass light card, tile, badge and room card for Home Assistant lights",
+  "version": "0.3.0",
+  "description": "Liquid Home: glass light, cover and fan cards, tile, badge and room card for Home Assistant lights, covers and fans",
   "license": "MIT",
   "type": "module",
   "private": true,
@@ -27,7 +27,7 @@
     "e2e": "playwright test -c test/e2e/playwright.config.ts"
   },
   "dependencies": {
-    "@decibel95/liquid-core": "0.2.0",
+    "@decibel95/liquid-core": "0.4.0",
     "lit": "3.2.1"
   },
   "devDependencies": {

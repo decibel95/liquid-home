@@ -3,7 +3,8 @@ import { property, state } from 'lit/decorators.js';
 import { editorStyles, helpLink, lookFields, segField, type HomeAssistant, type LookValues } from '@decibel95/liquid-core';
 import { DOCS_URL, type CardKey } from '../const';
 import { withLook, type LookConfig, type RawConfig } from '../config';
-import { isLightEntity } from '../lights';
+import { domainOf } from '../cards/room/members';
+import type { RoomDomain } from '../cards/room/config';
 import { t } from '../i18n';
 import type { TapAction } from '../cards/tile/config';
 
@@ -14,7 +15,7 @@ const TAP_LABELS: Record<TapAction, string> = {
 };
 
 /**
- * What the four Liquid Home editors share, in the Liquid Climate editor style: the editor owns the config, the
+ * What the Liquid Home editors share, in the Liquid Climate editor style: the editor owns the config, the
  * liquid-core helpers (segField, lookFields, helpLink, editorStyles) draw the fields. Every change is saved as the
  * card's pruned config (only non-default options; type, entity and config_version always kept).
  */
@@ -93,24 +94,40 @@ export abstract class LiquidHomeEditor<C extends RawConfig> extends LitElement {
     </div>`;
   }
 
+  /** Every entity id of these domains: grouped in the given domain order, each group sorted. */
+  protected _ids(domains: readonly RoomDomain[] = ['light']): string[] {
+    const rank = (id: string) => domains.indexOf(domainOf(id)!);
+    return Object.keys(this.hass?.states ?? {})
+      .filter((id) => rank(id) >= 0)
+      .sort((a, b) => rank(a) - rank(b) || (a < b ? -1 : 1));
+  }
+
   /** Every light entity id, sorted. */
   protected _lights(): string[] {
-    return Object.keys(this.hass?.states ?? {})
-      .filter((id) => isLightEntity(id))
-      .sort();
+    return this._ids();
   }
 
   protected _friendly(id: string): string {
     return (this.hass?.states[id]?.attributes.friendly_name as string | undefined) || id;
   }
 
-  /** The light picker: a native select over the light entities, as the Liquid Climate entity field. */
-  protected _entity(entity: string): TemplateResult {
-    const ids = this._lights();
+  /**
+   * The entity picker: a native select over the entities of `domains` (lights only by default), as the Liquid Climate
+   * entity field. A new entity is saved through the card's own normalizer, so the options of the old entity's domain
+   * that are defaults there (a light tile's effects switch) are not carried over as explicit values to a fan.
+   */
+  protected _entity(entity: string, domains: readonly RoomDomain[] = ['light']): TemplateResult {
+    const ids = this._ids(domains);
+    const placeholder = domains.length > 1 || domains[0] !== 'light' ? 'editor.chooseEntity' : 'editor.chooseLight';
     return html`<label class="field">
       <span class="lbl">${this._t('editor.entity')}</span>
-      <select @change=${(e: Event) => this._fire({ entity: (e.target as HTMLSelectElement).value } as RawConfig as Partial<C>)}>
-        ${ids.includes(entity) ? nothing : html`<option value="" disabled selected>${entity || this._t('editor.chooseLight')}</option>`}
+      <select
+        @change=${(e: Event) => {
+          const id = (e.target as HTMLSelectElement).value;
+          this._fire((c) => this._normalize({ ...this._prune(c), entity: id }));
+        }}
+      >
+        ${ids.includes(entity) ? nothing : html`<option value="" disabled selected>${entity || this._t(placeholder)}</option>`}
         ${ids.map((id) => html`<option value=${id} ?selected=${id === entity}>${this._friendly(id)} (${id})</option>`)}
       </select>
     </label>`;

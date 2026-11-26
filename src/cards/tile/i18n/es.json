@@ -1,8 +1,10 @@
 {
   "card": {
-    "name": "Mosaico de luz"
+    "name": "Mosaico"
   },
   "ariaTile": "Luz {name}",
+  "ariaCover": "Persiana {name}",
+  "ariaFan": "Ventilador {name}",
   "power": "Encender o apagar {name}",
   "stepDown": "Bajar el brillo",
   "stepUp": "Subir el brillo",

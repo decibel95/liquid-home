@@ -8,7 +8,7 @@ export const CONFIG_VERSION = 1;
 
 /**
  * Docs base for the editor help links. Page scheme: `${DOCS_URL}/cards/<card>#<card>-<section>`,
- * with <card> one of light, tile, badge, room.
+ * with <card> one of light, cover, fan, tile, badge, room.
  * Public docs site on GitHub Pages; must match the URLs in .github/ISSUE_TEMPLATE/config.yml
  */
 export const DOCS_URL = 'https://decibel95.github.io/liquid-home';
@@ -27,10 +27,14 @@ export const TAGS = {
   badgeEditor: 'liquid-home-badge-editor',
   room: 'liquid-home-room',
   roomEditor: 'liquid-home-room-editor',
+  cover: 'liquid-home-cover-card',
+  coverEditor: 'liquid-home-cover-card-editor',
+  fan: 'liquid-home-fan-card',
+  fanEditor: 'liquid-home-fan-card-editor',
   sheet: 'liquid-home-sheet',
 } as const;
 
-export type CardKey = 'light' | 'tile' | 'badge' | 'room';
+export type CardKey = 'light' | 'tile' | 'badge' | 'room' | 'cover' | 'fan';
 
 /** `type:` values users write in YAML. */
 export const CARD_TYPES: Record<CardKey, string> = {
@@ -38,4 +42,6 @@ export const CARD_TYPES: Record<CardKey, string> = {
   tile: `custom:${TAGS.tile}`,
   badge: `custom:${TAGS.badge}`,
   room: `custom:${TAGS.room}`,
+  cover: `custom:${TAGS.cover}`,
+  fan: `custom:${TAGS.fan}`,
 };

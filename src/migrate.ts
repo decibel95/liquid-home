@@ -4,6 +4,8 @@ import { STEPS as LIGHT_STEPS } from './cards/light/migrate';
 import { STEPS as TILE_STEPS } from './cards/tile/migrate';
 import { STEPS as BADGE_STEPS } from './cards/badge/migrate';
 import { STEPS as ROOM_STEPS } from './cards/room/migrate';
+import { STEPS as COVER_STEPS } from './cards/cover/migrate';
+import { STEPS as FAN_STEPS } from './cards/fan/migrate';
 
 export type StepMap = Record<number, (c: RawConfig) => RawConfig>;
 
@@ -13,6 +15,8 @@ const BY_TYPE: Record<string, StepMap> = {
   [CARD_TYPES.tile]: TILE_STEPS,
   [CARD_TYPES.badge]: BADGE_STEPS,
   [CARD_TYPES.room]: ROOM_STEPS,
+  [CARD_TYPES.cover]: COVER_STEPS,
+  [CARD_TYPES.fan]: FAN_STEPS,
 };
 
 /** Configs without a `config_version` are stamped silently (0 -> 1); unknown types only get the stamp. */

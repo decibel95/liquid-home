@@ -1,8 +1,10 @@
 {
   "card": {
-    "name": "Tuile lumière"
+    "name": "Tuile"
   },
   "ariaTile": "Lumière {name}",
+  "ariaCover": "Volet {name}",
+  "ariaFan": "Ventilateur {name}",
   "power": "Allumer ou éteindre {name}",
   "stepDown": "Baisser la luminosité",
   "stepUp": "Augmenter la luminosité",

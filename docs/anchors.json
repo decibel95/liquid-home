@@ -15,6 +15,14 @@
     "badge.tap_action": "/cards/badge#badge-tap-action",
     "room.source": "/cards/room#room-source",
     "room.power_entity": "/cards/room#room-power-entity",
-    "room.look": "/cards/room#room-look"
+    "room.look": "/cards/room#room-look",
+    "cover.entity": "/cards/cover#cover-entity",
+    "cover.controls": "/cards/cover#cover-controls",
+    "cover.write_hold": "/cards/cover#cover-write-hold",
+    "cover.look": "/cards/cover#cover-look",
+    "fan.entity": "/cards/fan#fan-entity",
+    "fan.controls": "/cards/fan#fan-controls",
+    "fan.write_hold": "/cards/fan#fan-write-hold",
+    "fan.look": "/cards/fan#fan-look"
   }
 }

@@ -1,9 +1,21 @@
 import { num, type HassEntity, type HomeAssistant } from '@decibel95/liquid-core';
 import { t } from '../../i18n';
-import { membersOn, type LightView } from '../../lights';
+import { isLightEntity, membersOn, type LightView } from '../../lights';
+import { isCoverEntity } from '../../covers';
+import { isFanEntity } from '../../fans';
 
-/** setConfig error of the tile and the badge: stays English (no hass yet when HA validates a config; see CONTRIBUTING-translations.md). */
-export const ENTITY_ERROR = 'Choose a light entity (light.*)';
+/**
+ * setConfig error of the tile and the badge: stays English (no hass yet when HA validates a config; see
+ * CONTRIBUTING-translations.md). It starts with the 0.2 wording.
+ */
+export const ENTITY_ERROR = 'Choose a light entity (light.*), a cover (cover.*) or a fan (fan.*)';
+
+/** The domains the generic tile and badge draw (plan 2.6); the tags stay generic (0.1 D-4). */
+export type TileDomain = 'light' | 'cover' | 'fan';
+
+/** The domain of an entity id the tile and badge accept, or undefined for any other id. */
+export const tileDomain = (id: unknown): TileDomain | undefined =>
+  isLightEntity(id) ? 'light' : isCoverEntity(id) ? 'cover' : isFanEntity(id) ? 'fan' : undefined;
 
 /** "45%" through the core percent string, in the user's number format. */
 export const percentText = (hass: HomeAssistant, pct: number): string => t(hass, 'core.percent', { value: num(hass, pct, 0) });

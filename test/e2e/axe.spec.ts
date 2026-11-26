@@ -11,6 +11,8 @@ interface Scan {
   include?: string;
   exclude?: string;
   disable?: string[];
+  /** The scan must have cards to look at: this selector must match at least `min` elements (a scan of nothing passes). */
+  cards?: { selector: string; min: number };
 }
 /**
  * The editors section (#slot-editors) renders the editors on HA's default theme, where the selected segment is
@@ -23,6 +25,11 @@ const SCANS: Scan[] = [
   { scope: 'editors section, all rules except color-contrast (HA default theme primary on white)', include: '#slot-editors', disable: ['color-contrast'] },
   { scope: 'dark glass', include: '[data-glass="dark"]' },
   { scope: 'light glass', include: '[data-glass="light"]' },
+  // H9 (plan 2.12): every cover and fan fixture state, one scan per domain and glass.
+  { scope: 'cover card states on dark glass', include: '#slot-cover [data-glass="dark"]', cards: { selector: '#slot-cover [data-glass="dark"] liquid-home-cover-card', min: 12 } },
+  { scope: 'cover card states on light glass', include: '#slot-cover [data-glass="light"]', cards: { selector: '#slot-cover [data-glass="light"] liquid-home-cover-card', min: 12 } },
+  { scope: 'fan card states on dark glass', include: '#slot-fan [data-glass="dark"]', cards: { selector: '#slot-fan [data-glass="dark"] liquid-home-fan-card', min: 15 } },
+  { scope: 'fan card states on light glass', include: '#slot-fan [data-glass="light"]', cards: { selector: '#slot-fan [data-glass="light"] liquid-home-fan-card', min: 15 } },
 ];
 
 async function settle(page: Page): Promise<void> {
@@ -63,6 +70,7 @@ for (const sc of SCANS) {
     const errors = watchErrors(page);
     await stubFavicon(page);
     await settle(page);
+    if (sc.cards) expect(await page.locator(sc.cards.selector).count(), `cards in ${sc.scope}`).toBeGreaterThanOrEqual(sc.cards.min);
     const report = await scan(page, sc, info);
     expect(errors).toEqual([]);
     expect(report.filter((v) => v.impact === 'serious' || v.impact === 'critical')).toEqual([]);

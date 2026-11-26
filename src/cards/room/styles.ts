@@ -39,4 +39,15 @@ export const roomStyles = css`
   .mode[hidden] {
     display: none;
   }
+  /*
+   * A cover or fan tile can show a word as its value (Closed, Opening, a preset). It never grows the tile: the
+   * cluster value size, then an ellipsis (P2-CHO-6); the footer and the tile name still carry the whole word. Only the
+   * x axis clips: the core value has line-height 1, so a y clip would cut the tails of p, g and y.
+   */
+  .room .big {
+    min-width: 0;
+    overflow-x: clip;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 `;

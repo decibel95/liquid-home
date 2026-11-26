@@ -6,6 +6,8 @@ import { mount as light } from './slots/light';
 import { mount as tile } from './slots/tile';
 import { mount as badge } from './slots/badge';
 import { mount as room } from './slots/room';
+import { mount as cover } from './slots/cover';
+import { mount as fan } from './slots/fan';
 import { mount as editors } from './editors';
 
 const log = document.getElementById('log')!;
@@ -31,6 +33,8 @@ langSelect.addEventListener('change', () => harness.setLanguage(langSelect.value
 
 const slots: [string, SlotMount][] = [
   ['light', light],
+  ['cover', cover],
+  ['fan', fan],
   ['tile', tile],
   ['badge', badge],
   ['room', room],

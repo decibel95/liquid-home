@@ -1,12 +1,50 @@
-import { num, type HassEntity, type HomeAssistant } from '@decibel95/liquid-core';
+import { num, type HassEntity, type HomeAssistant, type ICONS } from '@decibel95/liquid-core';
 import { t } from '../../i18n';
 import { colourOf, COLOUR_MODES, lightView, membersOn, neutralColour, type Glass, type LightPatch, type LightView } from '../../lights';
+import { coverColour, coverGlyph, coverSub, coverTileSub, hasPositionBit, isCoverActive, isCoverUnavailable, positionOf } from '../../covers';
+import { fanColour, fanReadout, fanSub, fanView, type FanPatch, type FanView } from '../../fans';
 import type { RoomMember } from './members';
 
 type Hass = Pick<HomeAssistant, 'states'> & { language?: string; locale?: { language?: string } };
 
+/** What every room tile shows, whatever the domain (P2-CHO-19): name, glyph, big value, status, on or off. */
+interface TileView {
+  member: RoomMember;
+  stateObj?: HassEntity;
+  /** The room tile glyph: bulb, blinds or door, fan. */
+  glyph: keyof typeof ICONS;
+  available: boolean;
+  /** Counts for the summary and tints the icon: a light or fan on, a cover open or moving. */
+  on: boolean;
+  /** Big tile text (the prototype's roomValue). */
+  value: string;
+  /** The unit after the value ("%"), empty otherwise. */
+  unit: string;
+  /** Footer and strip subline. */
+  status: string;
+  /** Icon colour while on; the card draws var(--lc-fg3) while off, closed or unavailable. */
+  colour: string;
+}
+
+/** A cover member: the tile follows the motor (HA's position), never a held value (Q6 a). */
+export interface CoverMemberView extends TileView {
+  domain: 'cover';
+}
+
+/** A fan member, with the shared fan view (src/fans) and the writer's optimistic values on top. */
+export interface FanMemberView extends TileView {
+  domain: 'fan';
+  /** The shared fan view, undefined when the entity does not exist. */
+  fan?: FanView;
+}
+
+/** One member of any domain. */
+export type RoomView = MemberView | CoverMemberView | FanMemberView;
+
 /** What a room tile and the strip show for one light: the shared light view plus the room card's texts. */
 export interface MemberView {
+  domain: 'light';
+  glyph: 'bulb';
   member: RoomMember;
   stateObj?: HassEntity;
   /** The shared light view (src/lights), undefined when the entity does not exist. */
@@ -52,6 +90,8 @@ export function memberView(hass: Hass, member: RoomMember, glass: Glass, local: 
   else status = v.kelvin !== null ? t(hass, 'room.onKelvin', { kelvin: num(hass as HomeAssistant, Math.round(v.kelvin), 0) }) : t(hass, 'room.on');
   const whiteActive = on && v!.colorMode === 'color_temp';
   return {
+    domain: 'light',
+    glyph: 'bulb',
     member,
     stateObj: s,
     light: v,
@@ -71,9 +111,60 @@ export function memberView(hass: Hass, member: RoomMember, glass: Glass, local: 
   };
 }
 
-/** "2 of 3 on": members on out of all members, as the prototype's room header. */
-export function roomSummary(hass: Hass, views: MemberView[]): string {
-  return t(hass, 'room.summary', { n: views.filter((v) => v.on).length, total: views.length });
+/**
+ * A cover tile (prototype roomValue and roomSub): the position in percent on a cover that reports one, else the state
+ * word; the tile subline with the tilt; blinds, or a door for the door, garage and gate classes (P2-CHO-7).
+ */
+export function coverMemberView(hass: Hass, member: RoomMember, glass: Glass): CoverMemberView {
+  const s = hass.states[member.entity];
+  const available = !isCoverUnavailable(s);
+  const p = positionOf(s);
+  const pct = available && hasPositionBit(s) && p !== null;
+  return {
+    domain: 'cover',
+    member,
+    stateObj: s,
+    glyph: coverGlyph(s),
+    available,
+    on: isCoverActive(s),
+    value: !available ? '--' : pct ? String(Math.round(p!)) : coverSub(hass, s),
+    unit: pct ? '%' : '',
+    status: coverTileSub(hass, s),
+    colour: coverColour(glass),
+  };
+}
+
+/**
+ * A fan tile (prototype roomValue and roomSub): the card readout's value (the speed in percent, Off, the preset, On or
+ * "--") with the shared writer's held and pending values (`local`) on top, and the fan subline.
+ */
+export function fanMemberView(hass: Hass, member: RoomMember, glass: Glass, local: FanPatch = {}): FanMemberView {
+  const s = hass.states[member.entity];
+  const v = s ? fanView(s, local) : undefined;
+  const h = hass as HomeAssistant;
+  const r = v ? fanReadout(h, v) : { big: '--', unit: '' };
+  return {
+    domain: 'fan',
+    member,
+    stateObj: s,
+    fan: v,
+    glyph: 'fan',
+    available: !!v?.available,
+    on: !!v?.on,
+    value: r.big,
+    unit: r.unit,
+    status: v ? fanSub(h, v) : t(hass, 'core.unavailable'),
+    colour: fanColour(glass),
+  };
+}
+
+/**
+ * The header summary (D-9): a room of lights only keeps "2 of 3 on"; a room with a cover or a fan reads "3 of 5 active",
+ * counting lights on, covers open or moving, and fans on (the prototype's count).
+ */
+export function roomSummary(hass: Hass, views: RoomView[]): string {
+  const key = views.every((v) => v.domain === 'light') ? 'room.summary' : 'room.summaryActive';
+  return t(hass, key, { n: views.filter((v) => v.on).length, total: views.length });
 }
 
 /** The single call the header power button sends, or null when there is nothing to switch. */

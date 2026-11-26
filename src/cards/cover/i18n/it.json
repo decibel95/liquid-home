@@ -1,0 +1,50 @@
+{
+  "card": {
+    "name": "Scheda tapparella",
+    "description": "Scheda in vetro per una tapparella: una pillola verticale di posizione con pulsanti per aprire, fermare e chiudere.",
+    "loading": "Caricamento",
+    "entityNotFound": "Entità non trovata: {entity}"
+  },
+  "mode": {
+    "group": "Modalità della pillola",
+    "position": "Posizione",
+    "tilt": "Inclinazione"
+  },
+  "action": {
+    "group": "Controlli della tapparella",
+    "open": "Apri",
+    "stop": "Ferma",
+    "close": "Chiudi",
+    "openTilt": "Apri inclinazione",
+    "stopTilt": "Ferma inclinazione",
+    "closeTilt": "Chiudi inclinazione"
+  },
+  "state": {
+    "open": "Aperto",
+    "closed": "Chiuso",
+    "opening": "In apertura",
+    "closing": "In chiusura"
+  },
+  "readout": {
+    "position": "Posizione",
+    "tilt": "Inclinazione",
+    "tap": "Tocca per cambiare"
+  },
+  "sub": {
+    "tilt": "{state}, inclinazione {value}"
+  },
+  "aria": {
+    "position": "Posizione, {name}",
+    "tilt": "Inclinazione, {name}",
+    "held": "{value}, ora {now}",
+    "toggle": "Cambia, {name}",
+    "toggleTilt": "Cambia inclinazione, {name}",
+    "stop": "Ferma, {name}"
+  },
+  "step": {
+    "close": "Chiudi del 10 %",
+    "open": "Apri del 10 %",
+    "closeTilt": "Chiudi inclinazione del 10 %",
+    "openTilt": "Apri inclinazione del 10 %"
+  }
+}

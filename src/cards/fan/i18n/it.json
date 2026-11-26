@@ -1,0 +1,38 @@
+{
+  "card": {
+    "name": "Scheda ventilatore",
+    "description": "Scheda in vetro per un ventilatore: una pillola verticale di velocità con pulsante di accensione e preimpostazioni.",
+    "loading": "Caricamento",
+    "entityNotFound": "Entità non trovata: {entity}"
+  },
+  "readout": {
+    "speed": "Velocità",
+    "preset": "Preimpostazione",
+    "tap": "Tocca per cambiare",
+    "on": "Acceso"
+  },
+  "sub": {
+    "on": "Acceso",
+    "onOscillating": "Acceso, oscillante",
+    "onReverse": "Acceso, inverso",
+    "onOscillatingReverse": "Acceso, oscillante, inverso"
+  },
+  "row": {
+    "group": "Controlli del ventilatore",
+    "oscillate": "Oscillazione",
+    "reverse": "Inverti"
+  },
+  "preset": {
+    "label": "Preimpostazione",
+    "none": "Nessuno"
+  },
+  "step": {
+    "slower": "Più lento",
+    "faster": "Più veloce"
+  },
+  "aria": {
+    "power": "Accendi o spegni {name}",
+    "speed": "Velocità, {name}",
+    "preset": "Preimpostazione: {value}"
+  }
+}

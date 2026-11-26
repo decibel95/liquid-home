@@ -1,0 +1,50 @@
+{
+  "card": {
+    "name": "Cover card",
+    "description": "Glass card for one cover: a vertical position pill with open, stop and close buttons.",
+    "loading": "Loading",
+    "entityNotFound": "Entity not found: {entity}"
+  },
+  "mode": {
+    "group": "Pill mode",
+    "position": "Position",
+    "tilt": "Tilt"
+  },
+  "action": {
+    "group": "Cover actions",
+    "open": "Open",
+    "stop": "Stop",
+    "close": "Close",
+    "openTilt": "Open tilt",
+    "stopTilt": "Stop tilt",
+    "closeTilt": "Close tilt"
+  },
+  "state": {
+    "open": "Open",
+    "closed": "Closed",
+    "opening": "Opening",
+    "closing": "Closing"
+  },
+  "readout": {
+    "position": "Position",
+    "tilt": "Tilt",
+    "tap": "Tap to switch"
+  },
+  "sub": {
+    "tilt": "{state}, tilt {value}"
+  },
+  "aria": {
+    "position": "Position, {name}",
+    "tilt": "Tilt, {name}",
+    "held": "{value}, now {now}",
+    "toggle": "Toggle, {name}",
+    "toggleTilt": "Toggle tilt, {name}",
+    "stop": "Stop, {name}"
+  },
+  "step": {
+    "close": "Close 10%",
+    "open": "Open 10%",
+    "closeTilt": "Close tilt 10%",
+    "openTilt": "Open tilt 10%"
+  }
+}

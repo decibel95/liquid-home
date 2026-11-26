@@ -3,6 +3,22 @@
 All notable changes to Liquid Home. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 <!-- #region entries -->
+## 0.3.0
+
+### Added
+- **Cover card**: a glass card for one cover with a position pill and Open, Stop and Close buttons. It also handles tilt, covers that only toggle (a garage door) and covers that report no position.
+- **Fan card**: a glass card for one fan with a speed pill that snaps to the speeds of the fan, power, oscillate and direction buttons, and a preset chip (hide it with `controls.presets`).
+- Covers and fans in the tile, the badge and the room card. A room shows lights only unless you pick more with `domains`.
+- A history button in the sheet of covers and fans, as for lights.
+- An "Open in Home Assistant" button in the README, to add Liquid Home to your Home Assistant in one click.
+
+### Changed
+- The light card header shows a small device icon next to the name.
+- The room card header reads "3 of 5 active" when the room has covers or fans. Rooms with only lights still read "3 of 5 on".
+
+### Fixed
+- A long badge name no longer makes the page wider than the screen on a narrow phone. It is cut short with an ellipsis, and `name` shortens it.
+
 ## 0.2.2
 
 ### Changed

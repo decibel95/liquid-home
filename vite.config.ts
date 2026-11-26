@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { defineConfig, type Plugin } from 'vite';
+import { defineConfig, transformWithEsbuild, type Plugin } from 'vite';
 import pkg from './package.json';
 
 const require = createRequire(import.meta.url);
@@ -36,11 +36,32 @@ function fontAssets(): Plugin {
   };
 }
 
+/**
+ * Release form of the bundle (plan 2.13 option B): whitespace and ordinary comments out (licence comments stay), nothing else. Vite's lib ES build
+ * already shortens identifiers and syntax and only skips whitespace, so esbuild's minifyWhitespace (Vite's own
+ * copy, no extra dependency) is the whole difference. scripts/e2e/core-share.mjs builds without this config, so
+ * the liquid-core share stays measured unminified.
+ */
+function minifyWhitespace(): Plugin {
+  return {
+    name: 'lh-minify-whitespace',
+    apply: 'build',
+    async generateBundle(_options, bundle) {
+      // After every renderChunk hook: Vite's own transpile step prints the code again with whitespace.
+      for (const item of Object.values(bundle)) {
+        if (item.type !== 'chunk') continue;
+        const out = await transformWithEsbuild(item.code, item.fileName, { minifyWhitespace: true, format: 'esm', target: 'es2022' });
+        item.code = out.code;
+      }
+    },
+  };
+}
+
 export default defineConfig({
   define: { __LH_VERSION__: JSON.stringify(pkg.version) },
   // One copy of Lit across liquid-core and this bundle (CI also checks `npm ls lit`).
   resolve: { dedupe: ['lit', 'lit-html', 'lit-element', '@lit/reactive-element'] },
-  plugins: [fontAssets()],
+  plugins: [fontAssets(), minifyWhitespace()],
   build: {
     target: 'es2022',
     outDir: 'dist',

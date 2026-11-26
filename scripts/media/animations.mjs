@@ -7,6 +7,7 @@ import { centerOf, pointer, sleep } from './input.mjs';
 const HOLD = 450;
 
 const slider = 'liquid-home-light-card .lc-slider';
+const coverSlider = 'liquid-home-cover-card .lc-slider';
 
 /**
  * Reusable interaction segments. Every one ends in the state it started in, so any sequence
@@ -14,9 +15,9 @@ const slider = 'liquid-home-light-card .lc-slider';
  */
 export const steps = {
   /** Drag the brightness pill up by about 60 % of its height and back down to where it started (relative drag). */
-  async dragSlider(page, p) {
-    const box = await page.locator(slider).first().boundingBox();
-    if (!box) throw new Error(`No box for ${slider}`);
+  async dragSlider(page, p, selector = slider) {
+    const box = await page.locator(selector).first().boundingBox();
+    if (!box) throw new Error(`No box for ${selector}`);
     const x = box.x + box.width / 2;
     const y = box.y + box.height * 0.8;
     const up = box.height * 0.6;
@@ -33,6 +34,12 @@ export const ANIMATIONS = {
     scene: 'light',
     first: (page) => centerOf(page, slider).then((c) => ({ x: c.x + 120, y: c.y + 120 })),
     run: (page, p) => steps.dragSlider(page, p),
+  },
+  // The cover pill dragged and let go where it started (nothing is sent: the release equals the held position).
+  'cover-drag': {
+    scene: 'cover',
+    first: (page) => centerOf(page, coverSlider).then((c) => ({ x: c.x + 120, y: c.y + 120 })),
+    run: (page, p) => steps.dragSlider(page, p, coverSlider),
   },
 };
 

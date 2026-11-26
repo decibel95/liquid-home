@@ -29,6 +29,7 @@ import { CARD_TYPES, TAGS } from '../../const';
 import { defaultLook } from '../../config';
 import { t } from '../../i18n';
 import { openLightSheet } from '../sheet/open';
+import { headerIconStyles, renderHeaderIcon } from '../shared/header-icon';
 import { colourOf, hueAt, isLightEntity, kelvinAt, lightView, lightWriters, membersOn, modesFor, patchFor, positionOf, powerPatch, type LightView, type LightWriter } from '../../lights';
 import { normalizeConfig, type LightMode, type NormalizedLightConfig } from './config';
 import { lightCardStyles } from './styles';
@@ -48,7 +49,7 @@ const ENTITY_ERROR = 'Liquid Home light card: set `entity` to a light entity (li
  * hold of sent values).
  */
 export class LiquidHomeLightCard extends LitElement {
-  static override styles = [glassTokens, focusRing, sliderStyles, dialChrome, lightCardStyles];
+  static override styles = [glassTokens, focusRing, sliderStyles, dialChrome, headerIconStyles, lightCardStyles];
 
   @property({ attribute: false }) hass?: HomeAssistant;
   @state() private _config?: NormalizedLightConfig;
@@ -222,6 +223,7 @@ export class LiquidHomeLightCard extends LitElement {
   private _renderHeader(v: LightView, name: string, colour: string) {
     const hass = this.hass;
     return html`<header>
+      ${renderHeaderIcon('bulb', !v.available ? 'unavailable' : v.on ? 'active' : 'inactive', colour)}
       <div class="titles">
         <h2>${name}</h2>
         <span class="sub">${this._sub(v)}</span>

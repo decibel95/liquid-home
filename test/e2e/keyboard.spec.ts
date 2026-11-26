@@ -175,3 +175,166 @@ test.describe('focus ring (TOK-19)', () => {
     expect(ring.color).not.toBe(selectedEdge);
   });
 });
+
+/**
+ * H9 (plan 2.12): a keyboard-only run over the cover and the fan card. The start point is a click on the figure caption
+ * (not focusable), so every control is reached with Tab and no focus is set by script.
+ */
+async function openDomain(page: Page, query: string, caption: string): Promise<string[]> {
+  const errors = watchErrors(page);
+  await stubFavicon(page);
+  await page.goto(`/dev/?${query}&glass=dark`);
+  const cap = page.locator(`figcaption:text-is("${caption}")`).first();
+  await expect(cap).toBeVisible();
+  await page.evaluate(() => {
+    const w = window as unknown as { __calls: string[] };
+    w.__calls = [];
+    const log = document.getElementById('log')!;
+    new MutationObserver(() => (w.__calls = (log.textContent ?? '').split('\n'))).observe(log, { childList: true, characterData: true, subtree: true });
+  });
+  await cap.click();
+  return errors;
+}
+
+const logged = (page: Page) => page.evaluate(() => (window as unknown as { __calls: string[] }).__calls.join('\n'));
+const stopName = (f: FocusInfo) => (f.role === 'slider' ? 'slider' : (f.mode ?? f.action ?? f.label ?? f.tag));
+
+/** Tab stops from the caption on, `count` of them. */
+async function tabStops(page: Page, count: number): Promise<FocusInfo[]> {
+  const stops: FocusInfo[] = [];
+  for (let i = 0; i < count; i++) {
+    await page.keyboard.press('Tab');
+    stops.push((await focusedElement(page))!);
+  }
+  return stops;
+}
+
+function expectVisualOrder(stops: FocusInfo[]): void {
+  for (let i = 1; i < stops.length; i++) {
+    const prev = stops[i - 1]!;
+    const cur = stops[i]!;
+    expect(cur.top > prev.top || (cur.top === prev.top && cur.left > prev.left), `${i}: ${JSON.stringify(prev)} then ${JSON.stringify(cur)}`).toBe(true);
+  }
+}
+
+test.describe('cover card, keyboard only', () => {
+  const caption = 'position + tilt, Position (dark glass)';
+
+  test('Tab visits the pill, Position and Tilt, then Open, Stop and Close, in visual order', async ({ page }) => {
+    const errors = await openDomain(page, 'cover=living', caption);
+    const stops = await tabStops(page, 6);
+    expect(stops.map(stopName)).toEqual(['slider', 'position', 'tilt', 'open', 'stop', 'close']);
+    expectVisualOrder(stops);
+    expect(errors).toEqual([]);
+  });
+
+  test('Enter on Tilt selects it and the pill becomes the tilt pill', async ({ page }) => {
+    await openDomain(page, 'cover=living', caption);
+    await tabStops(page, 3); // the pill, Position, Tilt
+    expect((await focusedElement(page))?.mode).toBe('tilt');
+    await page.keyboard.press('Enter');
+    const card = page.locator('#slot-cover liquid-home-cover-card').first();
+    await expect(card.locator('button[data-mode="tilt"]')).toHaveAttribute('aria-pressed', 'true');
+    await expect(card.locator('button[data-mode="position"]')).toHaveAttribute('aria-pressed', 'false');
+    await expect(card.locator('[role="slider"]')).toHaveAttribute('aria-label', /^Tilt, /);
+  });
+
+  test('Space on Open sends cover.open_cover and Enter on Close sends cover.close_cover', async ({ page }) => {
+    await openDomain(page, 'cover=living', caption);
+    await tabStops(page, 4);
+    expect((await focusedElement(page))?.action).toBe('open');
+    await page.keyboard.press('Space');
+    await expect.poll(() => logged(page)).toContain('cover.open_cover');
+    await tabStops(page, 2); // Stop, then Close
+    expect((await focusedElement(page))?.action).toBe('close');
+    await page.keyboard.press('Enter');
+    await expect.poll(() => logged(page)).toContain('cover.close_cover');
+  });
+
+  test('the focus ring is a 2px outline on the pill (offset 3px) and on a row button (offset 2px)', async ({ page }) => {
+    await openDomain(page, 'cover=living', caption);
+    await tabStops(page, 1);
+    const pill = await focusedOutline(page);
+    expect([pill.style === 'none', pill.width, pill.offset]).toEqual([false, '2px', '3px']);
+    await tabStops(page, 3);
+    const button = await focusedOutline(page);
+    expect([button.style === 'none', button.width, button.offset]).toEqual([false, '2px', '2px']);
+  });
+
+  test('a closed toggle cover offers its switch, then Open and Stop; Close is disabled and skipped', async ({ page }) => {
+    await openDomain(page, 'cover=kitchen', 'toggle closed (dark glass)');
+    const stops = await tabStops(page, 3);
+    expect(stops.map((f) => f.role ?? f.tag)).toEqual(['switch', 'button', 'button']);
+    expect(stops.slice(1).map((f) => f.action)).toEqual(['open', 'stop']);
+    expectVisualOrder(stops);
+    await expect(page.locator('#slot-cover liquid-home-cover-card').first().locator('button[data-action="close"]')).toBeDisabled();
+  });
+});
+
+test.describe('fan card, keyboard only', () => {
+  const caption = 'oscillating (dark glass)';
+
+  test('Tab visits power, the pill, Oscillate and Reverse, in visual order', async ({ page }) => {
+    const errors = await openDomain(page, 'fan=oscillating', caption);
+    const stops = await tabStops(page, 4);
+    expect(stops.map(stopName)).toEqual([expect.stringMatching(/switch/i), 'slider', 'oscillate', 'reverse']);
+    expectVisualOrder(stops);
+    expect(stops[0]!.pressed).toBe('true');
+    expect(errors).toEqual([]);
+  });
+
+  test('Space on power turns the fan off, and again on', async ({ page }) => {
+    await openDomain(page, 'fan=oscillating', caption);
+    await tabStops(page, 1);
+    const power = page.locator('#slot-fan liquid-home-fan-card header button[aria-pressed]');
+    await page.keyboard.press('Space');
+    await expect.poll(() => logged(page)).toContain('fan.turn_off');
+    await expect(power).toHaveAttribute('aria-pressed', 'false', { timeout: 5000 });
+    await page.keyboard.press('Space');
+    await expect.poll(() => logged(page)).toContain('fan.turn_on');
+  });
+
+  test('the pill steps with the arrow keys and the label names the speed', async ({ page }) => {
+    await openDomain(page, 'fan=oscillating', caption);
+    await tabStops(page, 2);
+    const slider = page.locator('#slot-fan liquid-home-fan-card [role="slider"]');
+    await expect(slider).toHaveAttribute('aria-label', /^Speed, /);
+    await expect(slider).toHaveAttribute('aria-valuenow', '33');
+    await page.keyboard.press('ArrowUp');
+    await expect(slider).toHaveAttribute('aria-valuenow', '66');
+    await page.keyboard.press('ArrowUp');
+    await expect(slider).toHaveAttribute('aria-valuenow', '100');
+    await expect(slider).toHaveAttribute('aria-valuetext', /100\s?%/);
+  });
+
+  test('Enter on Oscillate and Space on Reverse send their service and flip aria-pressed', async ({ page }) => {
+    await openDomain(page, 'fan=oscillating', caption);
+    await tabStops(page, 3);
+    const osc = page.locator('#slot-fan liquid-home-fan-card button[data-action="oscillate"]');
+    const rev = page.locator('#slot-fan liquid-home-fan-card button[data-action="reverse"]');
+    await expect(osc).toHaveAttribute('aria-pressed', 'true');
+    await page.keyboard.press('Enter');
+    await expect.poll(() => logged(page)).toContain('fan.oscillate {"entity_id":"fan.living_room_fan_osc","oscillating":false}');
+    await expect(osc).toHaveAttribute('aria-pressed', 'false', { timeout: 5000 });
+    await page.keyboard.press('Tab');
+    await expect(rev).toHaveAttribute('aria-pressed', 'false');
+    await page.keyboard.press('Space');
+    await expect.poll(() => logged(page)).toContain('fan.set_direction');
+    await expect(rev).toHaveAttribute('aria-pressed', 'true', { timeout: 5000 });
+  });
+
+  test('the focus ring is a 2px outline on the power button, the pill and a row button', async ({ page }) => {
+    await openDomain(page, 'fan=oscillating', caption);
+    const seen: [string, string, string][] = [];
+    for (const i of [1, 1, 1]) {
+      await tabStops(page, i);
+      const o = await focusedOutline(page);
+      seen.push([o.style === 'none' ? 'none' : 'solid', o.width, o.offset]);
+    }
+    expect(seen).toEqual([
+      ['solid', '2px', '2px'],
+      ['solid', '2px', '3px'],
+      ['solid', '2px', '2px'],
+    ]);
+  });
+});

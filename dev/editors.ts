@@ -2,6 +2,22 @@ import type { HomeAssistant } from '@decibel95/liquid-core';
 import { CARD_TYPES, TAGS } from '../src/const';
 import { withRegistry } from './slots/room';
 import type { SlotMount } from './slots/types';
+import { COVER_FIXTURES } from '../test/covers/fixtures';
+import { FAN_FIXTURES } from '../test/fans/fixtures';
+
+/** The covers and fans the editor pickers offer (the fixture states, static), the real demo ones in the Living Room. */
+const EXTRA = [...Object.values(COVER_FIXTURES), ...Object.values(FAN_FIXTURES)].map((make) => make());
+const IN_ROOM = ['cover.hall_window', 'cover.living_room_window', 'fan.living_room_fan', 'fan.lh_fixture_ten', 'fan.lh_fixture_onoff'];
+
+/** The harness hass with the room registry plus the covers and fans, so every editor can pick and list them. */
+function withDomains(hass: HomeAssistant, ids: Record<string, string>): HomeAssistant {
+  const h = withRegistry(hass, ids);
+  const states = { ...h.states };
+  for (const s of EXTRA) states[s.entity_id] = s as unknown as (typeof states)[string];
+  const entities = { ...h.entities };
+  for (const id of IN_ROOM) entities[id] = { entity_id: id, platform: 'demo', area_id: 'living_room' };
+  return { ...h, states, entities };
+}
 
 /** Home Assistant's own editor theme variables (default light and dark theme), so the editors look as in the HA card editor. */
 const HA_THEMES = {
@@ -28,11 +44,13 @@ function yaml(v: unknown, indent = ''): string {
 export const mount: SlotMount = ({ container, hass, ids, onHass }) => {
   const demos: [string, string, string, Record<string, unknown>, number][] = [
     ['Light card', TAGS.lightEditor, TAGS.light, { type: CARD_TYPES.light, entity: ids.colourTemp }, 360],
+    ['Cover card', TAGS.coverEditor, TAGS.cover, { type: CARD_TYPES.cover, entity: 'cover.living_room_window' }, 360],
+    ['Fan card', TAGS.fanEditor, TAGS.fan, { type: CARD_TYPES.fan, entity: 'fan.lh_fixture_ten' }, 360],
     ['Tile', TAGS.tileEditor, TAGS.tile, { type: CARD_TYPES.tile, entity: ids.colourTemp }, 360],
     ['Badge', TAGS.badgeEditor, TAGS.badge, { type: CARD_TYPES.badge, entity: ids.colourTemp }, 360],
     ['Room card', TAGS.roomEditor, TAGS.room, { type: CARD_TYPES.room, source: 'area', area: 'living_room', power_entity: ids.group }, 560],
   ];
-  const withAreas = (h: HomeAssistant) => withRegistry(h, ids);
+  const withAreas = (h: HomeAssistant) => withDomains(h, ids);
   const live: Editable[] = [];
   container.style.flexDirection = 'column';
 

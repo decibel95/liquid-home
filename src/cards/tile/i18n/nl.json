@@ -1,8 +1,10 @@
 {
   "card": {
-    "name": "Lichttegel"
+    "name": "Tegel"
   },
   "ariaTile": "{name} lamp",
+  "ariaCover": "{name} bedekking",
+  "ariaFan": "{name} ventilator",
   "power": "{name} aan of uit",
   "stepDown": "Helderheid omlaag",
   "stepUp": "Helderheid omhoog",

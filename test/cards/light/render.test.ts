@@ -76,6 +76,16 @@ describe.each(['dark', 'light'] as const)('every fixture state on %s glass (plan
     expect(rgbOf(fill.style.backgroundColor)).toBe(rgbOf(c.fill[glass]));
     expect(fill.style.backgroundImage).toBe('none');
 
+    // Plan 2.8: the header device icon, in every state on both glasses.
+    const hicon = $(el, 'header > .hicon')!;
+    expect(hicon.getAttribute('aria-hidden')).toBe('true');
+    expect(hicon.querySelector('path')!.getAttribute('d')).toBe(ICONS.bulb);
+    expect(hicon.classList.contains('un')).toBe(c.available === false);
+    expect(hicon.nextElementSibling!.classList.contains('titles')).toBe(true);
+    if (c.available === false) expect(hicon.style.color).toBe('var(--lc-fg3)');
+    else if (c.on) expect(rgbOf(hicon.style.color)).toBe(rgbOf(c.fill[glass]));
+    else expect(hicon.style.color).toBe('var(--lc-fg3)');
+
     const power = $(el, 'button.power')!;
     expect(power.getAttribute('aria-pressed')).toBe(String(c.on));
     // One power-button spec for the light card, tile and room header: "Switch {name}" with aria-pressed.

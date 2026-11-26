@@ -14,7 +14,7 @@ import { existsSync, readFileSync, statSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 
 export const MAX_RAW = 220_000;
-export const MAX_GZIP = 62_000;
+export const MAX_GZIP = 66_000;
 
 const args = process.argv.slice(2);
 const positional = args.filter((a) => !a.startsWith('--'));

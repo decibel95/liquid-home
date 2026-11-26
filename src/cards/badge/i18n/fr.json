@@ -1,6 +1,6 @@
 {
   "card": {
-    "name": "Badge lumière"
+    "name": "Badge"
   },
   "label": "{name}: {value}"
 }

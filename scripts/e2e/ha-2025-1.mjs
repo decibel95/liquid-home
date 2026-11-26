@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /**
- * Minimum-version smoke test (plan P18, local only): a throwaway Home Assistant 2025.1.4 container with the demo
- * integration and the Liquid Home bundle, a Playwright check that the four cards render, and a check that the HA card
- * editor opens for each card. Demo lights only (modern template lights do not exist in 2025.1).
+ * Minimum-version smoke test (plan P18 and 2.12, local only): a throwaway Home Assistant 2025.1.4 container with the demo
+ * integration and the Liquid Home bundle, a Playwright check that the cards render (light, cover, fan, tile, room, badge)
+ * and a check that the HA card editor opens for each of them, with no Liquid Home console error. Demo lights, covers and
+ * fans (modern template lights do not exist in 2025.1).
  *
  * Usage: node scripts/e2e/ha-2025-1.mjs <up | onboard | run | down | all>
  *   up       write the config dir, start the container on 127.0.0.1:8125 and wait until HA answers
@@ -13,7 +14,9 @@
  *
  * Environment: LH_HA_DIR (config dir, default <tmpdir>/lh-ha-2025.1; holds the throwaway credentials in .e2e-user.json,
  * never printed), LH_HA_PORT (default 8125), LH_HA_REPORT (report file, default <config dir>/report.json, copy it
- * out before `down`). Needs docker and a built dist/ (npm run build). Nothing is sent anywhere except to 127.0.0.1.
+ * out before `down`), LH_HA_DIST (the build directory to serve as the resource, default <repo>/dist; use a scratch
+ * build such as `npx vite build --outDir <scratch>`), LH_HA_SHOTS (directory for the dashboard and editor screenshots,
+ * default the config dir). Needs docker and a built liquid-home.js (npm run build). Nothing is sent anywhere except to 127.0.0.1.
  */
 import { spawnSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
@@ -31,6 +34,7 @@ const BASE = `http://127.0.0.1:${PORT}`;
 const CLIENT_ID = `${BASE}/`;
 const USER_FILE = join(DIR, '.e2e-user.json');
 const RESOURCE_URL = '/local/liquid-home/liquid-home.js';
+const SHOTS = resolve(process.env.LH_HA_SHOTS || DIR);
 const LIGHTS = {
   bed: 'light.bed_light',
   ceiling: 'light.ceiling_lights',
@@ -39,6 +43,8 @@ const LIGHTS = {
   livingRoom: 'light.living_room_rgbww_lights',
   entrance: 'light.entrance_color_white_lights',
 };
+const COVERS = { hall: 'cover.hall_window', living: 'cover.living_room_window', kitchen: 'cover.kitchen_window', pergola: 'cover.pergola_roof' };
+const FANS = { living: 'fan.living_room_fan', ceiling: 'fan.ceiling_fan', preset: 'fan.preset_only_limited_fan' };
 
 const docker = (args, opts = {}) => spawnSync('docker', args, { encoding: 'utf8', ...opts });
 const log = (...a) => console.log('[ha-2025.1]', ...a);
@@ -50,8 +56,8 @@ function containerExists() {
 
 async function up() {
   if (containerExists()) throw new Error(`Container ${NAME} already exists. Run "down" first.`);
-  const dist = join(ROOT, 'dist');
-  if (!existsSync(join(dist, 'liquid-home.js'))) throw new Error('dist/liquid-home.js is missing. Run "npm run build" first.');
+  const dist = resolve(process.env.LH_HA_DIST || join(ROOT, 'dist'));
+  if (!existsSync(join(dist, 'liquid-home.js'))) throw new Error(`${dist}/liquid-home.js is missing. Run "npm run build" first (or set LH_HA_DIST).`);
   mkdirSync(DIR, { recursive: true });
   writeFileSync(join(DIR, 'configuration.yaml'), 'default_config:\ndemo:\nlogger:\n  default: warning\n');
   // A fresh config dir is mandatory: onboarding only runs on an instance that has none.
@@ -128,11 +134,19 @@ function dashboardConfig() {
       {
         title: 'Smoke',
         path: 'smoke',
-        badges: [{ type: 'custom:liquid-home-badge', entity: LIGHTS.kitchen, tap_action: 'sheet', look }],
+        badges: [
+          { type: 'custom:liquid-home-badge', entity: LIGHTS.kitchen, tap_action: 'sheet', look },
+          { type: 'custom:liquid-home-badge', entity: FANS.living, tap_action: 'sheet', look },
+        ],
+        // The order matters: the editor check addresses the cards by index (see CARDS).
         cards: [
           { type: 'custom:liquid-home-light-card', entity: LIGHTS.ceiling, look },
           { type: 'custom:liquid-home-tile', entity: LIGHTS.office, look },
           { type: 'custom:liquid-home-room', title: 'Demo room', entities: [LIGHTS.bed, LIGHTS.ceiling, LIGHTS.kitchen, LIGHTS.livingRoom], look },
+          { type: 'custom:liquid-home-cover-card', entity: COVERS.hall, look },
+          { type: 'custom:liquid-home-fan-card', entity: FANS.living, look },
+          { type: 'custom:liquid-home-tile', entity: COVERS.living, tap_action: 'sheet', look },
+          { type: 'custom:liquid-home-room', title: 'Mixed room', domains: ['light', 'cover', 'fan'], entities: [LIGHTS.bed, COVERS.kitchen, COVERS.pergola, FANS.ceiling, FANS.preset], look },
         ],
       },
     ],
@@ -182,7 +196,7 @@ async function run() {
   const report = { ha: '2025.1.4', cards: {}, editors: {} };
   await page.goto(`${BASE}/lovelace/smoke`, { waitUntil: 'load' });
   const find = (tag) => page.evaluateHandle(`(${deepFind})(${JSON.stringify(tag)})`);
-  const tags = { light: 'liquid-home-light-card', tile: 'liquid-home-tile', room: 'liquid-home-room', badge: 'liquid-home-badge' };
+  const tags = { light: 'liquid-home-light-card', tile: 'liquid-home-tile', room: 'liquid-home-room', badge: 'liquid-home-badge', cover: 'liquid-home-cover-card', fan: 'liquid-home-fan-card' };
   for (const [key, tag] of Object.entries(tags)) {
     try {
       await page.waitForFunction(`(() => { const el = (${deepFind})(${JSON.stringify(tag)}); return !!el && !!el.shadowRoot && el.shadowRoot.querySelector('button, [role="slider"]'); })()`, null, { timeout: 30000 });
@@ -192,7 +206,8 @@ async function run() {
     }
   }
   await page.waitForTimeout(1500);
-  await page.screenshot({ path: join(DIR, 'dashboard.png') });
+  mkdirSync(SHOTS, { recursive: true });
+  await page.screenshot({ path: join(SHOTS, 'dashboard.png'), fullPage: true });
   report.dashboardEvents = events.filter((e) => e.kind).length;
 
   // Editors: edit mode, then the edit button of each card and of the badge.
@@ -209,7 +224,8 @@ async function run() {
         await page.evaluate(what);
         await page.waitForFunction(`(() => { const d = (${deepFind})('hui-dialog-edit-card') || (${deepFind})('hui-dialog-edit-badge'); return !!d && !!d.shadowRoot; })()`, null, { timeout: 15000 });
         await page.waitForTimeout(2000);
-        outcome = await page.evaluate(`(() => { const f = ${deepFind}; const editorTag = ['liquid-home-light-card-editor','liquid-home-tile-editor','liquid-home-room-editor','liquid-home-badge-editor'].find((t) => f(t)); const yaml = !!f('ha-code-editor'); const err = f('hui-card-editor-error') || f('hui-error-card'); return { dialogOpened: true, liquidHomeEditorElement: editorTag || null, yamlEditorShown: yaml, errorCard: !!err }; })()`);
+        await page.screenshot({ path: join(SHOTS, `editor-${name}.png`) });
+        outcome = await page.evaluate(`(() => { const f = ${deepFind}; const editorTag = ['liquid-home-light-card-editor','liquid-home-tile-editor','liquid-home-room-editor','liquid-home-badge-editor','liquid-home-cover-card-editor','liquid-home-fan-card-editor'].find((t) => f(t)); const yaml = !!f('ha-code-editor'); const err = f('hui-card-editor-error') || f('hui-error-card'); return { dialogOpened: true, liquidHomeEditorElement: editorTag || null, yamlEditorShown: yaml, errorCard: !!err }; })()`);
       } catch (err) {
         outcome = { dialogOpened: false, error: String(err.message).split('\n')[0] };
       }
@@ -219,8 +235,9 @@ async function run() {
       await page.keyboard.press('Escape');
       await page.waitForTimeout(800);
     };
-    for (const [name, tag] of [['light', tags.light], ['tile', tags.tile], ['room', tags.room]]) {
-      await edit(name, `(() => { const host = (${deepFind})(${JSON.stringify(tag)}); const card = host.closest('hui-card') || host.getRootNode().host; const opts = card.closest('hui-card-options') || (${deepFind})('hui-card-options'); host.dispatchEvent(new CustomEvent('ll-edit-card', { bubbles: true, composed: true, detail: { path: [0, ${['light', 'tile', 'room'].indexOf(name)}] } })); })()`);
+    // [name, tag, index of the card in the dashboard]: light 0, tile 1, room 2, cover 3, fan 4 (cover tile 5, mixed room 6 render only).
+    for (const [name, tag, index] of [['light', tags.light, 0], ['tile', tags.tile, 1], ['room', tags.room, 2], ['cover', tags.cover, 3], ['fan', tags.fan, 4]]) {
+      await edit(name, `(() => { const host = (${deepFind})(${JSON.stringify(tag)}); host.dispatchEvent(new CustomEvent('ll-edit-card', { bubbles: true, composed: true, detail: { path: [0, ${index}] } })); })()`);
     }
     await edit('badge', `(() => { const host = (${deepFind})('liquid-home-badge'); host.dispatchEvent(new CustomEvent('ll-edit-badge', { bubbles: true, composed: true, detail: { path: [0, 0] } })); })()`);
   } catch (err) {

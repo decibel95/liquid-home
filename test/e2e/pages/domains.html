@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Liquid Home cover and fan, built bundle</title>
+    <style>
+      body { margin: 0; background: #0b0e14; color: #f4f6fa; font-family: system-ui, sans-serif; }
+      main { padding: 12px; box-sizing: border-box; }
+      /* Home Assistant's view badge row (the rule the gate 3 badge fix is written against). */
+      .badges.ha { display: flex; flex-wrap: wrap; gap: 8px; }
+      .badges.ha > * { min-width: fit-content; }
+      .badges.plain { display: flex; flex-wrap: wrap; gap: 8px; }
+      #stage { display: flex; flex-direction: column; gap: 12px; }
+    </style>
+  </head>
+  <body>
+    <main id="main"><div id="stage"></div></main>
+    <script type="module" src="./domains.ts"></script>
+  </body>
+</html>

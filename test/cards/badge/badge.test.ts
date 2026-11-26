@@ -111,7 +111,8 @@ describe('badge tap actions', () => {
     badge.addEventListener('hass-more-info', (e) => seen((e as CustomEvent).detail));
     root(badge).click();
     expect(seen).toHaveBeenCalledWith({ entityId: 'light.kitchen_lights' });
-    expect(root(badge).hasAttribute('aria-haspopup')).toBe(false);
+    // HA's more-info opens a dialog: announced as one (plan 2.6, 2.12; RH4 finding 4).
+    expect(root(badge).getAttribute('aria-haspopup')).toBe('dialog');
   });
 
   it('sheet opens the light card without the badge keys', async () => {

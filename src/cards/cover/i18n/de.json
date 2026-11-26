@@ -1,0 +1,50 @@
+{
+  "card": {
+    "name": "Rollladenkarte",
+    "description": "Glaskarte für einen Rollladen: eine senkrechte Leiste für die Position mit Tasten zum Öffnen, Stoppen und Schließen.",
+    "loading": "Wird geladen",
+    "entityNotFound": "Entität nicht gefunden: {entity}"
+  },
+  "mode": {
+    "group": "Leistenmodus",
+    "position": "Position",
+    "tilt": "Neigung"
+  },
+  "action": {
+    "group": "Rollladensteuerung",
+    "open": "Öffnen",
+    "stop": "Stopp",
+    "close": "Schließen",
+    "openTilt": "Neigung öffnen",
+    "stopTilt": "Neigung stoppen",
+    "closeTilt": "Neigung schließen"
+  },
+  "state": {
+    "open": "Offen",
+    "closed": "Geschlossen",
+    "opening": "Öffnet",
+    "closing": "Schließt"
+  },
+  "readout": {
+    "position": "Position",
+    "tilt": "Neigung",
+    "tap": "Tippen zum Schalten"
+  },
+  "sub": {
+    "tilt": "{state}, Neigung {value}"
+  },
+  "aria": {
+    "position": "Position, {name}",
+    "tilt": "Neigung, {name}",
+    "held": "{value}, jetzt {now}",
+    "toggle": "Umschalten, {name}",
+    "toggleTilt": "Neigung umschalten, {name}",
+    "stop": "Stopp, {name}"
+  },
+  "step": {
+    "close": "10 % schließen",
+    "open": "10 % öffnen",
+    "closeTilt": "Neigung 10 % schließen",
+    "openTilt": "Neigung 10 % öffnen"
+  }
+}

@@ -16,6 +16,9 @@ export interface PageHass {
   /** Ids of the extra lights (`light.e2e_light_1` ...), in order. */
   extraLights: string[];
   climateIds: string[];
+  /** A cover (position, `cover.e2e_window`) and a fan (3 speeds, `fan.e2e_fan`) for the two-bundle page. */
+  coverId: string;
+  fanId: string;
   /** Ids of the extra climate entities (`climate.e2e_lc_1` ...), in order. */
   extraClimates: string[];
   calls: { domain: string; service: string; data: Record<string, unknown> }[];
@@ -50,6 +53,13 @@ export function createPageHass(opts: { extraLights?: number; language?: string; 
     harness.states[id] = { ...donor, entity_id: id, attributes: { ...donor.attributes, friendly_name: `Light ${i}` } };
     extraLights.push(id);
   }
+
+  const entity = (id: string, state: string, attributes: Record<string, unknown>) =>
+    ({ entity_id: id, state, attributes, last_changed: '2026-11-18T12:00:00+00:00', last_updated: '2026-11-18T12:00:00+00:00', context: { id, parent_id: null, user_id: null } }) as unknown as LightState;
+  const coverId = 'cover.e2e_window';
+  const fanId = 'fan.e2e_fan';
+  harness.states[coverId] = entity(coverId, 'open', { friendly_name: 'Hall Window', supported_features: 15, current_position: 60 });
+  harness.states[fanId] = entity(fanId, 'on', { friendly_name: 'Living Room Fan', supported_features: 55, percentage: 66, percentage_step: 100 / 3, oscillating: false, direction: 'forward' });
 
   const climateIds = ['climate.e2e_living', 'climate.e2e_bedroom'];
   climateIds.forEach((id, i) => {
@@ -94,6 +104,8 @@ export function createPageHass(opts: { extraLights?: number; language?: string; 
     ids: harness.ids,
     extraLights,
     climateIds,
+    coverId,
+    fanId,
     extraClimates,
     calls,
   };

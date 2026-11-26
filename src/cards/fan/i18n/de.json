@@ -1,0 +1,38 @@
+{
+  "card": {
+    "name": "Ventilatorkarte",
+    "description": "Glaskarte für einen Ventilator: eine senkrechte Leiste für die Geschwindigkeit mit Ein/Aus-Taste und Voreinstellungen.",
+    "loading": "Wird geladen",
+    "entityNotFound": "Entität nicht gefunden: {entity}"
+  },
+  "readout": {
+    "speed": "Geschwindigkeit",
+    "preset": "Voreinstellung",
+    "tap": "Tippen zum Schalten",
+    "on": "An"
+  },
+  "sub": {
+    "on": "An",
+    "onOscillating": "An, oszillierend",
+    "onReverse": "An, umgekehrt",
+    "onOscillatingReverse": "An, oszillierend, umgekehrt"
+  },
+  "row": {
+    "group": "Ventilatorsteuerung",
+    "oscillate": "Oszillieren",
+    "reverse": "Umkehren"
+  },
+  "preset": {
+    "label": "Voreinstellung",
+    "none": "Keine"
+  },
+  "step": {
+    "slower": "Langsamer",
+    "faster": "Schneller"
+  },
+  "aria": {
+    "power": "{name} schalten",
+    "speed": "Geschwindigkeit, {name}",
+    "preset": "Voreinstellung: {value}"
+  }
+}

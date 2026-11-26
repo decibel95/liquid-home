@@ -1,0 +1,38 @@
+{
+  "card": {
+    "name": "Tarjeta de ventilador",
+    "description": "Tarjeta de cristal para un ventilador: una píldora vertical de velocidad con botón de encendido y preajustes.",
+    "loading": "Cargando",
+    "entityNotFound": "Entidad no encontrada: {entity}"
+  },
+  "readout": {
+    "speed": "Velocidad",
+    "preset": "Preajuste",
+    "tap": "Toca para cambiar",
+    "on": "Encendido"
+  },
+  "sub": {
+    "on": "Encendido",
+    "onOscillating": "Encendido, oscilando",
+    "onReverse": "Encendido, inverso",
+    "onOscillatingReverse": "Encendido, oscilando, inverso"
+  },
+  "row": {
+    "group": "Controles del ventilador",
+    "oscillate": "Oscilar",
+    "reverse": "Invertir"
+  },
+  "preset": {
+    "label": "Preajuste",
+    "none": "Ninguno"
+  },
+  "step": {
+    "slower": "Más lento",
+    "faster": "Más rápido"
+  },
+  "aria": {
+    "power": "Encender o apagar {name}",
+    "speed": "Velocidad, {name}",
+    "preset": "Preajuste: {value}"
+  }
+}

@@ -5,8 +5,8 @@
 Symptoms: "Custom element doesn't exist: liquid-home-light-card", or an empty box where the card should be.
 
 1. Check the resource. Settings, Dashboards, three dots, Resources. There must be an entry for `/local/liquid-home/liquid-home.js` (the Marketplace adds `/local/community/liquid-home/liquid-home.js`, and HACS adds its own path) of type JavaScript module.
-2. Check the card type. The four types are `custom:liquid-home-light-card`, `custom:liquid-home-tile`, `custom:liquid-home-badge` and `custom:liquid-home-room`.
-3. Hard refresh the browser (Ctrl+F5, or Cmd+Shift+R). Home Assistant caches `/local/` files for a long time: after you replace the file, add a version to the URL, for example `/local/liquid-home/liquid-home.js?v=0.2.2`. The font file picks up the same version.
+2. Check the card type. The six types are `custom:liquid-home-light-card`, `custom:liquid-home-cover-card`, `custom:liquid-home-fan-card`, `custom:liquid-home-tile`, `custom:liquid-home-badge` and `custom:liquid-home-room`.
+3. Hard refresh the browser (Ctrl+F5, or Cmd+Shift+R). Home Assistant caches `/local/` files for a long time: after you replace the file, add a version to the URL, for example `/local/liquid-home/liquid-home.js?v=0.3.0`. The font file picks up the same version.
 4. Open the browser console. A load error there names the cause.
 5. Check the Home Assistant version. Liquid Home needs 2025.1.0 or newer.
 
@@ -18,9 +18,17 @@ Each card draws one blurred glass surface. A dashboard with many cards on a slow
 
 A slow light can take seconds to report its new value. The card shows the value you sent for `write_hold` seconds (default 10). Raise `write_hold` to 30 or 60, see [show sent value for](/cards/light#light-write-hold).
 
-## The room card is empty {#troubleshooting-room}
+## A cover or fan shows a different value than I set {#troubleshooting-snap}
 
-With `source: area` the card lists lights whose own area, or whose device area, is the one you chose. Hidden and disabled lights are left out, and so is the `power_entity`. Check the area of the light in Home Assistant, or switch to `source: list` and name the lights.
+A cover that only stops at certain positions (for example every 10 %) rounds your request, so the pill settles a few points at arrival, see [cover card](/cards/cover#cover-hold). A fan has a fixed number of speeds: the card snaps to them, so on a 3-speed fan 40 % becomes 33 %, see [speed steps](/cards/fan#fan-steps). Both are what the device really does.
+
+## The room card is empty, or shows no covers or fans {#troubleshooting-room}
+
+With `source: area` the card lists entities whose own area, or whose device area, is the one you chose. A room shows lights only unless you set `domains`: add `cover` and `fan`, see [Domains](/cards/room#room-domains). Hidden and disabled entities are left out, and so is the `power_entity`. Check the area of the entity in Home Assistant, or switch to `source: list` and name the entities.
+
+## A long badge name is cut off {#troubleshooting-badge-name}
+
+In the badge row of Home Assistant a name that does not fit is cut short with an ellipsis. Set a shorter `name` on the badge.
 
 ## Report a problem {#troubleshooting-report}
 

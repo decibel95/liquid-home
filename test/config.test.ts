@@ -5,6 +5,8 @@ import * as light from '../src/cards/light/config';
 import * as tile from '../src/cards/tile/config';
 import * as badge from '../src/cards/badge/config';
 import * as room from '../src/cards/room/config';
+import * as cover from '../src/cards/cover/config';
+import * as fan from '../src/cards/fan/config';
 
 describe('pruneDefaults', () => {
   const defaults = { type: 'custom:x', entity: '', write_hold: 10, look: { glass: 'theme', blur: 30 }, exclude: [] as string[], config_version: 1 };
@@ -71,5 +73,26 @@ describe('normalizeConfig', () => {
       entity: 'light.a',
       config_version: 1,
     });
+  });
+
+  it('cover and fan: pruneConfig keeps only what differs from plan section 4 defaults', () => {
+    expect(cover.pruneConfig(cover.normalizeConfig({ type: CARD_TYPES.cover, entity: 'cover.a' }))).toEqual({ type: CARD_TYPES.cover, entity: 'cover.a', config_version: 1 });
+    expect(cover.pruneConfig(cover.normalizeConfig({ type: CARD_TYPES.cover, entity: 'cover.a', write_hold: 30, look: { blur: 10 } }))).toEqual({
+      type: CARD_TYPES.cover,
+      entity: 'cover.a',
+      write_hold: 30,
+      look: { blur: 10 },
+      config_version: 1,
+    });
+    expect(fan.pruneConfig(fan.normalizeConfig({ type: CARD_TYPES.fan, entity: 'fan.a', controls: { presets: true } }))).toEqual({ type: CARD_TYPES.fan, entity: 'fan.a', config_version: 1 });
+    expect(fan.pruneConfig(fan.normalizeConfig({ type: CARD_TYPES.fan, entity: 'fan.a', controls: { presets: false } })).controls).toEqual({ presets: false });
+  });
+
+  it('room domains: lights only is never written, any other subset is, in display order', () => {
+    const prune = (domains: unknown) => room.pruneConfig(room.normalizeConfig({ type: CARD_TYPES.room, area: 'a', domains }));
+    expect(prune(['light'])).not.toHaveProperty('domains');
+    expect(prune(undefined)).not.toHaveProperty('domains');
+    expect(prune(['fan', 'light'])).toMatchObject({ domains: ['light', 'fan'] });
+    expect(prune(['cover'])).toMatchObject({ domains: ['cover'] });
   });
 });

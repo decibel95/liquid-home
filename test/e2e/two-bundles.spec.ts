@@ -1,22 +1,24 @@
 import { expect, test, type Page } from 'playwright/test';
-import { LC_SHA256 } from '../../scripts/e2e/fetch-lc.mjs';
+import { LC_BYTES, LC_SHA256 } from '../../scripts/e2e/fetch-lc.mjs';
 import { definesOf, glassOf, recordDefines, stubFavicon, watchErrors } from './support/helpers';
 
 /**
- * Plan 2.3: liquid-climate.js (v0.11.1 release asset) and liquid-home.js on one page, in both orders (plus both at
+ * Plan 2.3: liquid-climate.js (v0.12.1 release asset) and liquid-home.js on one page, in both orders (plus both at
  * once, as Home Assistant may load its resources). The fake hass has one dimmed light and one climate entity.
  */
-const LH_TAGS = ['liquid-home-light-card', 'liquid-home-tile', 'liquid-home-badge', 'liquid-home-room'];
+const LH_TAGS = ['liquid-home-light-card', 'liquid-home-cover-card', 'liquid-home-fan-card', 'liquid-home-tile', 'liquid-home-badge', 'liquid-home-room'];
 const LC_TAGS = ['liquid-climate-card', 'liquid-climate-tile', 'liquid-climate-badge', 'liquid-climate-cluster'];
 
 interface Entry {
   type: string;
 }
 
-test('the Liquid Climate bundle under test is the pinned v0.11.1 asset', async ({ request }) => {
+test('the Liquid Climate bundle under test is the pinned v0.12.1 asset (sha256 and size)', async ({ request }) => {
   const res = await request.get('/__bundles/liquid-climate.js');
   const { createHash } = await import('node:crypto');
-  expect(createHash('sha256').update(await res.body()).digest('hex')).toBe(LC_SHA256);
+  const body = await res.body();
+  expect(createHash('sha256').update(body).digest('hex')).toBe(LC_SHA256);
+  expect(body.length).toBe(LC_BYTES);
 });
 
 for (const order of ['lc-first', 'lh-first', 'parallel'] as const) {
@@ -73,6 +75,19 @@ for (const order of ['lc-first', 'lh-first', 'parallel'] as const) {
       expect(glass?.backdropFilter).toMatch(/blur\(\d+(\.\d+)?px\)/);
       expect(glass?.borderRadius).toBe('40px');
     });
+
+    for (const [name, selector, role] of [
+      ['cover', '#lh-cover', 'Position, Hall Window'],
+      ['fan', '#lh-fan', 'Speed, Living Room Fan'],
+    ] as const) {
+      test(`the Liquid Home ${name} card renders glass with one backdrop-filter and the 40px radius, beside Liquid Climate`, async () => {
+        const glass = await glassOf(page, selector);
+        expect(glass?.count).toBe(1);
+        expect(glass?.backdropFilter).toMatch(/blur\(\d+(\.\d+)?px\)/);
+        expect(glass?.borderRadius).toBe('40px');
+        await expect(page.locator(`${selector} [role="slider"]`)).toHaveAttribute('aria-label', role);
+      });
+    }
 
     test('the Liquid Climate dial renders glass with the 40px radius', async () => {
       const glass = await glassOf(page, '#lc-card');

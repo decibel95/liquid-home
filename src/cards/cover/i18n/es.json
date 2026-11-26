@@ -1,0 +1,50 @@
+{
+  "card": {
+    "name": "Tarjeta de persiana",
+    "description": "Tarjeta de cristal para una persiana: una píldora vertical de posición con botones para abrir, detener y cerrar.",
+    "loading": "Cargando",
+    "entityNotFound": "Entidad no encontrada: {entity}"
+  },
+  "mode": {
+    "group": "Modo de la píldora",
+    "position": "Posición",
+    "tilt": "Inclinación"
+  },
+  "action": {
+    "group": "Controles de la persiana",
+    "open": "Abrir",
+    "stop": "Detener",
+    "close": "Cerrar",
+    "openTilt": "Abrir inclinación",
+    "stopTilt": "Detener inclinación",
+    "closeTilt": "Cerrar inclinación"
+  },
+  "state": {
+    "open": "Abierto",
+    "closed": "Cerrado",
+    "opening": "Abriendo",
+    "closing": "Cerrando"
+  },
+  "readout": {
+    "position": "Posición",
+    "tilt": "Inclinación",
+    "tap": "Toca para cambiar"
+  },
+  "sub": {
+    "tilt": "{state}, inclinación {value}"
+  },
+  "aria": {
+    "position": "Posición, {name}",
+    "tilt": "Inclinación, {name}",
+    "held": "{value}, ahora {now}",
+    "toggle": "Alternar, {name}",
+    "toggleTilt": "Alternar inclinación, {name}",
+    "stop": "Detener, {name}"
+  },
+  "step": {
+    "close": "Cerrar 10 %",
+    "open": "Abrir 10 %",
+    "closeTilt": "Cerrar inclinación 10 %",
+    "openTilt": "Abrir inclinación 10 %"
+  }
+}
