@@ -193,7 +193,7 @@ describe('cover and fan badge tap (Q9 a)', () => {
     const badge = document.createElement('liquid-home-badge') as AnyEl;
     expect(() => badge.setConfig({ entity: 'cover.x' })).not.toThrow();
     expect(() => badge.setConfig({ entity: 'fan.x' })).not.toThrow();
-    expect(() => badge.setConfig({ entity: 'switch.x' })).toThrow('Choose a light entity (light.*), a cover (cover.*) or a fan (fan.*)');
+    expect(() => badge.setConfig({ entity: 'switch.x' })).toThrow('Choose a light entity (light.*), a cover (cover.*), a fan (fan.*) or a media player (media_player.*)');
   });
 });
 

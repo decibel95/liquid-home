@@ -1,0 +1,67 @@
+{
+  "card": {
+    "name": "Tarjeta multimedia",
+    "description": "Tarjeta de cristal para un reproductor multimedia: la carátula tras el cristal, botones de reproducción, una píldora de volumen y una barra de posición.",
+    "loading": "Cargando",
+    "entityNotFound": "Entidad no encontrada: {entity}"
+  },
+  "state": {
+    "playing": "Reproduciendo",
+    "paused": "En pausa",
+    "buffering": "Almacenando en búfer",
+    "idle": "Inactivo",
+    "standby": "En espera",
+    "on": "Encendido",
+    "unknown": "Desconocido"
+  },
+  "sub": {
+    "grouped": "{state}, agrupado con {n}"
+  },
+  "now": {
+    "nothing": "Nada en reproducción",
+    "episode": "{series}, T{season} E{episode}"
+  },
+  "readout": {
+    "volume": "Volumen",
+    "muted": "Silenciado",
+    "on": "Encendido",
+    "tap": "Toca para cambiar"
+  },
+  "button": {
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "play": "Reproducir",
+    "pause": "Pausar",
+    "mute": "Silenciar",
+    "power": "Activar"
+  },
+  "row": {
+    "group": "Controles de reproducción"
+  },
+  "step": {
+    "up": "Subir volumen",
+    "down": "Bajar volumen"
+  },
+  "chip": {
+    "source": "Fuente",
+    "soundMode": "Sonido"
+  },
+  "aria": {
+    "power": "Encender o apagar {name}",
+    "volume": "Volumen, {name}",
+    "volumeMuted": "Silenciado, {value}",
+    "position": "Posición, {name}",
+    "time": "{elapsed} de {total}",
+    "stepUp": "Subir volumen, {name}",
+    "stepDown": "Bajar volumen, {name}",
+    "play": "Reproducir, {name}",
+    "pause": "Pausar, {name}",
+    "menu": "Lista de {label}, {name}"
+  },
+  "sheet": {
+    "shuffle": "Aleatorio",
+    "repeatOff": "Repetición desactivada",
+    "repeatAll": "Repetir todo",
+    "repeatOne": "Repetir una pista"
+  }
+}

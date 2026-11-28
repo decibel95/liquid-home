@@ -22,20 +22,44 @@ import { t } from '../../i18n';
 import { normalizeConfig as normalizeLightConfig, type LightCardConfig } from '../light/config';
 import { defaultConfig as coverDefaults } from '../cover/config';
 import { defaultConfig as fanDefaults } from '../fan/config';
+import { defaultConfig as mediaDefaults } from '../media/config';
 import { closeLightSheet, lightSheet, openEntitySheet, openLightSheet, reconfigureLightSheet, type EntitySheetConfig, type LightSheetOptions } from '../sheet/open';
 import { DEFAULT_DOMAINS, normalizeConfig, roomEntries, type RoomConfig } from './config';
 import { domainOf, entryError, firstAreaWithLights, isLight, needsSetup, roomMembers, roomTitle, type RoomMember } from './members';
-import { coverMemberView, fanMemberView, memberView, powerState, roomSummary, type CoverMemberView, type FanMemberView, type MemberView, type RoomView } from './model';
+import {
+  coverMemberView,
+  fanMemberView,
+  mediaMemberView,
+  memberView,
+  powerState,
+  roomSummary,
+  type CoverMemberView,
+  type FanMemberView,
+  type MediaMemberView,
+  type MemberView,
+  type RoomView,
+} from './model';
 import { roomStyles } from './styles';
 import { brightnessPatch, groupMembers, LIGHT_ERROR_KEY, lightWriters, neutralColour, stepLevel, type LightWriter } from '../../lights';
 import { coverMode, coverWriters, rowActions, rowHidden, stepState as coverStepState, type CoverAction, type CoverWriter } from '../../covers';
 import { fanView, fanWriters, powerDisabled, powerPatch, stepFan, stepState as fanStepState, type FanWriter } from '../../fans';
+import { mediaWriters, type MediaState, type MediaWriter } from '../../media';
 
 type Glass = 'dark' | 'light';
-type AnyWriter = LightWriter | CoverWriter | FanWriter;
+type AnyWriter = LightWriter | CoverWriter | FanWriter | MediaWriter;
+/** The writers the room interacts through with a hold time (lights have none). */
+type HoldWriter = CoverWriter | FanWriter | MediaWriter;
 
 /** One registry per domain: the room, the tiles and the sheet of one entity share its writer (plan 2.4, 2.5). */
-const REGISTRIES = { light: lightWriters, cover: coverWriters, fan: fanWriters };
+const REGISTRIES = { light: lightWriters, cover: coverWriters, fan: fanWriters, media_player: mediaWriters };
+/** The hold time (`write_hold`) of each domain's card: the room has no option of its own and uses the card default. */
+const HOLD = { cover: coverDefaults.write_hold, fan: fanDefaults.write_hold, media_player: mediaDefaults.write_hold };
+/** Media states that draw Previous and Next (P3-CHO-6, as the media card's button row). */
+const MEDIA_LIVE: readonly MediaState[] = ['playing', 'paused', 'buffering'];
+/** Media states where Play sends media_play (GD4, the shared writer's rule). */
+const MEDIA_PLAYABLE: readonly MediaState[] = ['paused', 'idle', 'on'];
+/** Media states without volume steps (P3-CHO-17): off, standby (no volume reported) and unknown (the off layout). */
+const MEDIA_NO_STEPS: readonly MediaState[] = ['off', 'standby', 'unknown'];
 /** The cover row icons, as the cover card (src/cards/cover/card.ts). */
 const ROW_ICONS = { open: ICONS.chevronUp, stop: ICONS.stop, close: ICONS.chevronDown };
 
@@ -44,9 +68,11 @@ interface StripAction {
   icon: string;
   /** The power glyph draws at the step stroke, as the header power (the prototype's room strip). */
   stroke?: 'step';
+  /** Previous: skip-forward mirrored (ICO-8, as the media card). */
+  mirror?: boolean;
   label: string;
   disabled: boolean;
-  /** Drawn with the active tint (cover Stop while moving, fan on, oscillating). */
+  /** Drawn with the active tint (cover Stop while moving, fan on, oscillating, Pause while playing). */
   active: boolean;
   /** aria-pressed on toggles (fan power, Oscillate); actions (cover row) have none. */
   pressed?: boolean;
@@ -65,8 +91,8 @@ export class LiquidHomeRoom extends LitElement {
   /** The member the strip controls. Pinned during render (not a reactive state, so that is allowed). */
   private _selected?: string;
   /**
-   * One lease per member: the product-wide writer of that light, cover or fan (src/lights, src/covers, src/fans),
-   * shared with tiles and the sheet.
+   * One lease per member: the product-wide writer of that light, cover, fan or media player (src/lights, src/covers,
+   * src/fans, src/media), shared with tiles and the sheet.
    */
   private _leases = new Map<string, WriterLease<AnyWriter>>();
   private _watched: string[] = [];
@@ -151,12 +177,16 @@ export class LiquidHomeRoom extends LitElement {
   }
 
   /**
-   * The writer of a cover or fan this card is about to write through, with the hold time of the cover and fan cards
-   * (`write_hold`, default 10 s): the card that interacts sets it, as those cards do. The room has no option of its own.
+   * The writer of a cover, fan or media player this card is about to write through, with the hold time of that domain's
+   * card (`write_hold`, default 10 s): the card that interacts sets it, as those cards do. The room has no option of
+   * its own. A media writer also gets the latest hass, as the media card does before a gesture.
    */
-  private _interacting<W extends CoverWriter | FanWriter>(entity: string): W | undefined {
+  private _interacting<W extends HoldWriter>(entity: string): W | undefined {
     const w = this._writer<W>(entity);
-    if (w) w.hold = domainOf(entity) === 'fan' ? fanDefaults.write_hold : coverDefaults.write_hold;
+    const d = domainOf(entity);
+    if (!w || !d || d === 'light') return w;
+    w.hold = HOLD[d];
+    if (d === 'media_player' && this.hass) (w as MediaWriter).hass = this.hass;
     return w;
   }
 
@@ -168,6 +198,8 @@ export class LiquidHomeRoom extends LitElement {
       return coverMemberView(this.hass, m, glass);
     }
     if (d === 'fan') return fanMemberView(this.hass, m, glass, this._writer<FanWriter>(m.entity)?.local);
+    // The pending values are read fresh each render (H1 writer notes), so a step from any card shows here at once.
+    if (d === 'media_player') return mediaMemberView(this.hass, m, glass, this._writer<MediaWriter>(m.entity)?.pending);
     return memberView(this.hass, m, glass, this._writer(m.entity)?.local);
   }
 
@@ -213,7 +245,7 @@ export class LiquidHomeRoom extends LitElement {
    * its pending change, armed timer and held values (core EntityWriter.discard). Sends already issued still land.
    */
   private _discardWrites(views: MemberView[]) {
-    for (const v of views) this._leases.get(v.member.entity)?.current?.discard();
+    for (const v of views) (this._leases.get(v.member.entity)?.current as LightWriter | undefined)?.discard();
     // The power entity and, for a group, its own members: another card (a tile, the sheet) may hold their writers.
     const pe = this._config?.power_entity;
     const others = pe ? [pe, ...groupMembers(this.hass.states[pe])] : [];
@@ -259,14 +291,14 @@ export class LiquidHomeRoom extends LitElement {
   }
 
   /**
-   * The card config for a member's sheet, by its domain: the light, cover or fan card with the member's entity, its
-   * name override and this card's look.
+   * The card config for a member's sheet, by its domain: the light, cover, fan or media card with the member's entity,
+   * its name override and this card's look.
    */
   sheetConfig(entity: string): EntitySheetConfig {
     const d = domainOf(entity);
-    if (d !== 'cover' && d !== 'fan') return this.lightConfig(entity) as unknown as EntitySheetConfig;
+    if (d !== 'cover' && d !== 'fan' && d !== 'media_player') return this.lightConfig(entity) as unknown as EntitySheetConfig;
     const entry = roomEntries(this._config ?? {}).find((e) => e.entity === entity);
-    return { type: CARD_TYPES[d], entity, ...(entry?.name ? { name: entry.name } : {}), look: this._config?.look };
+    return { type: CARD_TYPES[d === 'media_player' ? 'media' : d], entity, ...(entry?.name ? { name: entry.name } : {}), look: this._config?.look };
   }
 
   /** The light card config for a member's sheet: its entity, its name override and this card's look. */
@@ -291,15 +323,24 @@ export class LiquidHomeRoom extends LitElement {
 
   // ---- Rendering -------------------------------------------------------
 
-  private _icon(path: string, { size, stroke }: { size: number; stroke: number }) {
-    return svg`<svg class="i" width=${size} height=${size} viewBox="0 0 24 24" stroke-width=${stroke} aria-hidden="true"><path d=${path}></path></svg>`;
+  private _icon(path: string, { size, stroke }: { size: number; stroke: number }, mirror = false) {
+    return svg`<svg class=${mirror ? 'i mirror' : 'i'} width=${size} height=${size} viewBox="0 0 24 24" stroke-width=${stroke} aria-hidden="true"><path d=${path}></path></svg>`;
   }
 
   /**
    * The room tile's name: the light, its big value and its status, in the order the tile shows them, so it holds every
-   * word the tile shows (WCAG 2.5.3, "Kitchen Lights, 10%, On"). An unavailable light's "--" is left out.
+   * word the tile shows (WCAG 2.5.3, "Kitchen Lights, 10%, On"). An unavailable light's "--" is left out. A media player
+   * reads the same way (name, volume or state word, footer, "Kitchen, 100%, Artist, Title"), then the state word when
+   * neither of those already says it (P3-CHO-23): the footer is the track, and the state is otherwise only the glyph's tint.
    */
   private _tileLabel(v: RoomView): string {
+    if (v.domain === 'media_player') {
+      const shown = v.available ? `${v.value}${v.unit}` : '';
+      // Every visible piece stays, even a repeat (value and footer both "Paused"); only the added state word is dropped
+      // when the value or the footer already says it.
+      const seen = [shown, v.status];
+      return [v.member.name, ...seen.filter(Boolean), ...(seen.includes(v.stateWord) ? [] : [v.stateWord])].join(', ');
+    }
     return [v.member.name, ...(v.available ? [`${v.value}${v.unit}`] : []), v.status].join(', ');
   }
 
@@ -355,17 +396,20 @@ export class LiquidHomeRoom extends LitElement {
       })}
       @click=${() => !a.disabled && a.run()}
     >
-      ${this._icon(a.icon, a.stroke ? CLUSTER_ICON.step : CLUSTER_ICON.mode)}
+      ${this._icon(a.icon, a.stroke ? CLUSTER_ICON.step : CLUSTER_ICON.mode, a.mirror)}
     </button>`;
   }
 
-  /** The strip's minus and plus around the value (the light strip's steps, `aria-disabled` keeps focus). */
-  private _steps(o: { label: string; text: string; minus: string; plus: string; minusOff: boolean; plusOff: boolean; step: (dir: 1 | -1) => void }) {
+  /**
+   * The strip's minus and plus around the value (the light strip's steps, `aria-disabled` keeps focus). `text: null`
+   * draws the two buttons without a value (a volume-step-only player: the card cannot read HA's level, P3-CHO-17).
+   */
+  private _steps(o: { label: string; text: string | null; minus: string; plus: string; minusOff: boolean; plusOff: boolean; step: (dir: 1 | -1) => void }) {
     return html`<div class="steps">
       <button class="press step" aria-label=${o.minus} aria-disabled=${o.minusOff ? 'true' : 'false'} @click=${() => !o.minusOff && o.step(-1)}>
         ${this._icon(ICONS.minus, CLUSTER_ICON.step)}
       </button>
-      <span class="target" aria-live="polite" aria-atomic="true"><span class="sr">${o.label} </span>${o.text}</span>
+      ${o.text === null ? nothing : html`<span class="target" aria-live="polite" aria-atomic="true"><span class="sr">${o.label} </span>${o.text}</span>`}
       <button class="press step" aria-label=${o.plus} aria-disabled=${o.plusOff ? 'true' : 'false'} @click=${() => !o.plusOff && o.step(1)}>
         ${this._icon(ICONS.plus, CLUSTER_ICON.step)}
       </button>
@@ -486,9 +530,62 @@ export class LiquidHomeRoom extends LitElement {
     return this._stripFrame(v, group, steps);
   }
 
+  /**
+   * A media player's strip (P3-CHO-24): Previous, Play or Pause (Pause tinted while playing) and Next, each only with
+   * its bit and by the media card's state rules, then the volume steps (P3-CHO-17) through the shared media writer. No
+   * Mute, Source or Sound mode; nothing for an off or unknown player and for an on/off-only player (no transport).
+   */
+  private _mediaStrip(v: MediaMemberView) {
+    const m = v.media;
+    const id = v.member.entity;
+    const name = v.member.name;
+    const st = m.state;
+    const available = m.available;
+    const act = (run: (w: MediaWriter) => void) => () => {
+      const w = this._interacting<MediaWriter>(id);
+      if (w) run(w);
+    };
+    const actions: StripAction[] = [];
+    const offLayout = available && (st === 'off' || st === 'unknown');
+    if (!offLayout && m.kind !== 'onoff') {
+      // Unavailable keeps every button of its bits, disabled (CHO-11), as the media card's row.
+      const live = MEDIA_LIVE.includes(st) || !available;
+      if (m.can.previous && live)
+        actions.push({ icon: ICONS.skipForward, mirror: true, label: t(this.hass, 'media.button.previous'), disabled: !available, active: false, run: act((w) => w.previous()) });
+      if (m.can.play || m.can.pause) {
+        const pausing = st === 'playing' || st === 'buffering';
+        actions.push({
+          icon: pausing ? ICONS.pause : ICONS.play,
+          label: t(this.hass, pausing ? 'media.button.pause' : 'media.button.play'),
+          // Disabled whenever the shared writer would send nothing: buffering, a missing bit, standby.
+          disabled: !available || st === 'buffering' || (pausing ? !m.can.pause : !m.can.play || !MEDIA_PLAYABLE.includes(st)),
+          active: st === 'playing',
+          run: act((w) => w.playPause()),
+        });
+      }
+      if (m.can.next && live) actions.push({ icon: ICONS.skipForward, label: t(this.hass, 'media.button.next'), disabled: !available, active: false, run: act((w) => w.next()) });
+    }
+    const group = actions.length ? { label: t(this.hass, 'media.row.group'), buttons: actions.map((a) => this._actionButton(a, v.colour)) } : null;
+    const stepKind = m.kind === 'volume' || m.kind === 'step';
+    const steps =
+      stepKind && !MEDIA_NO_STEPS.includes(st) && !(available && m.kind === 'volume' && m.volume == null)
+        ? this._steps({
+            label: t(this.hass, 'media.readout.volume'),
+            text: m.kind === 'step' ? (available ? null : '--') : available && m.volume != null ? t(this.hass, 'core.percent', { value: m.volume }) : '--',
+            minus: t(this.hass, 'media.aria.stepDown', { name }),
+            plus: t(this.hass, 'media.aria.stepUp', { name }),
+            minusOff: !m.can.stepDown,
+            plusOff: !m.can.stepUp,
+            step: (dir) => this._interacting<MediaWriter>(id)?.step(dir),
+          })
+        : nothing;
+    return this._stripFrame(v, group, steps);
+  }
+
   private _stripFor(v: RoomView) {
     if (v.domain === 'cover') return this._coverStrip(v);
     if (v.domain === 'fan') return this._fanStrip(v);
+    if (v.domain === 'media_player') return this._mediaStrip(v);
     return this._strip(v);
   }
 
@@ -510,7 +607,9 @@ export class LiquidHomeRoom extends LitElement {
     const neutral = neutralColour(glass);
     const w = selected ? this._leases.get(selected.member.entity)?.current : undefined;
     // Emptied while a new attempt is in flight, so the alert speaks again when that one fails too.
-    const announce = w?.error && !w.sending ? `${selected!.member.name}: ${w.error}` : this._powerError;
+    // A media writer's discrete calls bypass its queue (H1 notes): its error is spoken without the sending check.
+    const sending = selected?.domain !== 'media_player' && !!w && 'sending' in w && w.sending;
+    const announce = w?.error && !sending ? `${selected!.member.name}: ${w.error}` : this._powerError;
     const setup = needsSetup(cfg);
 
     return html`

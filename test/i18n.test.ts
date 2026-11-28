@@ -11,6 +11,7 @@ import { CARD_LOCALES as badge } from '../src/cards/badge/i18n';
 import { CARD_LOCALES as room } from '../src/cards/room/i18n';
 import { CARD_LOCALES as cover } from '../src/cards/cover/i18n';
 import { CARD_LOCALES as fan } from '../src/cards/fan/i18n';
+import { CARD_LOCALES as media } from '../src/cards/media/i18n';
 
 type Tree = { [key: string]: string | Tree };
 const flatten = (tree: Tree, prefix = ''): Record<string, string> =>
@@ -26,6 +27,7 @@ const sets: Record<string, Record<(typeof LANGS)[number], Tree>> = {
   room,
   cover,
   fan,
+  media,
 };
 
 describe.each(Object.entries(sets))('%s strings', (_name, locales) => {

@@ -4,7 +4,7 @@ import type { HomeAssistant } from '@decibel95/liquid-core';
 import '../../src/index';
 import anchors from '../../docs/anchors.json';
 import { CARD_TYPES, DOCS_URL, TAGS } from '../../src/const';
-import { AREA, BLIND, GROUP, makeHass, makeMixedHass } from '../cards/room/helpers';
+import { AREA, BLIND, GROUP, makeHass, makeMediaHass, makeMixedHass } from '../cards/room/helpers';
 
 type AnyEl = HTMLElement & Record<string, any>;
 type Cfg = Record<string, any>;
@@ -539,7 +539,23 @@ describe('tile and badge editors: lights, covers and fans (plan 2.6)', () => {
     const { el } = await mount(TAGS.tileEditor, { type: CARD_TYPES.tile, entity: 'fan.lh_fixture_ten' }, makeMixedHass().hass);
     const hint = text(el.shadowRoot!.querySelector('.body > .hint:last-child')!);
     expect(hint).toContain('presets for a fan');
-    expect(hint).toContain('write hold for a light, cover or fan');
+    expect(hint).toContain('sources and sound modes for a media player');
+    expect(hint).toContain('write hold for a light, cover, fan or media player');
+  });
+
+  it.each([TAGS.tileEditor, TAGS.badgeEditor])('%s lists media players after lights, covers and fans', async (tag) => {
+    const { el } = await mount(tag, { type: tag === TAGS.tileEditor ? CARD_TYPES.tile : CARD_TYPES.badge }, makeMediaHass().hass);
+    const values = [...(inputByLabel(el, 'Entity') as unknown as HTMLSelectElement).querySelectorAll('option')].slice(1).map((o) => o.value);
+    expect(values).toContain('media_player.kitchen');
+    expect(values).toContain('media_player.lh_fixture_tv_sources');
+    const domains = values.map((v) => v.split('.')[0]);
+    expect(domains.indexOf('media_player')).toBeGreaterThan(domains.lastIndexOf('fan'));
+  });
+
+  it('a fan tile switched to a media player writes no fan or media defaults', async () => {
+    const { el, last } = await mount(TAGS.tileEditor, { type: CARD_TYPES.tile, entity: 'fan.lh_fixture_ten', write_hold: 30 }, makeMediaHass().hass);
+    await change(el, inputByLabel(el, 'Entity') as unknown as HTMLSelectElement, 'media_player.kitchen');
+    expect(last()).toEqual({ type: CARD_TYPES.tile, entity: 'media_player.kitchen', write_hold: 30, config_version: 1 });
   });
 
   it.each([
@@ -547,9 +563,11 @@ describe('tile and badge editors: lights, covers and fans (plan 2.6)', () => {
     [CARD_TYPES.tile, 'fan.lh_fixture_ten', { controls: { presets: false }, write_hold: 30 }],
     [CARD_TYPES.badge, 'cover.hall_window', { tap_action: 'sheet', icon_only: true }],
     [CARD_TYPES.badge, 'fan.lh_fixture_onoff', { tap_action: 'sheet' }],
+    [CARD_TYPES.tile, 'media_player.kitchen', { controls: { sources: false, sound_modes: false }, write_hold: 60 }],
+    [CARD_TYPES.badge, 'media_player.kitchen', { tap_action: 'sheet', icon_only: true }],
   ])('%s round-trips a %s config', async (type, entity, extra) => {
     const yaml = { type, entity, name: 'X', ...extra, look: { glass: 'dark' }, config_version: 1 };
-    const { el, last } = await mount(type === CARD_TYPES.tile ? TAGS.tileEditor : TAGS.badgeEditor, yaml, makeMixedHass().hass);
+    const { el, last } = await mount(type === CARD_TYPES.tile ? TAGS.tileEditor : TAGS.badgeEditor, yaml, makeMediaHass().hass);
     await click(el, button(el, 'Dark'));
     expect(last()).toEqual(yaml);
   });
@@ -680,6 +698,130 @@ describe('fan card editor', () => {
   });
 });
 
+describe('media card editor (plan 2.9.2)', () => {
+  // Lounge room: two sources and two sound modes (demo 121265).
+  const base = { type: CARD_TYPES.media, entity: 'media_player.lounge_room' };
+  const hass = () => makeMediaHass().hass;
+
+  it('Setup, Controls and Look tabs, each with its docs link', async () => {
+    const { el } = await mount(TAGS.mediaEditor, base, hass());
+    expect($$(el, '[role="tab"]').map(text)).toEqual(['Setup', 'Controls', 'Look']);
+    expect(helpLinks(el)).toEqual([`${DOCS_URL}/cards/media#media-entity`]);
+    await click(el, button(el, 'Controls'));
+    expect(helpLinks(el)).toEqual([`${DOCS_URL}/cards/media#media-controls`, `${DOCS_URL}/cards/media#media-write-hold`]);
+    await click(el, button(el, 'Look'));
+    expect(helpLinks(el)).toEqual([`${DOCS_URL}/cards/media#media-look`]);
+    const documented = Object.values(anchors.anchors).map((a) => `${DOCS_URL}${a}`);
+    for (const href of helpLinks(el)) expect(documented).toContain(href);
+  });
+
+  it('entity: a select over the media players only; an empty config asks for an entity', async () => {
+    const { el, last } = await mount(TAGS.mediaEditor, { type: CARD_TYPES.media }, hass());
+    const select = inputByLabel(el, 'Entity') as unknown as HTMLSelectElement;
+    const options = [...select.querySelectorAll('option')];
+    expect(text(options[0])).toBe('Choose an entity');
+    expect(options.slice(1).every((o) => o.value.startsWith('media_player.'))).toBe(true);
+    expect(options.map((o) => o.value)).toContain('media_player.kitchen');
+    await change(el, select, 'media_player.kitchen');
+    expect(last()).toEqual({ type: CARD_TYPES.media, entity: 'media_player.kitchen', config_version: 1 });
+  });
+
+  it('name: the friendly name as placeholder, written only when set', async () => {
+    const { el, last } = await mount(TAGS.mediaEditor, base, hass());
+    const name = inputByLabel(el, 'Name');
+    expect(name.placeholder).toBe('Lounge room');
+    await change(el, name, 'Lounge');
+    expect(last()).toEqual({ ...base, name: 'Lounge', config_version: 1 });
+    await change(el, inputByLabel(el, 'Name'), ' ');
+    expect(last()).toEqual({ ...base, config_version: 1 });
+  });
+
+  it('controls.sources and controls.sound_modes: switches with their counts, written only when off', async () => {
+    const { el, last } = await mount(TAGS.mediaEditor, base, hass());
+    await click(el, button(el, 'Controls'));
+    const sources = switchFor(el, 'Sources');
+    const modes = switchFor(el, 'Sound modes');
+    for (const sw of [sources, modes]) {
+      expect(sw.getAttribute('aria-checked')).toBe('true');
+      expect(sw.disabled).toBe(false);
+    }
+    expect(text(sources.parentElement!)).toContain('2 sources');
+    expect(text(modes.parentElement!)).toContain('2 sound modes');
+    await click(el, sources);
+    expect(last()).toEqual({ ...base, controls: { sources: false }, config_version: 1 });
+    await click(el, switchFor(el, 'Sound modes'));
+    expect(last()).toEqual({ ...base, controls: { sources: false, sound_modes: false }, config_version: 1 });
+    await click(el, switchFor(el, 'Sources'));
+    await click(el, switchFor(el, 'Sound modes'));
+    expect(last()).toEqual({ ...base, config_version: 1 });
+  });
+
+  it('a chip the player lacks (no bit or no list) shows off and disabled: "Not supported by this media player"', async () => {
+    // The TV: five sources, no sound modes.
+    const { el } = await mount(TAGS.mediaEditor, { ...base, entity: 'media_player.lh_fixture_tv_sources', controls: { sound_modes: true } }, hass());
+    await click(el, button(el, 'Controls'));
+    expect(text(switchFor(el, 'Sources').parentElement!)).toContain('5 sources');
+    const modes = switchFor(el, 'Sound modes');
+    expect(modes.getAttribute('aria-checked')).toBe('false');
+    expect(modes.disabled).toBe(true);
+    expect(text(modes.parentElement!)).toContain('Not supported by this media player');
+    // The SELECT_SOURCE bit without a source list is not supported either.
+    const noList = makeMediaHass([], (h) => {
+      const tv = h.states['media_player.lh_fixture_tv_sources'];
+      h.states['media_player.lh_fixture_tv_sources'] = { ...tv, attributes: { ...tv.attributes, source_list: undefined } };
+    }).hass;
+    const { el: tv } = await mount(TAGS.mediaEditor, { ...base, entity: 'media_player.lh_fixture_tv_sources' }, noList);
+    await click(tv, button(tv, 'Controls'));
+    expect(switchFor(tv, 'Sources').disabled).toBe(true);
+    expect(text(switchFor(tv, 'Sources').parentElement!)).toContain('Not supported by this media player');
+  });
+
+  it('an entity without a state says nothing about the chips and keeps them switchable', async () => {
+    const { el } = await mount(TAGS.mediaEditor, { ...base, entity: 'media_player.gone' }, hass());
+    await click(el, button(el, 'Controls'));
+    for (const label of ['Sources', 'Sound modes']) {
+      const sw = switchFor(el, label);
+      expect(sw.disabled).toBe(false);
+      expect(sw.parentElement!.querySelector('.hint')).toBeNull();
+    }
+  });
+
+  it('write hold: 10, 30 or 60 s; 10 is the default', async () => {
+    const { el, last } = await mount(TAGS.mediaEditor, base, hass());
+    await click(el, button(el, 'Controls'));
+    await click(el, button(el, '60 s'));
+    expect(last()).toEqual({ ...base, write_hold: 60, config_version: 1 });
+    await click(el, button(el, '10 s'));
+    expect(last()).toEqual({ ...base, config_version: 1 });
+  });
+
+  it('look: glass and motion from the core look section; only changed values are written', async () => {
+    const { el, last } = await mount(TAGS.mediaEditor, base, hass());
+    await click(el, button(el, 'Look'));
+    await click(el, button(el, 'Dark'));
+    expect(last()).toEqual({ ...base, look: { glass: 'dark' }, config_version: 1 });
+    await click(el, button(el, 'Minimal'));
+    expect(last()).toEqual({ ...base, look: { glass: 'dark', motion: 'minimal' }, config_version: 1 });
+  });
+
+  it('round-trips every option of plan section 4 and keeps unknown keys', async () => {
+    const yaml = {
+      type: CARD_TYPES.media,
+      entity: 'media_player.living_room',
+      name: 'TV',
+      controls: { sources: false, sound_modes: false },
+      write_hold: 30,
+      look: { glass: 'dark', blur: 12, motion: 'subtle' },
+      grid_options: { columns: 6 },
+      config_version: 1,
+    };
+    const { el, last } = await mount(TAGS.mediaEditor, yaml, hass());
+    await click(el, button(el, 'Look'));
+    await click(el, button(el, 'Dark'));
+    expect(last()).toEqual(yaml);
+  });
+});
+
 describe('room editor: domains (plan 2.7)', () => {
   const area = { type: CARD_TYPES.room, source: 'area', area: AREA };
   const hass = () => makeMixedHass().hass;
@@ -689,8 +831,8 @@ describe('room editor: domains (plan 2.7)', () => {
     const { el, last } = await mount(TAGS.roomEditor, area, hass());
     const group = $$(el, '.seg[role="group"]')[0];
     expect(group.getAttribute('aria-label')).toBe('Domains');
-    expect(domainButtons(el).map(text)).toEqual(['Lights', 'Covers', 'Fans']);
-    expect(domainButtons(el).map((b) => b.getAttribute('aria-pressed'))).toEqual(['true', 'false', 'false']);
+    expect(domainButtons(el).map(text)).toEqual(['Lights', 'Covers', 'Fans', 'Media players']);
+    expect(domainButtons(el).map((b) => b.getAttribute('aria-pressed'))).toEqual(['true', 'false', 'false', 'false']);
     // The last one picked cannot be unpicked.
     expect(domainButtons(el)[0].disabled).toBe(true);
     await click(el, button(el, 'Fans'));

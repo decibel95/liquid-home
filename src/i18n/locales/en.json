@@ -1,7 +1,7 @@
 {
   "product": {
     "name": "Liquid Home",
-    "description": "Glass cards for Home Assistant lights, covers and fans"
+    "description": "Glass cards for Home Assistant lights, covers, fans and media players"
   },
   "common": {
     "commandFailed": "Command failed"
@@ -32,7 +32,7 @@
     "tapCard": "Open card",
     "tapMoreInfo": "More info",
     "tapNothing": "Nothing",
-    "tileHint": "Card options in the tile config apply to the card it opens: modes and effects for a light, presets for a fan, and the write hold for a light, cover or fan.",
+    "tileHint": "Card options in the tile config apply to the card it opens: modes and effects for a light, presets for a fan, sources and sound modes for a media player, and the write hold for a light, cover, fan or media player.",
     "iconOnly": "Icon only",
     "title": "Title",
     "source": "Source",
@@ -65,6 +65,12 @@
     "powerEntity": "Power entity",
     "powerHint": "A light group for the header button. Empty switches every light of the card in one call.",
     "powerInvalid": "Not a light in Home Assistant, so it was not saved.",
-    "yamlHint": "Light card options in YAML (modes, effects, write hold) apply to the light card a room tile opens."
+    "yamlHint": "Light card options in YAML (modes, effects, write hold) apply to the light card a room tile opens.",
+    "mediaPlayers": "Media players",
+    "sources": "Sources",
+    "sourceCount": "{n} sources",
+    "soundModes": "Sound modes",
+    "soundModeCount": "{n} sound modes",
+    "notSupportedPlayer": "Not supported by this media player"
   }
 }

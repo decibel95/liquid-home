@@ -1,7 +1,7 @@
 import { LitElement, css, html, nothing, svg, type PropertyValues, type TemplateResult } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
-import { ICONS, TINT, badgeChrome, focusRing, glassTokens, hassNeedsRender, resolveGlass, rgba, type HassEntity, type HomeAssistant } from '@decibel95/liquid-core';
+import { ICONS, PALETTE, TINT, badgeChrome, focusRing, glassTokens, hassNeedsRender, resolveGlass, rgba, tone, type HassEntity, type HomeAssistant } from '@decibel95/liquid-core';
 import { TAGS } from '../../const';
 import { t } from '../../i18n';
 import { openEntitySheet, reconfigureLightSheet } from '../sheet/open';
@@ -9,6 +9,7 @@ import type { LightCardConfig } from '../light/config';
 import { colourOf, lightView, offColour, type Glass } from '../../lights';
 import { coverBadge, coverColour, coverGlyph, isCoverActive, isCoverUnavailable } from '../../covers';
 import { fanBadge, fanColour, fanView } from '../../fans';
+import { isMediaLit, mediaStateWord, mediaView } from '../../media';
 import { ENTITY_ERROR, tileDomain, valueText } from '../tile/text';
 import { normalizeConfig, sheetConfig, type NormalizedBadgeConfig } from './config';
 
@@ -19,11 +20,12 @@ export interface BadgeState {
   value: string;
   /** The status colour as drawn on the glass: the entity's colour while on or open, status off grey otherwise. */
   color: string;
-  /** The device glyph (an ICONS path): bulb, blinds or door (P2-CHO-7), fan. */
+  /** The device glyph (an ICONS path): bulb, blinds or door (P2-CHO-7), fan, speaker. */
   glyph: string;
   /**
-   * The round (icon only) badge carries the colour. Lights always (0.2); covers and fans only while open, moving or on:
-   * closed, off and unavailable round badges are plain glass (P2-CHO-21 option B).
+   * The round (icon only) badge carries the colour. Lights always (0.2); covers, fans and media players only while
+   * open, moving, on or playing: closed, off, paused, idle and unavailable round badges are plain glass (P2-CHO-21
+   * option B, P3-CHO-21).
    */
   roundTint: boolean;
 }
@@ -32,8 +34,9 @@ export interface BadgeState {
  * What the badge shows (P2-CHO-10). A light: the brightness while on ("On" for an on/off-only light), Off, or
  * Unavailable; on draws the light's colour per COL-1 (entity colour for a colour light, the neutral for colour
  * temperature, brightness-only, on/off-only and groups). A cover: 70%, Closed, Opening, Closing, Open (a toggle cover),
- * Unavailable. A fan: 67%, the preset (Auto), On, Off, Unavailable. Covers and fans draw the fan_only neutral while
- * open, moving or on (P2-COL-1). Off, closed and unavailable draw status off grey (CHO-11, P2-COL-2).
+ * Unavailable. A fan: 67%, the preset (Auto), On, Off, Unavailable. A media player: its state word (P3-CHO-20 option
+ * A). Covers and fans draw the fan_only neutral while open, moving or on (P2-COL-1), media players while playing or
+ * buffering (P3-COL-1, P3-CHO-21). Off, closed, paused, idle and unavailable draw status off grey (CHO-11, P2-COL-2).
  */
 export function badgeState(hass: HomeAssistant, s: HassEntity | undefined, glass: Glass, entity: string | undefined = s?.entity_id): BadgeState {
   // The domain comes from the configured entity id (as the tile), so a missing cover or fan keeps its own glyph.
@@ -42,6 +45,13 @@ export function badgeState(hass: HomeAssistant, s: HassEntity | undefined, glass
     const on = isCoverActive(s);
     const kind: BadgeKind = isCoverUnavailable(s) ? 'unavailable' : on ? 'on' : 'off';
     return { kind, value: coverBadge(hass, s), color: on ? coverColour(glass) : offColour(glass), glyph: ICONS[coverGlyph(s)], roundTint: on };
+  }
+  if (domain === 'media') {
+    // The state HA reports (a badge holds no writer); a missing player reads as unavailable.
+    const v = mediaView(s, { entityId: entity });
+    const on = isMediaLit(v);
+    const kind: BadgeKind = !v.available ? 'unavailable' : on ? 'on' : 'off';
+    return { kind, value: mediaStateWord(hass, v), color: on ? tone(PALETTE.neutral, glass) : offColour(glass), glyph: ICONS.speaker, roundTint: on };
   }
   if (domain === 'fan') {
     if (!s) return { kind: 'unavailable', value: t(hass, 'core.unavailable'), color: offColour(glass), glyph: ICONS.fan, roundTint: false };
@@ -56,8 +66,9 @@ export function badgeState(hass: HomeAssistant, s: HassEntity | undefined, glass
 }
 
 /**
- * Glass status pill for a light, a cover or a fan, usable as a view badge and as a card (round when icon_only). A tap
- * opens HA's more-info (default) or the entity's card as a sheet with History (Q9 a); it never switches the device.
+ * Glass status pill for a light, a cover, a fan or a media player, usable as a view badge and as a card (round when
+ * icon_only). A tap opens HA's more-info (default) or the entity's card as a sheet with History (Q9 a); it never
+ * switches the device and never calls a media service, so it stays enabled while buffering (D-13). No artwork.
  */
 export class LiquidHomeBadge extends LitElement {
   @property({ attribute: false }) hass!: HomeAssistant;

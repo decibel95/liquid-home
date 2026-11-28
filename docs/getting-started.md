@@ -3,7 +3,7 @@
 ## Requirements {#requirements}
 
 - Home Assistant 2025.1.0 or newer.
-- At least one `light`, `cover` or `fan` entity.
+- At least one `light`, `cover`, `fan` or `media_player` entity.
 
 ## Install {#install-hacs}
 
@@ -46,25 +46,26 @@ Liquid Home ships the Inter font, so the cards look the same on every device, wi
 
 ## Add a card {#add-card}
 
-The six cards are in the card picker:
+The seven cards are in the card picker:
 
 | Picker name | Type |
 |-------------|------|
 | Liquid Home light card | `custom:liquid-home-light-card` |
 | Liquid Home cover card | `custom:liquid-home-cover-card` |
 | Liquid Home fan card | `custom:liquid-home-fan-card` |
+| Liquid Home media card | `custom:liquid-home-media-card` |
 | Liquid Home tile | `custom:liquid-home-tile` |
 | Liquid Home badge | `custom:liquid-home-badge` |
 | Liquid Home room | `custom:liquid-home-room` |
 
-The tile, badge and room card take lights, covers and fans. The badge is also in the badge picker (Edit dashboard, Badges). Every card has a visual editor, and the YAML works as well:
+The tile, badge and room card take lights, covers, fans and media players. The badge is also in the badge picker (Edit dashboard, Badges). Every card has a visual editor, and the YAML works as well:
 
 ```yaml
 type: custom:liquid-home-light-card
 entity: light.kitchen_lights
 ```
 
-See the pages of the [light card](/cards/light), [cover card](/cards/cover), [fan card](/cards/fan), [tile](/cards/tile), [badge](/cards/badge) and [room card](/cards/room) for every option.
+See the pages of the [light card](/cards/light), [cover card](/cards/cover), [fan card](/cards/fan), [media card](/cards/media), [tile](/cards/tile), [badge](/cards/badge) and [room card](/cards/room) for every option.
 
 ## Next to Liquid Climate {#next-to-climate}
 

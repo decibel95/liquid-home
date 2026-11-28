@@ -3,6 +3,17 @@
 All notable changes to Liquid Home. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 <!-- #region entries -->
+## 0.4.0
+
+### Added
+- **Media card** for media players: the artwork blurred behind the glass, play and pause, previous and next, a volume pill with mute, a position bar you can drag, and lists for Source and Sound mode.
+- Media players in the tile, the badge and the room card. A room shows them when you add `media_player` to `domains`.
+- Shuffle and repeat in the sheet of a media player, next to the history button.
+
+### Fixed
+- A tile whose entity changes to another kind of device while its sheet is open now shows the right card.
+- The value on a tile no longer touches the step buttons at 100%.
+
 ## 0.3.0
 
 ### Added

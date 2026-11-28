@@ -1,0 +1,67 @@
+{
+  "card": {
+    "name": "Mediakaart",
+    "description": "Glazen kaart voor één mediaspeler: albumhoes achter het glas, afspeelknoppen, een volumebalk en een positiebalk.",
+    "loading": "Laden",
+    "entityNotFound": "Entiteit niet gevonden: {entity}"
+  },
+  "state": {
+    "playing": "Speelt af",
+    "paused": "Gepauzeerd",
+    "buffering": "Bufferen",
+    "idle": "Inactief",
+    "standby": "Stand-by",
+    "on": "Aan",
+    "unknown": "Onbekend"
+  },
+  "sub": {
+    "grouped": "{state}, gegroepeerd met {n}"
+  },
+  "now": {
+    "nothing": "Er speelt niets",
+    "episode": "{series}, S{season} A{episode}"
+  },
+  "readout": {
+    "volume": "Volume",
+    "muted": "Gedempt",
+    "on": "Aan",
+    "tap": "Tik om te schakelen"
+  },
+  "button": {
+    "previous": "Vorige",
+    "next": "Volgende",
+    "play": "Afspelen",
+    "pause": "Pauze",
+    "mute": "Dempen",
+    "power": "Aan/uit"
+  },
+  "row": {
+    "group": "Afspeelbediening"
+  },
+  "step": {
+    "up": "Volume omhoog",
+    "down": "Volume omlaag"
+  },
+  "chip": {
+    "source": "Bron",
+    "soundMode": "Geluidsmodus"
+  },
+  "aria": {
+    "power": "{name} aan of uit",
+    "volume": "Volume, {name}",
+    "volumeMuted": "Gedempt, {value}",
+    "position": "Positie, {name}",
+    "time": "{elapsed} van {total}",
+    "stepUp": "Volume omhoog, {name}",
+    "stepDown": "Volume omlaag, {name}",
+    "play": "Afspelen, {name}",
+    "pause": "Pauzeren, {name}",
+    "menu": "Lijst {label}, {name}"
+  },
+  "sheet": {
+    "shuffle": "Willekeurig afspelen",
+    "repeatOff": "Herhalen uit",
+    "repeatAll": "Alles herhalen",
+    "repeatOne": "Eén nummer herhalen"
+  }
+}

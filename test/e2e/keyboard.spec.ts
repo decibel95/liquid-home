@@ -1,5 +1,6 @@
 import { expect, test, type Locator, type Page } from 'playwright/test';
 import { focusedElement, focusedOutline, stubFavicon, watchErrors, type FocusInfo } from './support/helpers';
+import { mediaCalls, mediaUrl } from './support/media';
 
 /**
  * Plan 2.9 / CHO-8: a keyboard-only run over the dev harness (/dev/). The dimmed Kitchen Lights fixture (brightness 26,
@@ -336,5 +337,193 @@ test.describe('fan card, keyboard only', () => {
       ['solid', '2px', '3px'],
       ['solid', '2px', '2px'],
     ]);
+  });
+});
+
+/**
+ * H9 (plan 2.11): a keyboard-only run over the media card, the media tile, the chips and the sheet header actions, on the
+ * built bundle (pages/media.ts, a player with every feature). Every focus is reached with Tab.
+ */
+async function mediaPage(page: Page, q: Record<string, string | number> = {}): Promise<string[]> {
+  const errors = watchErrors(page);
+  await stubFavicon(page);
+  await page.goto(mediaUrl({ echo: 'none', ...q }));
+  await page.waitForFunction(() => (window as unknown as { __media: { ready: boolean } }).__media.ready);
+  await expect(page.locator('#card, #tile').first()).toBeVisible();
+  await page.waitForTimeout(300);
+  return errors;
+}
+
+/** The focused control as `kind:name`: sliders by label, buttons by data-action, data-chip, data-step or aria-label. */
+const stopId = (page: Page) =>
+  page.evaluate(() => {
+    let el = document.activeElement as HTMLElement | null;
+    while (el?.shadowRoot?.activeElement) el = el.shadowRoot.activeElement as HTMLElement;
+    if (!el || el === document.body) return null;
+    if (el.getAttribute('role') === 'slider') return `slider:${el.getAttribute('aria-label')}`;
+    const named = el.dataset.action ?? (el.dataset.chip && `chip:${el.dataset.chip}`) ?? (el.dataset.step && `step:${el.dataset.step}`);
+    return `${el.tagName.toLowerCase()}:${named ?? el.getAttribute('aria-label') ?? el.className}`;
+  });
+
+async function tabIds(page: Page, count: number, key = 'Tab'): Promise<(string | null)[]> {
+  const ids: (string | null)[] = [];
+  for (let i = 0; i < count; i++) {
+    await page.keyboard.press(key);
+    ids.push(await stopId(page));
+  }
+  return ids;
+}
+
+test.describe('media card, keyboard only', () => {
+  test('Tab visits History, Position, Volume, the playback row and the Source and Sound mode chips', async ({ page }) => {
+    const errors = await mediaPage(page, { show: 'card' });
+    expect(await tabIds(page, 10)).toEqual([
+      'button:History',
+      'slider:Position, Kitchen speaker',
+      'slider:Volume, Kitchen speaker',
+      'button:previous',
+      'button:play',
+      'button:next',
+      'button:mute',
+      'button:power',
+      'button:chip:source',
+      'button:chip:soundMode',
+    ]);
+    expect(errors).toEqual([]);
+  });
+
+  test('the playback row and the chips follow the visual order, left to right', async ({ page }) => {
+    await mediaPage(page, { show: 'card' });
+    await tabIds(page, 3);
+    const stops: FocusInfo[] = [];
+    for (let i = 0; i < 7; i++) {
+      await page.keyboard.press('Tab');
+      stops.push((await focusedElement(page))!);
+    }
+    for (let i = 1; i < stops.length; i++) {
+      const prev = stops[i - 1]!;
+      const cur = stops[i]!;
+      expect(cur.top > prev.top || (cur.top === prev.top && cur.left > prev.left), `${i}: ${JSON.stringify(prev)} then ${JSON.stringify(cur)}`).toBe(true);
+    }
+  });
+
+  test('Space on Pause sends media_pause and Enter on Mute sends volume_mute with the flag', async ({ page }) => {
+    await mediaPage(page, { show: 'card' });
+    await tabIds(page, 5);
+    expect(await stopId(page)).toBe('button:play');
+    await page.keyboard.press('Space');
+    await expect.poll(async () => (await mediaCalls(page, 'media_pause')).length).toBe(1);
+    await tabIds(page, 2);
+    expect(await stopId(page)).toBe('button:mute');
+    await page.keyboard.press('Enter');
+    await expect.poll(async () => (await mediaCalls(page, 'volume_mute')).length).toBe(1);
+    expect((await mediaCalls(page, 'volume_mute'))[0]!.data).toMatchObject({ is_volume_muted: true });
+    await expect(page.locator('#card button[data-action="mute"]')).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  test('the focus ring is a 2px outline: offset 3px on the sliders, 2px on a button and on a chip', async ({ page }) => {
+    await mediaPage(page, { show: 'card' });
+    const seen: [string, string][] = [];
+    for (const n of [2, 1, 1, 5]) {
+      await tabIds(page, n);
+      const o = await focusedOutline(page);
+      seen.push([o.width, o.offset]);
+      expect(o.style).not.toBe('none');
+    }
+    // The stops: Position, Volume, Previous, then the Source chip.
+    expect(seen.map((s) => s[0])).toEqual(['2px', '2px', '2px', '2px']);
+    expect(seen.map((s) => s[1])).toEqual(['3px', '3px', '2px', '2px']);
+  });
+
+  test('Tab from an open Source menu closes it and moves on to the Sound mode chip', async ({ page }) => {
+    await mediaPage(page, { show: 'card' });
+    await tabIds(page, 9);
+    expect(await stopId(page)).toBe('button:chip:source');
+    await page.keyboard.press('Enter');
+    await expect(page.locator('#card .mitem')).toHaveCount(4);
+    await page.keyboard.press('Tab');
+    expect(await stopId(page)).toBe('button:chip:soundMode');
+    await expect(page.locator('#card .mitem')).toHaveCount(0);
+    expect(await mediaCalls(page)).toEqual([]);
+  });
+
+  test('the Pause label follows the action: Play, <name> while paused', async ({ page }) => {
+    await mediaPage(page, { show: 'card', state: 'paused' });
+    await expect(page.locator('#card button[data-action="play"]')).toHaveAttribute('aria-label', 'Play, Kitchen speaker');
+  });
+});
+
+test.describe('media tile, keyboard only', () => {
+  test('Tab visits the play button, the name, Volume down and Volume up', async ({ page }) => {
+    const errors = await mediaPage(page, { show: 'tile' });
+    expect(await tabIds(page, 4)).toEqual(['button:Pause, Kitchen speaker', 'button:body', 'button:Volume down, Kitchen speaker', 'button:Volume up, Kitchen speaker']);
+    expect(errors).toEqual([]);
+  });
+
+  test('Space on the play button pauses, Enter on Volume up sends one volume_set', async ({ page }) => {
+    await mediaPage(page, { show: 'tile' });
+    await tabIds(page, 1);
+    await page.keyboard.press('Space');
+    await expect.poll(async () => (await mediaCalls(page, 'media_pause')).length).toBe(1);
+    await tabIds(page, 3);
+    expect(await stopId(page)).toBe('button:Volume up, Kitchen speaker');
+    await page.keyboard.press('Enter');
+    await expect.poll(async () => (await mediaCalls(page, 'volume_set')).length).toBe(1);
+    expect((await mediaCalls(page, 'volume_set'))[0]!.data.volume_level).toBeGreaterThan(0.6);
+  });
+
+  test('Enter on the name opens the sheet, Escape closes it and focus returns to the name', async ({ page }) => {
+    await mediaPage(page, { show: 'tile' });
+    await tabIds(page, 2);
+    await page.keyboard.press('Enter');
+    await expect(page.locator('liquid-home-sheet liquid-home-media-card')).toBeVisible();
+    expect(await stopId(page)).toBe('button:Close');
+    await page.keyboard.press('Escape');
+    await expect.poll(() => page.locator('liquid-home-sheet').evaluate((el) => (el as HTMLElement & { isOpen: boolean }).isOpen)).toBe(false);
+    expect(await stopId(page)).toBe('button:body');
+  });
+});
+
+test.describe('media sheet header actions, keyboard only', () => {
+  async function openSheet(page: Page): Promise<string[]> {
+    const errors = await mediaPage(page, { show: 'tile' });
+    await tabIds(page, 2);
+    await page.keyboard.press('Enter');
+    await expect(page.locator('liquid-home-sheet liquid-home-media-card')).toBeVisible();
+    return errors;
+  }
+
+  test('focus starts on Close; Shift+Tab walks back over History, Repeat and Shuffle, the card follows Close', async ({ page }) => {
+    const errors = await openSheet(page);
+    expect(await stopId(page)).toBe('button:Close');
+    expect(await tabIds(page, 3, 'Shift+Tab')).toEqual(['button:History', 'button:Repeat off', 'button:Shuffle']);
+    expect(await tabIds(page, 4)).toEqual(['button:Repeat off', 'button:History', 'button:Close', 'slider:Position, Kitchen speaker']);
+    expect(errors).toEqual([]);
+  });
+
+  test('Space on Shuffle sends shuffle_set true and the button reads pressed; Enter on Repeat sends repeat_set all', async ({ page }) => {
+    await openSheet(page);
+    await tabIds(page, 3, 'Shift+Tab');
+    expect(await stopId(page)).toBe('button:Shuffle');
+    await page.keyboard.press('Space');
+    await expect.poll(async () => (await mediaCalls(page, 'shuffle_set')).length).toBe(1);
+    expect((await mediaCalls(page, 'shuffle_set'))[0]!.data).toMatchObject({ shuffle: true });
+    await expect(page.locator('liquid-home-sheet button.shuffle')).toHaveAttribute('aria-pressed', 'true');
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Enter');
+    await expect.poll(async () => (await mediaCalls(page, 'repeat_set')).length).toBe(1);
+    expect((await mediaCalls(page, 'repeat_set'))[0]!.data).toMatchObject({ repeat: 'all' });
+  });
+
+  test('the header actions are 44 px targets with the 2px focus ring', async ({ page }) => {
+    await openSheet(page);
+    // The sheet scales in (open animation): measure once it has settled.
+    await page.waitForTimeout(900);
+    const sizes = await page.locator('liquid-home-sheet button.act, liquid-home-sheet button.history, liquid-home-sheet button.close').evaluateAll((els) => els.map((e) => [Math.round(e.getBoundingClientRect().width), Math.round(e.getBoundingClientRect().height)]));
+    expect(sizes).toHaveLength(4);
+    for (const [w, h] of sizes) expect([w! >= 44, h! >= 44]).toEqual([true, true]);
+    await tabIds(page, 3, 'Shift+Tab');
+    const o = await focusedOutline(page);
+    expect([o.style === 'none', o.width]).toEqual([false, '2px']);
   });
 });

@@ -1,6 +1,6 @@
 # Tile {#tile}
 
-A compact glass row for one light, cover or fan: an icon button, name and status, and steppers. Type: `custom:liquid-home-tile`. In the card picker it is called "Liquid Home tile".
+A compact glass row for one light, cover, fan or media player: an icon button, name and status, and steppers. Type: `custom:liquid-home-tile`. In the card picker it is called "Liquid Home tile".
 
 <img class="light-only" src="/media/tile-light.png" alt="The tile in light glass" loading="lazy">
 <img class="dark-only" src="/media/tile-dark.png" alt="The tile in dark glass" loading="lazy">
@@ -10,7 +10,7 @@ type: custom:liquid-home-tile
 entity: light.ceiling_lights
 ```
 
-The same tile works for a cover or a fan, only the `entity` changes:
+The same tile works for a cover, a fan or a media player, only the `entity` changes:
 
 ```yaml
 type: custom:liquid-home-tile
@@ -41,27 +41,36 @@ entity: cover.living_room_window
 - The status line reads `On`, `On, oscillating`, `On, reverse`, `On, oscillating, reverse`, the preset name, `Off` or `Unavailable`.
 - The icon is a fan icon, tinted while the fan is on.
 
+### Media players {#tile-media}
+
+- While the player is off, in standby or unknown, the icon is a Power button (`Switch Kitchen`) that turns the player on when it supports turning on, and a disabled Power button when it does not. Otherwise the icon plays or pauses: it sends `media_play` or `media_pause` according to the state, and the label follows the action (`Play, Kitchen` or `Pause, Kitchen`). A player with Play and Pause missing but with turning on and off gets the Power button as its icon, and a player with neither has a disabled icon. The icon is also disabled while the player buffers.
+- The steppers lower and raise the volume by 5 % per press, between 0 and 100, and show the volume in percent. Taps are collected as on the light tile, see [How the volume is sent](/cards/media#media-writes). A player that only has volume steps sends one `volume_down` or `volume_up` per tap and shows no percentage. A muted player shows its volume dimmed, and the steppers stay enabled. A player without volume control, and a player that is off or in standby, has no steppers.
+- The status line reads `Artist, Title` (`Series, Title` for a TV show, the title alone when there is no second line) while playing, otherwise `Playing`, `Paused`, `Buffering`, `Idle`, `Standby`, `Off`, `On`, `Unavailable` or `Unknown`.
+- The icon is a speaker, tinted while the player plays or buffers, or while an on/off-only player is on. While it plays, pauses or buffers and has a cover, the cover is drawn blurred behind the tile, see [Artwork](/cards/media#media-artwork). An unavailable player is dimmed.
+
 ### Tap on the name {#tile-tap}
 
-- Tapping the name and status does what `tap_action` says. By default it opens the card of the entity as a sheet, a modal dialog above the dashboard: the [light card](/cards/light), the [cover card](/cards/cover) or the [fan card](/cards/fan). Escape, the close button or a click outside closes it.
-- The sheet has a history button next to the close button, for lights, covers and fans alike. It closes the sheet and opens the Home Assistant history for that entity.
+- Tapping the name and status does what `tap_action` says. By default it opens the card of the entity as a sheet, a modal dialog above the dashboard: the [light card](/cards/light), the [cover card](/cards/cover), the [fan card](/cards/fan) or the [media card](/cards/media). Escape, the close button or a click outside closes it.
+- The sheet has a history button next to the close button, for lights, covers, fans and media players alike. It closes the sheet and opens the Home Assistant history for that entity.
 - The tile, the card in its sheet and any other Liquid Home card on the same entity share one writer, so their changes go out together.
 
 ## Options {#tile-options}
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `entity` | required | A `light`, `cover` or `fan` entity |
+| `entity` | required | A `light`, `cover`, `fan` or `media_player` entity |
 | `name` | entity name | Name on the tile |
 | `tap_action` | `sheet` | Tap on the name: `sheet` (the card of the entity), `more-info` or `none` |
 | `write_hold` | `10` | Seconds a sent value stays on screen while Home Assistant has not reported it back. Passed on to the card in the sheet |
 | `controls.modes` | what the light supports | Passed on to the light card sheet: `brightness`, `white`, `colour` |
 | `controls.effects` | `true` | Passed on to the light card sheet: the effect chip |
 | `controls.presets` | `true` | Passed on to the fan card sheet: the preset chip |
+| `controls.sources` | `true` | Passed on to the media card sheet: the Source chip |
+| `controls.sound_modes` | `true` | Passed on to the media card sheet: the Sound mode chip |
 | `look` | | `glass`, `blur` and `motion`, see [Theming](/theming) |
 | `config_version` | `1` | Written by the editor |
 
-Card options can sit in the tile config too and are passed on to the sheet it opens: `controls.modes` and `controls.effects` for a light, `controls.presets` for a fan. They change only the sheet, not the tile. The tile itself reads `name`, `tap_action`, `write_hold` and `look`.
+Card options can sit in the tile config too and are passed on to the sheet it opens: `controls.modes` and `controls.effects` for a light, `controls.presets` for a fan, `controls.sources` and `controls.sound_modes` for a media player. They change only the sheet, not the tile. The tile itself reads `name`, `tap_action`, `write_hold` and `look`.
 
 ```yaml
 type: custom:liquid-home-tile
@@ -77,7 +86,7 @@ controls:
 
 ### Entity {#tile-entity}
 
-Pick the light, cover or fan. Option: `entity`. The name field below it is optional and uses the entity name when empty. Option: `name`.
+Pick the light, cover, fan or media player. Option: `entity`. The name field below it is optional and uses the entity name when empty. Option: `name`.
 
 ### Tap on the name {#tile-tap-action}
 

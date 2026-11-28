@@ -5,6 +5,7 @@ import { coverIds } from '../../test/covers/fixtures';
 import { createCoverSim } from '../../test/covers/sim';
 import { applyFanCall, FAN_FIXTURES, fanIds, type FanState } from '../../test/fans/fixtures';
 import { EXTRA } from '../../test/cards/tile/domains';
+import { applyMediaCall, MEDIA_FIXTURES, mediaIds } from '../../test/cards/media/fixtures';
 import type { SlotContext, SlotMount } from './types';
 
 type Card = HTMLElement & { hass?: HomeAssistant; setConfig(c: Record<string, unknown>): void };
@@ -69,9 +70,41 @@ export const FAN_SHOWN: [string, string][] = [
 ];
 
 /**
- * The hass for cover and fan tiles and badges: the harness hass with the cover sim on top (the gate 2 prototype's
+ * The media states the tile and badge slots show (plan 2.6): the real demo players, every fixture state, the volume
+ * kinds, on/off-only, no artwork, a long title, grouped, sources, sound modes, shuffle and repeat.
+ */
+export const MEDIA_SHOWN: [string, string][] = [
+  ['demo kitchen', mediaIds.kitchen],
+  ['demo living room', mediaIds.living_room],
+  ['demo lounge room', mediaIds.lounge_room],
+  ['demo group', mediaIds.group],
+  ['playing', mediaIds.playing],
+  ['paused', mediaIds.paused],
+  ['buffering', mediaIds.buffering],
+  ['idle', mediaIds.idle],
+  ['standby', mediaIds.standby],
+  ['off', mediaIds.off],
+  ['off, no TURN_ON', mediaIds.off_no_turn_on],
+  ['unavailable', mediaIds.unavailable],
+  ['unknown', mediaIds.unknown],
+  ['muted 35', mediaIds.muted],
+  ['volume 35', mediaIds.volume_mid],
+  ['volume step', mediaIds.volume_step],
+  ['on/off-only', mediaIds.onoff_only],
+  ['on/off-only off', mediaIds.onoff_off],
+  ['no artwork', mediaIds.no_artwork],
+  ['long title', mediaIds.long_title],
+  ['grouped', mediaIds.grouped],
+  ['tv sources', mediaIds.tv_sources],
+  ['speaker modes', mediaIds.speaker_modes],
+  ['shuffle repeat', mediaIds.shuffle_repeat],
+];
+
+/**
+ * The hass for cover, fan and media tiles and badges: the harness hass with the cover sim on top (the gate 2 prototype's
  * simulated HA: echo 250 ms, motor 10 % per second), the fan fixtures (applied as HA's demo fan after 0.8 s) and the
- * derived EXTRA states (calls logged only). Every call is logged; the harness language is followed.
+ * derived EXTRA states (calls logged only) and the media fixtures (applied as a fake player after 0.8 s, as the media
+ * slot). Every call is logged; the harness language is followed.
  */
 export function domainSource(ctx: SlotContext): { readonly hass: HomeAssistant; onHass(l: (h: HomeAssistant) => void): void } {
   const log = (domain: string, service: string, data: Record<string, unknown>) =>
@@ -87,13 +120,18 @@ export function domainSource(ctx: SlotContext): { readonly hass: HomeAssistant; 
     const s = make() as HassEntity;
     extras[s.entity_id] = s;
   }
+  const players: Record<string, HassEntity> = {};
+  for (const make of Object.values(MEDIA_FIXTURES)) {
+    const s = make();
+    players[s.entity_id] = s;
+  }
   const listeners: ((h: HomeAssistant) => void)[] = [];
   let base = ctx.hass;
   let hass = base;
   const publish = () => {
     hass = {
       ...base,
-      states: { ...base.states, ...sim.hass.states, ...(fans as unknown as Record<string, HassEntity>), ...extras },
+      states: { ...base.states, ...sim.hass.states, ...(fans as unknown as Record<string, HassEntity>), ...extras, ...players },
       callService: async (domain: string, service: string, data: Record<string, unknown> = {}) => {
         const id = data.entity_id as string;
         if (domain === 'cover' && sim.hass.states[id]) return sim.hass.callService(domain, service, data);
@@ -101,6 +139,14 @@ export function domainSource(ctx: SlotContext): { readonly hass: HomeAssistant; 
           log(domain, service, data);
           setTimeout(() => {
             fans[id] = applyFanCall(fans[id], service, data);
+            publish();
+          }, 800);
+          return;
+        }
+        if (domain === 'media_player' && players[id]) {
+          log(domain, service, data);
+          setTimeout(() => {
+            players[id] = applyMediaCall(players[id], service, data);
             publish();
           }, 800);
           return;
@@ -134,8 +180,8 @@ export function domainCaption(col: HTMLElement, label: string): void {
 }
 
 /**
- * Dev harness slot of the tile: every light fixture state, then the cover and fan states of plan 2.6, on both glasses.
- * `?domain=light|cover|fan` shows one domain only, `?glass=dark|light` one glass (for screenshots).
+ * Dev harness slot of the tile: every light fixture state, then the cover, fan and media states of plan 2.6, on both
+ * glasses. `?domain=light|cover|fan|media` shows one domain only, `?glass=dark|light` one glass (for screenshots).
  */
 export const mount: SlotMount = (ctx) => {
   const params = new URLSearchParams(location.search);
@@ -166,6 +212,10 @@ export const mount: SlotMount = (ctx) => {
     if (!only || only === 'fan') {
       domainCaption(col, 'fans');
       for (const [label, id] of FAN_SHOWN) add(col, label, id, glass, others, domains.hass);
+    }
+    if (!only || only === 'media') {
+      domainCaption(col, 'media players');
+      for (const [label, id] of MEDIA_SHOWN) add(col, label, id, glass, others, domains.hass);
     }
   }
   ctx.onHass((hass) => lights.forEach((c) => (c.hass = hass)));

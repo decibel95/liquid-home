@@ -5,6 +5,7 @@
   "ariaTile": "Luz {name}",
   "ariaCover": "Persiana {name}",
   "ariaFan": "Ventilador {name}",
+  "ariaMedia": "Reproductor multimedia {name}",
   "power": "Encender o apagar {name}",
   "stepDown": "Bajar el brillo",
   "stepUp": "Subir el brillo",

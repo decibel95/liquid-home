@@ -4,7 +4,8 @@ import type { LightFixtureName } from '../../test/fixtures/lights';
 import { coverIds } from '../../test/covers/fixtures';
 import { EXTRA } from '../../test/cards/tile/domains';
 import type { SlotContext, SlotMount } from './types';
-import { COVER_SHOWN, FAN_SHOWN, domainCaption, domainSource, glassColumn, labelled } from './tile';
+import { mediaIds } from '../../test/cards/media/fixtures';
+import { COVER_SHOWN, FAN_SHOWN, MEDIA_SHOWN, domainCaption, domainSource, glassColumn, labelled } from './tile';
 
 type Card = HTMLElement & { hass?: HomeAssistant; setConfig(c: Record<string, unknown>): void };
 
@@ -65,9 +66,30 @@ export function mountLongNames(container: HTMLElement, ctx: SlotContext, glasses
 }
 
 /**
- * Dev harness slot of the badge: every light fixture state, then the cover and fan states of plan 2.6, on both glasses,
- * pill and round (icon_only), and the long-name row. `?domain=light|cover|fan` shows one domain only, `?glass=dark|light`
- * one glass (for screenshots).
+ * Long-name media pill badges, in their own wrapping row (`data-long-media`, so the gate 3 long-name rows keep their
+ * five badges): the long-title fixture's name and a longer one through `name`, for the 390 px check (plan 2.6).
+ */
+function mountLongMedia(container: HTMLElement, hass: HomeAssistant, glass: 'dark' | 'light', list: Card[]): void {
+  const row = document.createElement('div');
+  row.dataset.glass = glass;
+  row.dataset.longMedia = 'true';
+  row.style.cssText = `display:flex;flex-wrap:wrap;gap:8px;padding:12px;border-radius:16px;background:${glass === 'dark' ? '#0b0e14' : '#e7e9ee'}`;
+  for (const extra of [{}, { name: 'Upstairs Guest Bathroom Ceiling Speaker Over The Bathtub Left Side Near The Window' }]) {
+    const badge = document.createElement(TAGS.badge) as Card;
+    badge.setConfig({ type: `custom:${TAGS.badge}`, entity: mediaIds.long_title, tap_action: 'sheet', look: { glass }, ...extra });
+    badge.dataset.entity = mediaIds.long_title;
+    badge.dataset.domain = 'media';
+    badge.hass = hass;
+    list.push(badge);
+    row.append(badge);
+  }
+  container.append(row);
+}
+
+/**
+ * Dev harness slot of the badge: every light fixture state, then the cover, fan and media states of plan 2.6, on both
+ * glasses, pill and round (icon_only), and the long-name rows. `?domain=light|cover|fan|media` shows one domain only,
+ * `?glass=dark|light` one glass (for screenshots).
  */
 export const mount: SlotMount = (ctx) => {
   const params = new URLSearchParams(location.search);
@@ -88,6 +110,13 @@ export const mount: SlotMount = (ctx) => {
     if (!only || only === 'fan') {
       domainCaption(col, 'fans');
       for (const [label, id] of FAN_SHOWN) badgeRow(col, label, id, glass, domains.hass, others);
+    }
+    if (!only || only === 'media') {
+      domainCaption(col, 'media players');
+      for (const [label, id] of MEDIA_SHOWN) badgeRow(col, label, id, glass, domains.hass, others);
+      const long = document.createElement('div');
+      col.append(long);
+      mountLongMedia(long, domains.hass, glass, others);
     }
     domainCaption(col, 'long names');
     const long = document.createElement('div');

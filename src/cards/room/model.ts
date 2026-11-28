@@ -1,8 +1,9 @@
-import { num, type HassEntity, type HomeAssistant, type ICONS } from '@decibel95/liquid-core';
+import { num, PALETTE, tone, type HassEntity, type HomeAssistant, type ICONS } from '@decibel95/liquid-core';
 import { t } from '../../i18n';
 import { colourOf, COLOUR_MODES, lightView, membersOn, neutralColour, type Glass, type LightPatch, type LightView } from '../../lights';
 import { coverColour, coverGlyph, coverSub, coverTileSub, hasPositionBit, isCoverActive, isCoverUnavailable, positionOf } from '../../covers';
 import { fanColour, fanReadout, fanSub, fanView, type FanPatch, type FanView } from '../../fans';
+import { isMediaLit, mediaStateWord, mediaTileSub, mediaView, type MediaPending, type MediaView } from '../../media';
 import type { RoomMember } from './members';
 
 type Hass = Pick<HomeAssistant, 'states'> & { language?: string; locale?: { language?: string } };
@@ -11,10 +12,10 @@ type Hass = Pick<HomeAssistant, 'states'> & { language?: string; locale?: { lang
 interface TileView {
   member: RoomMember;
   stateObj?: HassEntity;
-  /** The room tile glyph: bulb, blinds or door, fan. */
+  /** The room tile glyph: bulb, blinds or door, fan, speaker. */
   glyph: keyof typeof ICONS;
   available: boolean;
-  /** Counts for the summary and tints the icon: a light or fan on, a cover open or moving. */
+  /** Counts for the summary and tints the icon: a light or fan on, a cover open or moving, a player playing or buffering (or an on/off-only player in on, isMediaLit). */
   on: boolean;
   /** Big tile text (the prototype's roomValue). */
   value: string;
@@ -38,8 +39,17 @@ export interface FanMemberView extends TileView {
   fan?: FanView;
 }
 
+/** A media player member, with the shared media view (src/media) and the writer's pending values on top. */
+export interface MediaMemberView extends TileView {
+  domain: 'media_player';
+  /** The shared media view; for a missing entity it reads as unavailable. */
+  media: MediaView;
+  /** The state word ("Playing", "Paused", "Off", "Unavailable"), the second part of the tile's aria label. */
+  stateWord: string;
+}
+
 /** One member of any domain. */
-export type RoomView = MemberView | CoverMemberView | FanMemberView;
+export type RoomView = MemberView | CoverMemberView | FanMemberView | MediaMemberView;
 
 /** What a room tile and the strip show for one light: the shared light view plus the room card's texts. */
 export interface MemberView {
@@ -159,8 +169,35 @@ export function fanMemberView(hass: Hass, member: RoomMember, glass: Glass, loca
 }
 
 /**
- * The header summary (D-9): a room of lights only keeps "2 of 3 on"; a room with a cover or a fan reads "3 of 5 active",
- * counting lights on, covers open or moving, and fans on (the prototype's count).
+ * A media player tile (P3-CHO-23): the speaker glyph, tinted in the neutral (P3-COL-1) while playing or buffering (or an
+ * on/off-only player in on, isMediaLit: it counts as active); the
+ * value is the volume in percent for a player with VOLUME_SET while it is on (active), else the state word, "--" while
+ * unavailable; the footer is the tile subline. No artwork: the room keeps its single glass surface.
+ */
+export function mediaMemberView(hass: Hass, member: RoomMember, glass: Glass, pending?: MediaPending): MediaMemberView {
+  const s = hass.states[member.entity];
+  const v = mediaView(s, { entityId: member.entity, pending });
+  const word = mediaStateWord(hass, v);
+  const volume = v.available && v.kind === 'volume' && v.volume != null;
+  return {
+    domain: 'media_player',
+    member,
+    stateObj: s,
+    media: v,
+    stateWord: word,
+    glyph: 'speaker',
+    available: v.available,
+    on: isMediaLit(v),
+    value: !v.available ? '--' : volume ? String(v.volume) : word,
+    unit: volume ? '%' : '',
+    status: mediaTileSub(hass, v),
+    colour: tone(PALETTE.neutral, glass),
+  };
+}
+
+/**
+ * The header summary (D-9, P3-CHO-25): a room of lights only keeps "2 of 3 on"; a room with a cover, a fan or a media
+ * player reads "3 of 5 active", counting lights on, covers open or moving, fans on, and players playing or buffering (an on/off-only player in on counts).
  */
 export function roomSummary(hass: Hass, views: RoomView[]): string {
   const key = views.every((v) => v.domain === 'light') ? 'room.summary' : 'room.summaryActive';

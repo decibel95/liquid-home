@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { newPage, openScene } from './browser.mjs';
 
 /** Scene names of dev/media.ts. Each renders a -light and a -dark still. */
-export const SCENES = ['light', 'cover', 'fan', 'tile', 'badge', 'room'];
+export const SCENES = ['light', 'cover', 'fan', 'media', 'tile', 'badge', 'room'];
 
 /** README scenes: rendered into docs/public/media/readme/ as <scene>-light.png and <scene>-dark.png. */
 export const README_SCENES = ['hero', 'modes', 'sheet'];

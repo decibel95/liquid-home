@@ -1,0 +1,44 @@
+name: E2E
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+  workflow_dispatch:
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+permissions: {}
+jobs:
+  e2e:
+    # GitHub only: the same workflow files also sit in the Forgejo repository, whose runners lack the browser libraries.
+    if: github.server_url == 'https://github.com'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    env:
+      # performance.spec.ts depends on the machine load: it stays local and in the release verification.
+      LH_E2E_IGNORE: performance.spec.ts
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 'lts/*'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run build
+      - name: Install Chromium and its system libraries
+        run: npx playwright install --with-deps chromium
+      # CI=true (set by GitHub) turns on one retry per failing test; the report shows every retry.
+      - name: End-to-end suite (Chromium)
+        run: npm run e2e
+      - if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: e2e-results
+          path: node_modules/.cache/lh-e2e
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7

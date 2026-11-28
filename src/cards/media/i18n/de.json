@@ -1,0 +1,67 @@
+{
+  "card": {
+    "name": "Medienkarte",
+    "description": "Glaskarte für einen Mediaplayer: Cover hinter dem Glas, Wiedergabetasten, eine Lautstärkeleiste und eine Positionsleiste.",
+    "loading": "Wird geladen",
+    "entityNotFound": "Entität nicht gefunden: {entity}"
+  },
+  "state": {
+    "playing": "Spielt",
+    "paused": "Pausiert",
+    "buffering": "Puffert",
+    "idle": "Leerlauf",
+    "standby": "Standby",
+    "on": "An",
+    "unknown": "Unbekannt"
+  },
+  "sub": {
+    "grouped": "{state}, gruppiert mit {n}"
+  },
+  "now": {
+    "nothing": "Keine Wiedergabe",
+    "episode": "{series}, S{season} F{episode}"
+  },
+  "readout": {
+    "volume": "Lautstärke",
+    "muted": "Stumm",
+    "on": "An",
+    "tap": "Tippen zum Schalten"
+  },
+  "button": {
+    "previous": "Zurück",
+    "next": "Weiter",
+    "play": "Abspielen",
+    "pause": "Pause",
+    "mute": "Stumm",
+    "power": "Ein/Aus"
+  },
+  "row": {
+    "group": "Wiedergabesteuerung"
+  },
+  "step": {
+    "up": "Lauter",
+    "down": "Leiser"
+  },
+  "chip": {
+    "source": "Quelle",
+    "soundMode": "Klangmodus"
+  },
+  "aria": {
+    "power": "{name} schalten",
+    "volume": "Lautstärke, {name}",
+    "volumeMuted": "Stumm, {value}",
+    "position": "Position, {name}",
+    "time": "{elapsed} von {total}",
+    "stepUp": "Lauter, {name}",
+    "stepDown": "Leiser, {name}",
+    "play": "Wiedergabe, {name}",
+    "pause": "Pause, {name}",
+    "menu": "Liste {label}, {name}"
+  },
+  "sheet": {
+    "shuffle": "Zufallswiedergabe",
+    "repeatOff": "Wiederholung aus",
+    "repeatAll": "Alle wiederholen",
+    "repeatOne": "Titel wiederholen"
+  }
+}

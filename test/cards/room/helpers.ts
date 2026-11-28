@@ -1,7 +1,8 @@
-import type { HomeAssistant } from '@decibel95/liquid-core';
+import type { HassEntity, HomeAssistant } from '@decibel95/liquid-core';
 import { LIGHT_FIXTURES, type LightFixtureName, type LightState } from '../../fixtures/lights';
 import { COVER_FIXTURES } from '../../covers/fixtures';
 import { FAN_FIXTURES } from '../../fans/fixtures';
+import { MEDIA_FIXTURES } from '../media/fixtures';
 
 export type Call = { domain: string; service: string; data: Record<string, any> };
 export type AnyEl = HTMLElement & Record<string, any>;
@@ -102,6 +103,46 @@ export function makeMixedHass(calls: Call[] = [], tweak?: (h: HomeAssistant, ids
   for (const id of [BLIND, 'fan.living_room_fan', 'fan.lh_fixture_onoff', 'fan.lh_fixture_ten']) hass.entities[id] = { entity_id: id, platform: 'template', area_id: AREA };
   hass.entities['cover.garage_door'] = { entity_id: 'cover.garage_door', platform: 'demo', area_id: 'hallway' };
   hass.entities['fan.ceiling_fan'] = { entity_id: 'fan.ceiling_fan', platform: 'demo', area_id: AREA, hidden_by: 'user' };
+  tweak?.(hass, ids);
+  return { hass, ids };
+}
+
+/** The kitchen area of the media-only room (P3-CHO-25 board 2). */
+export const KITCHEN = 'kitchen';
+
+/**
+ * makeMixedHass plus every media fixture of the media card (REAL demo players and DERIVED `lh_fixture_*` states with the
+ * test HA feature numbers), as on the canvas Room board. Living Room: the demo Kitchen player through its device, the
+ * Lounge room (paused, derived) and an unavailable player named Walkman through the entity, and a hidden player. Kitchen
+ * area: Group (playing), Walkman paused (the paused fixture renamed) and Bedroom (unavailable) through the entity. The
+ * TV sits in the Hallway, so area filtering is visible. The demo players have no area on the test HA: DERIVED.
+ */
+export function makeMediaHass(calls: Call[] = [], tweak?: (h: HomeAssistant, ids: Record<LightFixtureName, string>) => void) {
+  const { hass, ids } = makeMixedHass(calls);
+  const states = hass.states as Record<string, unknown>;
+  for (const make of Object.values(MEDIA_FIXTURES)) {
+    const s = make();
+    states[s.entity_id] = s;
+  }
+  const rename = (id: string, name: string, state?: string) => {
+    const s = states[id] as HassEntity;
+    states[id] = { ...s, ...(state ? { state } : {}), attributes: { ...s.attributes, friendly_name: name } };
+  };
+  rename('media_player.lounge_room', 'Lounge room', 'paused');
+  rename('media_player.lh_fixture_unavailable', 'Walkman');
+  rename('media_player.lh_fixture_paused', 'Walkman');
+  rename('media_player.lh_fixture_standby', 'Standby');
+  rename('media_player.lh_fixture_tv_sources', 'TV');
+  states['media_player.bedroom'] = { ...(MEDIA_FIXTURES.unavailable() as HassEntity), entity_id: 'media_player.bedroom', attributes: { friendly_name: 'Bedroom', supported_features: 21391, restored: true } };
+  states['media_player.hidden_speaker'] = { ...(MEDIA_FIXTURES.kitchen() as HassEntity), entity_id: 'media_player.hidden_speaker' };
+  const device = 'dev_media_kitchen';
+  hass.devices[device] = { id: device, area_id: AREA };
+  hass.entities['media_player.kitchen'] = { entity_id: 'media_player.kitchen', device_id: device, platform: 'demo' };
+  for (const id of ['media_player.lounge_room', 'media_player.lh_fixture_unavailable']) hass.entities[id] = { entity_id: id, platform: 'demo', area_id: AREA };
+  hass.entities['media_player.hidden_speaker'] = { entity_id: 'media_player.hidden_speaker', platform: 'demo', area_id: AREA, hidden_by: 'user' };
+  for (const id of ['media_player.group', 'media_player.lh_fixture_paused', 'media_player.bedroom']) hass.entities[id] = { entity_id: id, platform: 'demo', area_id: KITCHEN };
+  hass.entities['media_player.lh_fixture_tv_sources'] = { entity_id: 'media_player.lh_fixture_tv_sources', platform: 'demo', area_id: 'hallway' };
+  (hass.areas as Record<string, unknown>)[KITCHEN] = { area_id: KITCHEN, name: 'Kitchen' };
   tweak?.(hass, ids);
   return { hass, ids };
 }

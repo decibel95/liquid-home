@@ -1,0 +1,67 @@
+{
+  "card": {
+    "name": "Carte média",
+    "description": "Carte en verre pour un lecteur multimédia : la pochette derrière le verre, des boutons de lecture, une pastille de volume et une barre de position.",
+    "loading": "Chargement",
+    "entityNotFound": "Entité introuvable : {entity}"
+  },
+  "state": {
+    "playing": "Lecture",
+    "paused": "En pause",
+    "buffering": "Mise en tampon",
+    "idle": "Inactif",
+    "standby": "Veille",
+    "on": "Allumé",
+    "unknown": "Inconnu"
+  },
+  "sub": {
+    "grouped": "{state}, groupé avec {n}"
+  },
+  "now": {
+    "nothing": "Aucune lecture",
+    "episode": "{series}, S{season} É{episode}"
+  },
+  "readout": {
+    "volume": "Volume",
+    "muted": "Muet",
+    "on": "Allumé",
+    "tap": "Appuyer pour basculer"
+  },
+  "button": {
+    "previous": "Retour",
+    "next": "Suivant",
+    "play": "Lecture",
+    "pause": "Pause",
+    "mute": "Muet",
+    "power": "Marche"
+  },
+  "row": {
+    "group": "Commandes de lecture"
+  },
+  "step": {
+    "up": "Augmenter le volume",
+    "down": "Baisser le volume"
+  },
+  "chip": {
+    "source": "Source",
+    "soundMode": "Mode sonore"
+  },
+  "aria": {
+    "power": "Allumer ou éteindre {name}",
+    "volume": "Volume, {name}",
+    "volumeMuted": "Muet, {value}",
+    "position": "Position, {name}",
+    "time": "{elapsed} sur {total}",
+    "stepUp": "Augmenter le volume, {name}",
+    "stepDown": "Baisser le volume, {name}",
+    "play": "Lecture, {name}",
+    "pause": "Pause, {name}",
+    "menu": "Liste {label}, {name}"
+  },
+  "sheet": {
+    "shuffle": "Lecture aléatoire",
+    "repeatOff": "Répétition désactivée",
+    "repeatAll": "Tout répéter",
+    "repeatOne": "Répéter le titre"
+  }
+}

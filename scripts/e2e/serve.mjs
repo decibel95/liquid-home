@@ -5,7 +5,7 @@
  * - Vite dev server on the repository root: the dev harness (/dev/) and the test pages (/test/e2e/pages/).
  * - /__bundles/liquid-home.js: the built dist/liquid-home.js (built first when it is missing, or with LH_E2E_REBUILD=1),
  *   and next to it dist/liquid-inter.woff2 (as font/woff2) and dist/liquid-inter-OFL.txt, as HACS serves a release.
- * - /__bundles/liquid-climate.js: the Liquid Climate v0.12.1 release asset, downloaded and sha256-checked into the
+ * - /__bundles/liquid-climate.js: the Liquid Climate v0.13.0 release asset, downloaded and sha256-checked into the
  *   cache directory (scripts/e2e/fetch-lc.mjs). The Liquid Climate repository is never built or touched.
  *
  * Port: $LH_E2E_PORT, default 5291. Binds to 127.0.0.1 only.

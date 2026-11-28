@@ -1,7 +1,7 @@
 {
   "product": {
     "name": "Liquid Home",
-    "description": "Glazen kaarten voor Home Assistant-lampen, -bedekkingen en -ventilatoren"
+    "description": "Glazen kaarten voor Home Assistant-lampen, -bedekkingen, -ventilatoren en -mediaspelers"
   },
   "common": {
     "commandFailed": "Opdracht mislukt"
@@ -32,7 +32,7 @@
     "tapCard": "Kaart openen",
     "tapMoreInfo": "Meer info",
     "tapNothing": "Niets",
-    "tileHint": "Kaartopties in de tegelconfiguratie gelden voor de kaart die de tegel opent: modi en effecten voor een lamp, voorinstellingen voor een ventilator en de weergave van de verzonden waarde voor een lamp, bedekking of ventilator.",
+    "tileHint": "Kaartopties in de tegelconfiguratie gelden voor de kaart die de tegel opent: modi en effecten voor een lamp, voorinstellingen voor een ventilator, bronnen en geluidsmodi voor een mediaspeler, en de weergave van de verzonden waarde voor een lamp, bedekking, ventilator of mediaspeler.",
     "iconOnly": "Alleen pictogram",
     "title": "Titel",
     "source": "Bron",
@@ -65,6 +65,12 @@
     "powerEntity": "Aan/uit-entiteit",
     "powerHint": "Een lampgroep voor de aan/uit-knop in de kop. Leeg schakelt alle lampen van de kaart in één keer.",
     "powerInvalid": "Dit is geen lamp in Home Assistant, dus het is niet opgeslagen.",
-    "yamlHint": "Opties van de lichtkaart in YAML (modi, effecten, write_hold) gelden voor de lichtkaart die een kamertegel opent."
+    "yamlHint": "Opties van de lichtkaart in YAML (modi, effecten, write_hold) gelden voor de lichtkaart die een kamertegel opent.",
+    "mediaPlayers": "Mediaspelers",
+    "sources": "Bronnen",
+    "sourceCount": "{n} bronnen",
+    "soundModes": "Geluidsmodi",
+    "soundModeCount": "{n} geluidsmodi",
+    "notSupportedPlayer": "Niet ondersteund door deze mediaspeler"
   }
 }

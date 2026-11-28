@@ -4,6 +4,7 @@ import { migrateConfig } from '../../migrate';
 import { normalizeConfig as normalizeLightConfig, type LightCardConfig } from '../light/config';
 import { normalizeConfig as normalizeCoverConfig } from '../cover/config';
 import { defaultConfig as fanDefaults, normalizeConfig as normalizeFanConfig } from '../fan/config';
+import { defaultConfig as mediaDefaults, normalizeConfig as normalizeMediaConfig } from '../media/config';
 import { tileDomain, type TileDomain } from './text';
 
 /** What a tap on the tile body or on a badge does, as in Liquid Climate. */
@@ -13,13 +14,13 @@ export const TAP_ACTIONS: readonly TapAction[] = ['sheet', 'more-info', 'none'];
 export const tapAction = (v: unknown, fallback: TapAction): TapAction => (TAP_ACTIONS.includes(v as TapAction) ? (v as TapAction) : fallback);
 
 /**
- * The tile opens the card of its entity's domain (light, cover or fan card) as a sheet: that card's options can sit
- * here and are passed on (`controls` of the light and fan cards, `write_hold`, `look`).
+ * The tile opens the card of its entity's domain (light, cover, fan or media card) as a sheet: that card's options can
+ * sit here and are passed on (`controls` of the light, fan and media cards, `write_hold`, `look`).
  */
 export interface TileConfig extends Omit<LightCardConfig, 'type' | 'controls'> {
   type: string;
-  /** Light card `modes` and `effects`, fan card `presets`. */
-  controls?: LightCardConfig['controls'] & { presets?: boolean };
+  /** Light card `modes` and `effects`, fan card `presets`, media card `sources` and `sound_modes`. */
+  controls?: LightCardConfig['controls'] & { presets?: boolean; sources?: boolean; sound_modes?: boolean };
   /** Tap on the name and status: open the card of the entity (default), HA's more-info dialog, or nothing. */
   tap_action?: TapAction;
 }
@@ -42,6 +43,7 @@ const CARDS: Record<TileDomain, { type: string; normalize: (raw: RawConfig) => R
   light: { type: CARD_TYPES.light, normalize: normalizeLightConfig },
   cover: { type: CARD_TYPES.cover, normalize: normalizeCoverConfig },
   fan: { type: CARD_TYPES.fan, normalize: normalizeFanConfig },
+  media: { type: CARD_TYPES.media, normalize: normalizeMediaConfig },
 };
 
 /** The domain a config is for; a config without a valid entity reads as a light (the 0.2 tile). */
@@ -76,9 +78,14 @@ export function sheetConfig(cfg: TileConfig): TileSheetConfig {
   return { ...rest, type: CARDS[domainOf(cfg)].type };
 }
 
+/** The card defaults a tile's `controls` are pruned against: the fan and media cards' own, the light keys otherwise. */
+const CONTROL_DEFAULTS: Partial<Record<TileDomain, object>> = { fan: fanDefaults.controls, media: mediaDefaults.controls };
+
 /**
- * What an editor writes: only non-default options. A fan tile's `controls.presets: true` is the fan card's default
- * (the light keys stay as they were).
+ * What an editor writes: only non-default options. A fan tile's `controls.presets: true` and a media tile's
+ * `controls.sources` and `sound_modes: true` are their cards' defaults (the light keys stay as they were).
  */
-export const pruneConfig = (config: TileConfig): Partial<TileConfig> =>
-  pruneDefaults(config, domainOf(config) === 'fan' ? { ...defaultConfig, controls: fanDefaults.controls } : defaultConfig);
+export const pruneConfig = (config: TileConfig): Partial<TileConfig> => {
+  const controls = CONTROL_DEFAULTS[domainOf(config)];
+  return pruneDefaults(config, controls ? { ...defaultConfig, controls } : defaultConfig);
+};

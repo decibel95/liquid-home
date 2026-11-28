@@ -1,7 +1,7 @@
 {
   "product": {
     "name": "Liquid Home",
-    "description": "Cartes en verre pour les lumières, volets et ventilateurs de Home Assistant"
+    "description": "Cartes en verre pour les lumières, volets, ventilateurs et lecteurs multimédias de Home Assistant"
   },
   "common": {
     "commandFailed": "Échec de la commande"
@@ -32,7 +32,7 @@
     "tapCard": "Ouvrir la carte",
     "tapMoreInfo": "Plus d'infos",
     "tapNothing": "Rien",
-    "tileHint": "Les options de carte dans la configuration de la tuile s'appliquent à la carte qu'elle ouvre : modes et effets pour une lumière, préréglages pour un ventilateur, et l'affichage de la valeur envoyée pour une lumière, un volet ou un ventilateur.",
+    "tileHint": "Les options de carte dans la configuration de la tuile s'appliquent à la carte qu'elle ouvre : modes et effets pour une lumière, préréglages pour un ventilateur, sources et modes sonores pour un lecteur multimédia, et l'affichage de la valeur envoyée pour une lumière, un volet, un ventilateur ou un lecteur multimédia.",
     "iconOnly": "Icône seule",
     "title": "Titre",
     "source": "Source",
@@ -65,6 +65,12 @@
     "powerEntity": "Entité marche/arrêt",
     "powerHint": "Un groupe de lumières pour le bouton de l'en-tête. Vide : toutes les lumières de la carte sont commandées en un seul appel.",
     "powerInvalid": "Ce n'est pas une lumière dans Home Assistant, elle n'a donc pas été enregistrée.",
-    "yamlHint": "Les options de la carte lumière en YAML (modes, effets, write_hold) s'appliquent à la carte lumière qu'ouvre une tuile de pièce."
+    "yamlHint": "Les options de la carte lumière en YAML (modes, effets, write_hold) s'appliquent à la carte lumière qu'ouvre une tuile de pièce.",
+    "mediaPlayers": "Lecteurs multimédias",
+    "sources": "Sources",
+    "sourceCount": "{n} sources",
+    "soundModes": "Modes sonores",
+    "soundModeCount": "{n} modes sonores",
+    "notSupportedPlayer": "Non pris en charge par ce lecteur multimédia"
   }
 }

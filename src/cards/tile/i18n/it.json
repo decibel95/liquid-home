@@ -5,6 +5,7 @@
   "ariaTile": "Luce {name}",
   "ariaCover": "Tapparella {name}",
   "ariaFan": "Ventilatore {name}",
+  "ariaMedia": "Lettore multimediale {name}",
   "power": "Accendi o spegni {name}",
   "stepDown": "Diminuisci luminosità",
   "stepUp": "Aumenta luminosità",

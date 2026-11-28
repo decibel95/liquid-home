@@ -8,14 +8,14 @@ import { domainOf, firstAreaWithLights, roomMembers, roomTitle } from '../cards/
 import { LiquidHomeEditor } from './base';
 
 /** The domain labels of the multi-select, in display order. */
-const DOMAIN_LABELS: Record<RoomDomain, string> = { light: 'editor.lights', cover: 'editor.covers', fan: 'editor.fans' };
+const DOMAIN_LABELS: Record<RoomDomain, string> = { light: 'editor.lights', cover: 'editor.covers', fan: 'editor.fans', media_player: 'editor.mediaPlayers' };
 /** The add input's example id per first domain. */
-const EXAMPLE: Record<RoomDomain, string> = { light: 'light.kitchen', cover: 'cover.living_room_window', fan: 'fan.living_room_fan' };
+const EXAMPLE: Record<RoomDomain, string> = { light: 'light.kitchen', cover: 'cover.living_room_window', fan: 'fan.living_room_fan', media_player: 'media_player.kitchen' };
 
 /**
- * Room editor, as the Liquid Climate cluster editor: title, the domains the room shows (lights, covers, fans), where
- * its entities come from (one area, with entities to leave out, or an ordered list with optional names), the power
- * entity (lights only) and the look. The editor always writes `source`; `domains` only when it is not lights only.
+ * Room editor, as the Liquid Climate cluster editor: title, the domains the room shows (lights, covers, fans, media
+ * players), where its entities come from (one area, with entities to leave out, or an ordered list with optional
+ * names), the power entity (lights only) and the look. The editor always writes `source`; `domains` only when it is not lights only.
  */
 export class LiquidHomeRoomEditor extends LiquidHomeEditor<RoomConfig> {
   protected readonly _card: CardKey = 'room';
@@ -104,7 +104,7 @@ export class LiquidHomeRoomEditor extends LiquidHomeEditor<RoomConfig> {
             @click=${() => {
               const domains = ROOM_DOMAINS.filter((x) => (x === d ? !on : current.includes(x)));
               this._powerInvalid = false;
-              // Entries that name no light, cover or fan are kept as they are (the list keeps what it cannot show).
+              // Entries that name no light, cover, fan or media player are kept as they are (the list keeps what it cannot show).
               const keep = (item: unknown) => {
                 const dm = domainOf(this._idOf(item));
                 return !dm || domains.includes(dm);

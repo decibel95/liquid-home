@@ -1,0 +1,67 @@
+{
+  "card": {
+    "name": "Scheda multimediale",
+    "description": "Scheda in vetro per un lettore multimediale: la copertina dietro il vetro, pulsanti di riproduzione, una pillola del volume e una barra di posizione.",
+    "loading": "Caricamento",
+    "entityNotFound": "Entità non trovata: {entity}"
+  },
+  "state": {
+    "playing": "In riproduzione",
+    "paused": "In pausa",
+    "buffering": "Buffering",
+    "idle": "Inattivo",
+    "standby": "Standby",
+    "on": "Acceso",
+    "unknown": "Sconosciuto"
+  },
+  "sub": {
+    "grouped": "{state}, raggruppato con {n}"
+  },
+  "now": {
+    "nothing": "Nessuna riproduzione",
+    "episode": "{series}, S{season} E{episode}"
+  },
+  "readout": {
+    "volume": "Volume",
+    "muted": "Muto",
+    "on": "Acceso",
+    "tap": "Tocca per cambiare"
+  },
+  "button": {
+    "previous": "Indietro",
+    "next": "Avanti",
+    "play": "Riproduci",
+    "pause": "Pausa",
+    "mute": "Muto",
+    "power": "Accendi"
+  },
+  "row": {
+    "group": "Controlli di riproduzione"
+  },
+  "step": {
+    "up": "Volume su",
+    "down": "Volume giù"
+  },
+  "chip": {
+    "source": "Sorgente",
+    "soundMode": "Modalità audio"
+  },
+  "aria": {
+    "power": "Accendi o spegni {name}",
+    "volume": "Volume, {name}",
+    "volumeMuted": "Muto, {value}",
+    "position": "Posizione, {name}",
+    "time": "{elapsed} di {total}",
+    "stepUp": "Volume su, {name}",
+    "stepDown": "Volume giù, {name}",
+    "play": "Riproduci, {name}",
+    "pause": "Pausa, {name}",
+    "menu": "Elenco {label}, {name}"
+  },
+  "sheet": {
+    "shuffle": "Riproduzione casuale",
+    "repeatOff": "Ripeti disattivato",
+    "repeatAll": "Ripeti tutto",
+    "repeatOne": "Ripeti un brano"
+  }
+}

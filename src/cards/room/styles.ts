@@ -39,6 +39,10 @@ export const roomStyles = css`
   .mode[hidden] {
     display: none;
   }
+  /* ICO-8: Previous is skip-forward mirrored, in RTL too (transport icons keep their direction), as the media card. */
+  svg.mirror {
+    transform: scaleX(-1);
+  }
   /*
    * A cover or fan tile can show a word as its value (Closed, Opening, a preset). It never grows the tile: the
    * cluster value size, then an ellipsis (P2-CHO-6); the footer and the tile name still carry the whole word. Only the

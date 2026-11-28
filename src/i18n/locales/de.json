@@ -1,7 +1,7 @@
 {
   "product": {
     "name": "Liquid Home",
-    "description": "Glaskarten für Lichter, Rollläden und Ventilatoren in Home Assistant"
+    "description": "Glaskarten für Lichter, Rollläden, Ventilatoren und Mediaplayer in Home Assistant"
   },
   "common": {
     "commandFailed": "Befehl fehlgeschlagen"
@@ -32,7 +32,7 @@
     "tapCard": "Karte öffnen",
     "tapMoreInfo": "Mehr Infos",
     "tapNothing": "Nichts",
-    "tileHint": "Kartenoptionen in der Kachelkonfiguration gelten für die Karte, die die Kachel öffnet: Modi und Effekte für ein Licht, Voreinstellungen für einen Ventilator und die Anzeige des gesendeten Werts für Licht, Rollladen oder Ventilator.",
+    "tileHint": "Kartenoptionen in der Kachelkonfiguration gelten für die Karte, die die Kachel öffnet: Modi und Effekte für ein Licht, Voreinstellungen für einen Ventilator, Quellen und Klangmodi für einen Mediaplayer und die Anzeige des gesendeten Werts für Licht, Rollladen, Ventilator oder Mediaplayer.",
     "iconOnly": "Nur Symbol",
     "title": "Titel",
     "source": "Quelle",
@@ -65,6 +65,12 @@
     "powerEntity": "Ein/Aus-Entität",
     "powerHint": "Eine Lichtgruppe für die Schaltfläche im Kopf. Leer schaltet alle Lichter der Karte mit einem Aufruf.",
     "powerInvalid": "Das ist kein Licht in Home Assistant, daher nicht gespeichert.",
-    "yamlHint": "Optionen der Lichtkarte in YAML (Modi, Effekte, write_hold) gelten für die Lichtkarte, die eine Raumkachel öffnet."
+    "yamlHint": "Optionen der Lichtkarte in YAML (Modi, Effekte, write_hold) gelten für die Lichtkarte, die eine Raumkachel öffnet.",
+    "mediaPlayers": "Mediaplayer",
+    "sources": "Quellen",
+    "sourceCount": "{n} Quellen",
+    "soundModes": "Klangmodi",
+    "soundModeCount": "{n} Klangmodi",
+    "notSupportedPlayer": "Von diesem Mediaplayer nicht unterstützt"
   }
 }

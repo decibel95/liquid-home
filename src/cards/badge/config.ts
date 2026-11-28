@@ -42,7 +42,7 @@ export function normalizeConfig(raw: RawConfig): NormalizedBadgeConfig {
   };
 }
 
-/** The card config a badge opens as a sheet (light, cover or fan card by the entity's domain): its options without the badge's own keys. */
+/** The card config a badge opens as a sheet (light, cover, fan or media card by the entity's domain): its options without the badge's own keys. */
 export function sheetConfig(cfg: BadgeConfig): TileSheetConfig {
   const { icon_only: _icon, ...rest } = cfg;
   return tileSheetConfig(rest);

@@ -12,10 +12,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export const LC_VERSION = 'v0.12.1';
+export const LC_VERSION = 'v0.13.0';
 export const LC_URL = `https://github.com/decibel95/liquid-climate/releases/download/${LC_VERSION}/liquid-climate.js`;
-export const LC_SHA256 = '60fa5e815651e367bd86bcd7991c57481ca8f03109f2a71cbdba298624b140bc';
-export const LC_BYTES = 343828;
+export const LC_SHA256 = 'bec2a35630f24e8c503f0daa9dd839ce710fbb7fc5422fb317a4ceea0ceb35ae';
+export const LC_BYTES = 355735;
 
 const sha256 = (buf) => createHash('sha256').update(buf).digest('hex');
 
@@ -33,6 +33,10 @@ export async function ensureLc() {
   const res = await fetch(LC_URL, { redirect: 'follow' });
   if (!res.ok) throw new Error(`Cannot download ${LC_URL}: HTTP ${res.status}`);
   const body = Buffer.from(await res.arrayBuffer());
+  const declared = res.headers.get('content-length');
+  if (body.length !== LC_BYTES || (declared !== null && Number(declared) !== body.length)) {
+    throw new Error(`Liquid Climate ${LC_VERSION} asset is ${body.length} bytes (content-length ${declared ?? 'absent'}), expected ${LC_BYTES}. Not using it.`);
+  }
   const got = sha256(body);
   if (got !== LC_SHA256) {
     throw new Error(`Liquid Climate ${LC_VERSION} asset has sha256 ${got}, expected ${LC_SHA256} (${body.length} bytes, expected ${LC_BYTES}). Not using it.`);

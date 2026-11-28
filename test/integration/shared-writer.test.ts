@@ -6,14 +6,18 @@ import { CARD_TYPES, TAGS } from '../../src/const';
 import { lightSheet } from '../../src/cards/sheet/open';
 import { coverWriters } from '../../src/covers';
 import { fanWriters } from '../../src/fans';
+import { MEDIA_THROTTLE_MS, mediaWriters } from '../../src/media';
 import { createCoverSim, type CoverSim } from '../covers/sim';
 import { fakeHass as fanHass } from '../cards/fan/helpers';
 import { FAKE_CLOCK } from '../cards/tile/helpers';
+import { MEDIA_FIXTURES } from '../cards/media/fixtures';
+import { fakeHass as mediaHass } from '../media/hass';
 
 /**
  * Plan 2.7, three-way shared writer (H6, after M2): the tile, the room strip and the card the tile opens in the sheet,
  * all on one cover (and on one fan), hold the one writer of that entity (WriterRegistry refs 3). A step from each goes
- * into the same queue and coalesces there; a surface that leaves releases only its own hold.
+ * into the same queue and coalesces there; a surface that leaves releases only its own hold. A media player (0.4) has
+ * one more holder: the sheet's own lease behind its Shuffle and Repeat header actions (path S), so refs 4.
  */
 
 type AnyEl = HTMLElement & Record<string, any>;
@@ -42,7 +46,7 @@ const pointer = (card: AnyEl, type: string, clientY: number) =>
  * surface follows each published hass.
  */
 async function threeSurfaces(entity: string, hass: HomeAssistant, follow: (l: (h: HomeAssistant) => void) => void) {
-  const domain = entity.startsWith('cover.') ? 'cover' : 'fan';
+  const domain = entity.startsWith('cover.') ? 'cover' : entity.startsWith('fan.') ? 'fan' : 'media_player';
   const tile = document.createElement(TAGS.tile) as AnyEl;
   tile.setConfig({ type: CARD_TYPES.tile, entity });
   tile.hass = hass;
@@ -57,7 +61,7 @@ async function threeSurfaces(entity: string, hass: HomeAssistant, follow: (l: (h
   const sheet = lightSheet()!;
   await sheet.updateComplete;
   await tick(50);
-  const card = sheet.shadowRoot!.querySelector(domain === 'cover' ? TAGS.cover : TAGS.fan) as AnyEl;
+  const card = sheet.shadowRoot!.querySelector(domain === 'cover' ? TAGS.cover : domain === 'fan' ? TAGS.fan : TAGS.media) as AnyEl;
   expect(card).not.toBeNull();
   follow((h) => {
     tile.hass = h;
@@ -213,5 +217,94 @@ describe('one fan: tile, room strip and sheet card', () => {
     expect(fanWriters.refs(id)).toBe(1);
     tile.remove();
     expect(fanWriters.refs(id)).toBe(0);
+  });
+});
+
+describe('one media player: tile, room strip, sheet card and the sheet header actions', () => {
+  /** The media fake (no echo: a sent volume stays held) publishes to every surface. */
+  function player() {
+    const fh = mediaHass([MEDIA_FIXTURES.volume_mid()], { echo: false });
+    const listeners: ((h: HomeAssistant) => void)[] = [];
+    const publish = fh.publish;
+    fh.publish = () => {
+      publish();
+      for (const l of listeners) l(fh.hass);
+    };
+    return { fh, follow: (l: (h: HomeAssistant) => void) => listeners.push(l) };
+  }
+  // Volume 35 %, VOLUME_SET and VOLUME_STEP, SHUFFLE_SET and REPEAT_SET not set (30141).
+  const id = 'media_player.lh_fixture_volume_mid';
+  const volumes = (fh: ReturnType<typeof player>['fh']) => fh.calls.map((c) => `${c.service} ${c.data.volume_level}`);
+  const pill = (card: AnyEl) => $(card, '.slwrap .lc-slider');
+  const key = (el: HTMLElement, type: 'keydown' | 'keyup', k: string) =>
+    el.dispatchEvent(new KeyboardEvent(type, { key: k, bubbles: true, cancelable: true, composed: true }));
+
+  it('hold one MediaWriter: refs 4 (tile, room strip, sheet card, sheet header lease)', async () => {
+    const { fh, follow } = player();
+    const { sheet } = await threeSurfaces(id, fh.hass, follow);
+    expect(mediaWriters.refs(id)).toBe(4);
+    // The header lease is the sheet's own: it is the same writer the card holds.
+    const w = mediaWriters.acquire(id);
+    expect((sheet as unknown as { _lease: { current?: unknown } })._lease.current).toBe(w);
+    mediaWriters.release(w);
+  });
+
+  it('a tile step, a strip step and a pill key in one window coalesce into one throttle stream: the leading and one final volume_set', async () => {
+    const { fh, follow } = player();
+    const { tile, room, card } = await threeSurfaces(id, fh.hass, follow);
+    expect(mediaWriters.refs(id)).toBe(4);
+
+    // Tile Volume up: the leading write of the 300 ms throttle, 35 + 5.
+    tileStep(tile, 1);
+    await tick(20);
+    expect(volumes(fh)).toEqual(['volume_set 0.4']);
+    // Strip Volume up inside the window: counted from the shared pending 40, so 45; nothing goes out yet.
+    stripStep(room, 1);
+    await tick(20);
+    await room.updateComplete;
+    await tile.updateComplete;
+    expect(volumes(fh)).toEqual(['volume_set 0.4']);
+    expect(text($(tile, '.target'))).toContain('45');
+    expect(text($(room, '.strip .target'))).toContain('45');
+
+    // The sheet card's volume pill, ArrowUp (2 %) inside the same window, from the shared pending 45: 47.
+    await card.updateComplete;
+    const p = pill(card);
+    expect(p).not.toBeNull();
+    key(p, 'keydown', 'ArrowUp');
+    await tick(20);
+    expect(volumes(fh)).toEqual(['volume_set 0.4']);
+    key(p, 'keyup', 'ArrowUp');
+    await tick(MEDIA_THROTTLE_MS * 4);
+    // The pending 45 never goes out on its own: one final write with the coalesced 47, and nothing follows.
+    expect(volumes(fh)).toEqual(['volume_set 0.4', 'volume_set 0.47']);
+    await tick(2000);
+    expect(fh.calls.length).toBe(2);
+    await card.updateComplete;
+    await tile.updateComplete;
+    expect(text($(tile, '.target'))).toContain('47');
+  });
+
+  it('a surface that leaves releases only its own hold; Close releases the card and the header lease', async () => {
+    const { fh, follow } = player();
+    const { tile, room, sheet } = await threeSurfaces(id, fh.hass, follow);
+    const before = mediaWriters.acquire(id);
+    mediaWriters.release(before);
+    room.remove();
+    expect(mediaWriters.refs(id)).toBe(3);
+    const w = mediaWriters.acquire(id);
+    expect(w).toBe(before);
+    mediaWriters.release(w);
+    // The tile still writes through it.
+    tileStep(tile, 1);
+    await tick(0);
+    expect(volumes(fh)).toEqual(['volume_set 0.4']);
+    sheet.close();
+    await tick(500);
+    expect(mediaWriters.refs(id)).toBe(1);
+    expect(mediaWriters.acquire(id)).toBe(before);
+    mediaWriters.release(before);
+    tile.remove();
+    expect(mediaWriters.refs(id)).toBe(0);
   });
 });

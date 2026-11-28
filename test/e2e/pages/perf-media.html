@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Liquid Home media blur check</title>
+    <style>
+      :root { color-scheme: dark; }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: #0b0e14; color: #f4f6fa; font-family: system-ui, sans-serif; font-size: 15px; }
+      body.light { background: #e7e9ee; color: #10141b; }
+      .blob { position: fixed; border-radius: 50%; filter: blur(90px); pointer-events: none; z-index: 0; }
+      .b1 { width: 520px; height: 520px; left: -160px; top: 80px; background: #24324a; opacity: 0.8; }
+      .b2 { width: 460px; height: 460px; right: -160px; bottom: 60px; background: #3a3320; opacity: 0.7; }
+      .b3 { width: 380px; height: 380px; left: 40%; top: 30%; background: #2a3a30; opacity: 0.6; }
+      body.light .b1, body.light .b2, body.light .b3 { opacity: 0.35; }
+      main { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 16px; }
+      h1 { font-size: 18px; margin: 0 0 4px; }
+      p.note { margin: 0 0 14px; font-size: 13px; opacity: 0.7; line-height: 1.4; }
+      .panel { display: flex; flex-direction: column; gap: 12px; margin-bottom: 18px; }
+      .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+      .row > span.lbl { font-size: 13px; opacity: 0.7; min-width: 64px; }
+      button, select { font: inherit; color: inherit; background: rgba(128, 136, 150, 0.22); border: 1px solid rgba(128, 136, 150, 0.4); border-radius: 12px; padding: 10px 14px; min-height: 44px; }
+      button[aria-pressed="true"] { background: rgba(110, 150, 220, 0.4); border-color: rgba(110, 150, 220, 0.8); }
+      button.go { background: #3b6fd4; border-color: #5a8af0; color: #fff; font-weight: 600; }
+      button:disabled { opacity: 0.5; }
+      #fps { font: 13px ui-monospace, Consolas, monospace; padding: 10px 12px; border: 1px solid rgba(128, 136, 150, 0.4); border-radius: 12px; min-width: 88px; text-align: center; }
+      pre { margin: 0; padding: 12px; border-radius: 12px; background: rgba(128, 136, 150, 0.16); font: 12px/1.5 ui-monospace, Consolas, monospace; white-space: pre-wrap; word-break: break-word; }
+      #stage { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); gap: 16px; align-items: start; min-height: calc(100vh + 400px); }
+      .cell { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+    </style>
+  </head>
+  <body>
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+    <main>
+      <h1>Liquid Home media blur check</h1>
+      <p class="note">
+        Real-device check of the artwork backdrop. Tap Run all: it scrolls this page down and up for 5 s at 1, 4, 8 and 12 media cards
+        (each with a tile), with the backdrop on and off, then prints the numbers. Keep the screen on and the page in front.
+        Criterion for the release note: 4 cards, backdrop on, average at least 50 fps and the worst 250 ms window at least 30 fps.
+      </p>
+      <div class="panel">
+        <div class="row">
+          <button class="go" id="run-all" type="button">Run all (8 runs, about 1 minute)</button>
+          <button id="run-one" type="button">Run once</button>
+          <span id="fps">FPS --</span>
+        </div>
+        <div class="row" id="counts"><span class="lbl">Cards</span></div>
+        <div class="row">
+          <span class="lbl">Backdrop</span>
+          <button id="bd" type="button" aria-pressed="true">Artwork backdrop on</button>
+          <select id="glass" aria-label="Glass"><option value="dark">Dark glass</option><option value="light">Light glass</option></select>
+          <button id="copy" type="button">Copy result</button>
+        </div>
+        <pre id="device"></pre>
+        <pre id="result">Not run yet.</pre>
+      </div>
+      <div id="stage"></div>
+    </main>
+
+    <!-- Build step (scripts/e2e/build-perf-media.mjs) replaces the next two tags: the bundle becomes an inline module and the covers data URIs. -->
+    <script id="lh-covers">window.__LH_COVERS = null;</script>
+    <script type="module" id="lh-bundle" src="/__bundles/liquid-home.js"></script>
+    <script type="module">
+      await customElements.whenDefined('liquid-home-media-card');
+      const $ = (s) => document.querySelector(s);
+      const NAMES = ['Kitchen', 'Living Room', 'Bedroom', 'Office', 'Hallway', 'Bathroom', 'Garage', 'Terrace', 'Study', 'Attic', 'Cellar', 'Nursery'];
+      const COVER_KEYS = ['dark', 'light', 'saturated', 'busy', '43', 'wide'];
+      const COVERS = window.__LH_COVERS || Object.fromEntries(COVER_KEYS.map((k) => [k, `/dev/covers/cover-${k}.png`]));
+      /* PAUSE, SEEK, VOLUME_SET, VOLUME_MUTE, PREVIOUS, NEXT, TURN_ON, TURN_OFF, VOLUME_STEP, STOP, PLAY, SHUFFLE_SET, REPEAT_SET */
+      const FEATURES = 1 | 2 | 4 | 8 | 16 | 32 | 128 | 256 | 1024 | 4096 | 16384 | 32768 | 262144;
+      const TRACKS = ['Paper Lanterns', 'Static Bloom', 'Night Ferry', 'Glass Harbour', 'Slow Orbit', 'Copper Sky'];
+
+      const state = { n: 4, backdrop: true, glass: 'dark' };
+      const players = {};
+      const stamp = () => new Date().toISOString();
+      NAMES.forEach((name, i) => {
+        const id = `media_player.perf_${i}`;
+        players[id] = {
+          entity_id: id,
+          state: 'playing',
+          attributes: {
+            friendly_name: name,
+            supported_features: FEATURES,
+            volume_level: (20 + ((i * 7) % 60)) / 100,
+            is_volume_muted: false,
+            media_title: TRACKS[i % TRACKS.length],
+            media_artist: 'Synthetic Set',
+            app_name: 'Perf',
+            media_content_id: `perf-${i}`,
+            media_content_type: 'music',
+            media_duration: 245,
+            media_position: 20 + ((i * 37) % 150),
+            media_position_updated_at: stamp(),
+            shuffle: false,
+            repeat: 'off',
+            _cover: COVERS[COVER_KEYS[i % COVER_KEYS.length]],
+          },
+          last_changed: stamp(),
+          last_updated: stamp(),
+          context: { id, parent_id: null, user_id: null },
+        };
+      });
+
+      let hass;
+      const cards = [];
+      const publish = () => {
+        const states = {};
+        for (const [id, p] of Object.entries(players)) {
+          const { _cover, ...attrs } = p.attributes;
+          states[id] = { ...p, attributes: state.backdrop ? { ...attrs, entity_picture: _cover } : attrs };
+        }
+        hass = {
+          states,
+          entities: {},
+          devices: {},
+          areas: {},
+          language: 'en',
+          locale: { language: 'en', number_format: 'language', time_format: 'language' },
+          themes: { darkMode: state.glass === 'dark' },
+          config: { unit_system: { temperature: '°C' } },
+          callService: async (domain, service, data = {}) => {
+            const p = players[data.entity_id];
+            if (!p) return;
+            setTimeout(() => {
+              const a = p.attributes;
+              if (service === 'volume_set') a.volume_level = data.volume_level;
+              if (service === 'media_seek') { a.media_position = data.seek_position; a.media_position_updated_at = stamp(); }
+              if (service === 'media_pause') p.state = 'paused';
+              if (service === 'media_play') p.state = 'playing';
+              publish();
+            }, 300);
+          },
+        };
+        for (const el of cards) el.hass = hass;
+      };
+
+      function build() {
+        $('#stage').replaceChildren();
+        cards.length = 0;
+        document.body.classList.toggle('light', state.glass === 'light');
+        for (let i = 0; i < state.n; i++) {
+          const id = `media_player.perf_${i}`;
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          for (const [tag, extra] of [['liquid-home-media-card', {}], ['liquid-home-tile', { tap_action: 'none' }]]) {
+            const el = document.createElement(tag);
+            el.setConfig({ type: `custom:${tag}`, entity: id, look: { glass: state.glass }, ...extra });
+            cards.push(el);
+            cell.append(el);
+          }
+          $('#stage').append(cell);
+        }
+        publish();
+      }
+
+      /* ---- controls ---- */
+      for (const n of [1, 4, 8, 12]) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = String(n);
+        b.dataset.n = String(n);
+        b.setAttribute('aria-pressed', String(n === state.n));
+        b.addEventListener('click', () => setCount(n));
+        $('#counts').append(b);
+      }
+      function setCount(n) {
+        state.n = n;
+        for (const b of document.querySelectorAll('#counts button')) b.setAttribute('aria-pressed', String(Number(b.dataset.n) === n));
+        build();
+      }
+      function setBackdrop(on) {
+        state.backdrop = on;
+        $('#bd').setAttribute('aria-pressed', String(on));
+        $('#bd').textContent = on ? 'Artwork backdrop on' : 'Artwork backdrop off';
+        publish();
+      }
+      $('#bd').addEventListener('click', () => setBackdrop(!state.backdrop));
+      $('#glass').addEventListener('change', (e) => { state.glass = e.target.value; build(); });
+
+      /* ---- meter ---- */
+      const fpsEl = $('#fps');
+      { let n = 0, t0 = performance.now(); const loop = (t) => { n++; if (t - t0 >= 500) { fpsEl.textContent = `FPS ${Math.round((n * 1000) / (t - t0))}`; n = 0; t0 = t; } requestAnimationFrame(loop); }; requestAnimationFrame(loop); }
+
+      const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+      const scroller = () => document.scrollingElement || document.documentElement;
+      const stat = (d) => {
+        const total = d.reduce((a, b) => a + b, 0);
+        const avg = (d.length * 1000) / total;
+        let min = Infinity, acc = 0, cnt = 0;
+        for (const x of d) { acc += x; cnt++; if (acc >= 250) { min = Math.min(min, (cnt * 1000) / acc); acc = 0; cnt = 0; } }
+        return { avg: +avg.toFixed(1), min: +(min === Infinity ? avg : min).toFixed(1), worstMs: Math.round(Math.max(...d)), frames: d.length };
+      };
+
+      /* The 5 s scroll test of the gate 2 prototype: the page scrolls down for 2.5 s and back up for 2.5 s. */
+      function scrollTest() {
+        const sc = scroller();
+        const max = sc.scrollHeight - innerHeight;
+        return new Promise((resolve) => {
+          const d = [];
+          const t0 = performance.now();
+          let last = t0;
+          scrollTo(0, 0);
+          const f = (t) => {
+            d.push(t - last);
+            last = t;
+            const el = t - t0;
+            scrollTo(0, max * (el < 2500 ? el / 2500 : Math.max(0, 1 - (el - 2500) / 2500)));
+            if (el < 5000) requestAnimationFrame(f);
+            else { scrollTo(0, 0); resolve({ ...stat(d), n: state.n, backdrop: state.backdrop, glass: state.glass, scrolled: Math.round(max) }); }
+          };
+          requestAnimationFrame(f);
+        });
+      }
+
+      const line = (r) => `${String(r.n).padStart(2)} cards, backdrop ${r.backdrop ? 'on ' : 'off'}, ${r.glass} glass: average ${r.avg} fps, worst 250 ms window ${r.min} fps, worst frame ${r.worstMs} ms (${r.frames} frames)`;
+      const verdict = (r) => (r.n === 4 && r.backdrop ? `\nCriterion (4 cards, backdrop on): ${r.avg >= 50 && r.min >= 30 ? 'MET' : 'NOT MET'} (average >= 50 and worst window >= 30).` : '');
+      const results = [];
+      const show = (extra = '') => { $('#result').textContent = `${results.map(line).join('\n')}${extra}`; };
+      async function runOne() {
+        await sleep(1500); // covers decode, tickers settle
+        const r = await scrollTest();
+        results.push(r);
+        show(verdict(r));
+        return r;
+      }
+      const busy = (on) => { for (const b of document.querySelectorAll('button, select')) b.disabled = on; };
+      $('#run-one').addEventListener('click', async () => { busy(true); $('#result').textContent = 'Running...'; await runOne(); busy(false); });
+      $('#run-all').addEventListener('click', async () => {
+        busy(true);
+        results.length = 0;
+        for (const n of [4, 1, 8, 12]) {
+          for (const bd of [true, false]) {
+            $('#result').textContent = `${results.map(line).join('\n')}\nRunning ${n} cards, backdrop ${bd ? 'on' : 'off'}...`;
+            setCount(n);
+            setBackdrop(bd);
+            await runOne();
+          }
+        }
+        const four = results.find((r) => r.n === 4 && r.backdrop);
+        show(`${four ? verdict(four) : ''}\nDone.`);
+        busy(false);
+      });
+      $('#copy').addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(`${$('#device').textContent}\n${$('#result').textContent}`); $('#copy').textContent = 'Copied'; } catch { $('#copy').textContent = 'Select the text and copy'; }
+        setTimeout(() => ($('#copy').textContent = 'Copy result'), 2000);
+      });
+
+      $('#device').textContent = `Device: ${navigator.userAgent}\nScreen ${screen.width}x${screen.height} at ${devicePixelRatio}x, viewport ${innerWidth}x${innerHeight}, cores ${navigator.hardwareConcurrency ?? '?'}${navigator.deviceMemory ? `, memory ${navigator.deviceMemory} GB` : ''}`;
+      build();
+      window.__perfMedia = { setCount, setBackdrop, runOne, results, scrollTest, state, ready: true };
+    </script>
+  </body>
+</html>

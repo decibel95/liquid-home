@@ -473,6 +473,6 @@ describe('cover and fan tile config', () => {
     const tile = document.createElement('liquid-home-tile') as AnyEl;
     expect(() => tile.setConfig({ entity: 'cover.x' })).not.toThrow();
     expect(() => tile.setConfig({ entity: 'fan.x' })).not.toThrow();
-    expect(() => tile.setConfig({ entity: 'climate.x' })).toThrow('Choose a light entity (light.*), a cover (cover.*) or a fan (fan.*)');
+    expect(() => tile.setConfig({ entity: 'climate.x' })).toThrow('Choose a light entity (light.*), a cover (cover.*), a fan (fan.*) or a media player (media_player.*)');
   });
 });

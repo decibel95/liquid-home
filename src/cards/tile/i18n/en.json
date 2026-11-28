@@ -5,6 +5,7 @@
   "ariaTile": "{name} light",
   "ariaCover": "{name} cover",
   "ariaFan": "{name} fan",
+  "ariaMedia": "{name} media player",
   "power": "Switch {name}",
   "stepDown": "Lower brightness",
   "stepUp": "Raise brightness",

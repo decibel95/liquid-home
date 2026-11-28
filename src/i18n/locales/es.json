@@ -1,7 +1,7 @@
 {
   "product": {
     "name": "Liquid Home",
-    "description": "Tarjetas de cristal para las luces, persianas y ventiladores de Home Assistant"
+    "description": "Tarjetas de cristal para las luces, persianas, ventiladores y reproductores multimedia de Home Assistant"
   },
   "common": {
     "commandFailed": "El comando falló"
@@ -32,7 +32,7 @@
     "tapCard": "Abrir la tarjeta",
     "tapMoreInfo": "Más información",
     "tapNothing": "Nada",
-    "tileHint": "Las opciones de tarjeta en la configuración del mosaico se aplican a la tarjeta que abre: modos y efectos para una luz, preajustes para un ventilador y la visualización del valor enviado para una luz, una persiana o un ventilador.",
+    "tileHint": "Las opciones de tarjeta en la configuración del mosaico se aplican a la tarjeta que abre: modos y efectos para una luz, preajustes para un ventilador, fuentes y modos de sonido para un reproductor multimedia, y la visualización del valor enviado para una luz, una persiana, un ventilador o un reproductor multimedia.",
     "iconOnly": "Solo icono",
     "title": "Título",
     "source": "Origen",
@@ -65,6 +65,12 @@
     "powerEntity": "Entidad de encendido",
     "powerHint": "Un grupo de luces para el botón del encabezado. Vacío enciende o apaga todas las luces de la tarjeta en una sola llamada.",
     "powerInvalid": "No es una luz en Home Assistant, así que no se guardó.",
-    "yamlHint": "Las opciones de la tarjeta de luz en YAML (modos, efectos, write_hold) se aplican a la tarjeta de luz que abre un mosaico de habitación."
+    "yamlHint": "Las opciones de la tarjeta de luz en YAML (modos, efectos, write_hold) se aplican a la tarjeta de luz que abre un mosaico de habitación.",
+    "mediaPlayers": "Reproductores multimedia",
+    "sources": "Fuentes",
+    "sourceCount": "{n} fuentes",
+    "soundModes": "Modos de sonido",
+    "soundModeCount": "{n} modos de sonido",
+    "notSupportedPlayer": "No compatible con este reproductor multimedia"
   }
 }

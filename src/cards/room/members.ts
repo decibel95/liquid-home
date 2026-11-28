@@ -3,6 +3,7 @@ import { t } from '../../i18n';
 import { isLightEntity } from '../../lights';
 import { isCoverEntity } from '../../covers';
 import { isFanEntity } from '../../fans';
+import { isMediaEntity } from '../../media';
 import { DEFAULT_DOMAINS, ROOM_DOMAINS, roomEntries, type RoomConfig, type RoomDomain } from './config';
 
 /** The registries a room reads: the same ones the Liquid Climate cluster groups its rooms by. */
@@ -17,17 +18,18 @@ export interface RoomMember {
 /** A light entity id: the one check of the light domain (src/lights). */
 export const isLight = isLightEntity;
 
-/** The room domain of an entity id (light, cover or fan), or undefined for any other entity. */
+/** The room domain of an entity id (light, cover, fan or media_player), or undefined for any other entity. */
 export function domainOf(id: unknown): RoomDomain | undefined {
   if (isLightEntity(id)) return 'light';
   if (isCoverEntity(id)) return 'cover';
   if (isFanEntity(id)) return 'fan';
+  if (isMediaEntity(id)) return 'media_player';
   return undefined;
 }
 
 /**
  * Why a `list` entry cannot be a member of a room with these domains, as the setConfig error: the entity's own domain
- * when it is a cover or fan the room does not show, else the domains the room accepts. Undefined when it is fine.
+ * when it is a cover, fan or media player the room does not show, else the domains the room accepts. Undefined when it is fine.
  */
 export function entryError(id: string, domains: readonly RoomDomain[] = DEFAULT_DOMAINS): string | undefined {
   const d = domainOf(id);
@@ -60,7 +62,7 @@ const byText = (a: string, b: string) => a.localeCompare(b, undefined, { sensiti
 
 /**
  * The members of an area: every visible entity of an allowed domain whose own area or whose device's area is `area`,
- * grouped by domain (lights, covers, fans), each group by name. The configured `power_entity` is left out, since the
+ * grouped by domain (lights, covers, fans, media players), each group by name. The configured `power_entity` is left out, since the
  * header button already stands for it.
  */
 function areaEntities(hass: Partial<Registries>, area: string, skip: string[], domains: readonly RoomDomain[] = DEFAULT_DOMAINS): string[] {
@@ -74,7 +76,7 @@ function areaEntities(hass: Partial<Registries>, area: string, skip: string[], d
 /**
  * The room's members in display order, of the configured `domains` only (default lights, as 0.2). `list`: the
  * `entities` in their own order. `area`: every entity of those domains in the area (its own area or its device's),
- * lights first, then covers, then fans, minus `exclude` and the power entity. No area and no entities: none, and the
+ * lights first, then covers, then fans, then media players, minus `exclude` and the power entity. No area and no entities: none, and the
  * card shows its placeholder.
  */
 export function roomMembers(hass: Partial<Registries>, cfg: Pick<RoomConfig, 'source' | 'area' | 'entities' | 'exclude' | 'power_entity' | 'domains'>): RoomMember[] {

@@ -23,6 +23,10 @@
     "fan.entity": "/cards/fan#fan-entity",
     "fan.controls": "/cards/fan#fan-controls",
     "fan.write_hold": "/cards/fan#fan-write-hold",
-    "fan.look": "/cards/fan#fan-look"
+    "fan.look": "/cards/fan#fan-look",
+    "media.entity": "/cards/media#media-entity",
+    "media.controls": "/cards/media#media-controls",
+    "media.write_hold": "/cards/media#media-write-hold",
+    "media.look": "/cards/media#media-look"
   }
 }

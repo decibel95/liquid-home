@@ -1,7 +1,7 @@
 {
   "product": {
     "name": "Liquid Home",
-    "description": "Schede in vetro per le luci, le tapparelle e i ventilatori di Home Assistant"
+    "description": "Schede in vetro per le luci, le tapparelle, i ventilatori e i lettori multimediali di Home Assistant"
   },
   "common": {
     "commandFailed": "Comando non riuscito"
@@ -32,7 +32,7 @@
     "tapCard": "Apri la scheda",
     "tapMoreInfo": "Più info",
     "tapNothing": "Niente",
-    "tileHint": "Le opzioni della scheda nella configurazione del riquadro valgono per la scheda che apre: modalità ed effetti per una luce, preimpostazioni per un ventilatore e la visualizzazione del valore inviato per una luce, una tapparella o un ventilatore.",
+    "tileHint": "Le opzioni della scheda nella configurazione del riquadro valgono per la scheda che apre: modalità ed effetti per una luce, preimpostazioni per un ventilatore, sorgenti e modalità audio per un lettore multimediale, e la visualizzazione del valore inviato per una luce, una tapparella, un ventilatore o un lettore multimediale.",
     "iconOnly": "Solo icona",
     "title": "Titolo",
     "source": "Origine",
@@ -65,6 +65,12 @@
     "powerEntity": "Entità di accensione",
     "powerHint": "Un gruppo di luci per il pulsante dell'intestazione. Vuoto comanda tutte le luci della scheda con una sola chiamata.",
     "powerInvalid": "Non è una luce in Home Assistant, quindi non è stata salvata.",
-    "yamlHint": "Le opzioni della scheda luce in YAML (modalità, effetti, write_hold) valgono per la scheda luce che apre un riquadro stanza."
+    "yamlHint": "Le opzioni della scheda luce in YAML (modalità, effetti, write_hold) valgono per la scheda luce che apre un riquadro stanza.",
+    "mediaPlayers": "Lettori multimediali",
+    "sources": "Sorgenti",
+    "sourceCount": "{n} sorgenti",
+    "soundModes": "Modalità audio",
+    "soundModeCount": "{n} modalità audio",
+    "notSupportedPlayer": "Non supportato da questo lettore multimediale"
   }
 }

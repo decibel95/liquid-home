@@ -1,0 +1,67 @@
+{
+  "card": {
+    "name": "Media card",
+    "description": "Glass card for one media player: artwork behind the glass, playback buttons, a volume pill and a position bar.",
+    "loading": "Loading",
+    "entityNotFound": "Entity not found: {entity}"
+  },
+  "state": {
+    "playing": "Playing",
+    "paused": "Paused",
+    "buffering": "Buffering",
+    "idle": "Idle",
+    "standby": "Standby",
+    "on": "On",
+    "unknown": "Unknown"
+  },
+  "sub": {
+    "grouped": "{state}, grouped with {n}"
+  },
+  "now": {
+    "nothing": "Nothing playing",
+    "episode": "{series}, S{season} E{episode}"
+  },
+  "readout": {
+    "volume": "Volume",
+    "muted": "Muted",
+    "on": "On",
+    "tap": "Tap to switch"
+  },
+  "button": {
+    "previous": "Previous",
+    "next": "Next",
+    "play": "Play",
+    "pause": "Pause",
+    "mute": "Mute",
+    "power": "Power"
+  },
+  "row": {
+    "group": "Playback controls"
+  },
+  "step": {
+    "up": "Volume up",
+    "down": "Volume down"
+  },
+  "chip": {
+    "source": "Source",
+    "soundMode": "Sound mode"
+  },
+  "aria": {
+    "power": "Switch {name}",
+    "volume": "Volume, {name}",
+    "volumeMuted": "Muted, {value}",
+    "position": "Position, {name}",
+    "time": "{elapsed} of {total}",
+    "stepUp": "Volume up, {name}",
+    "stepDown": "Volume down, {name}",
+    "play": "Play, {name}",
+    "pause": "Pause, {name}",
+    "menu": "{label} list, {name}"
+  },
+  "sheet": {
+    "shuffle": "Shuffle",
+    "repeatOff": "Repeat off",
+    "repeatAll": "Repeat all",
+    "repeatOne": "Repeat one"
+  }
+}

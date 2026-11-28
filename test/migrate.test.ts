@@ -62,7 +62,7 @@ describe('migrateConfig', () => {
     vi.doUnmock('../src/cards/light/migrate');
   });
 
-  it.each(['light', 'tile', 'badge', 'room', 'cover', 'fan'] as const)('runs the %s card its own steps (wired in BY_TYPE)', async (card) => {
+  it.each(['light', 'tile', 'badge', 'room', 'cover', 'fan', 'media'] as const)('runs the %s card its own steps (wired in BY_TYPE)', async (card) => {
     vi.resetModules();
     vi.doMock(`../src/cards/${card}/migrate`, () => ({ STEPS: { 0: (c: Record<string, unknown>) => ({ ...c, config_version: 1, own: card }) } }));
     const { migrateConfig: migrate } = await import('../src/migrate');
@@ -123,5 +123,84 @@ describe('0.2 configs in 0.3', () => {
     const shown = await names(lightsOnly);
     expect(shown).toEqual(before.map((m) => m.name));
     expect(await names(mixed)).toEqual(shown);
+  });
+});
+
+/**
+ * Plan section 4 for 0.4: no config_version bump, every media option is additive. A config the 0.3 editors saved stays
+ * byte-equal through migrate, normalize and the editor's prune (the bytes below are pruneConfig(normalizeConfig(...))
+ * of v0.3.0, run once against these inputs: the room's `domains` and `source` last), and a 0.3 room shows exactly its
+ * 0.3 members even when its area now also holds media players.
+ */
+describe('0.3 configs in 0.4', () => {
+  const V03 = {
+    light: { type: CARD_TYPES.light, entity: 'light.bed_light', name: 'Bed', controls: { effects: false, modes: ['brightness', 'white'] }, write_hold: 30, look: { glass: 'dark', blur: 12, motion: 'subtle' }, config_version: 1 },
+    cover: { type: CARD_TYPES.cover, entity: 'cover.living_room_window', name: 'Window', write_hold: 60, look: { glass: 'light', motion: 'minimal' }, config_version: 1 },
+    fan: { type: CARD_TYPES.fan, entity: 'fan.living_room_fan', name: 'Fan', controls: { presets: false }, write_hold: 30, look: { blur: 20 }, config_version: 1 },
+    tileLight: { type: CARD_TYPES.tile, entity: 'light.ceiling_lights', controls: { effects: false, modes: ['white'] }, config_version: 1 },
+    tileCover: { type: CARD_TYPES.tile, entity: 'cover.hall_window', tap_action: 'none', write_hold: 30, config_version: 1 },
+    tileFan: { type: CARD_TYPES.tile, entity: 'fan.lh_fixture_ten', name: 'Ceiling', tap_action: 'more-info', controls: { presets: false }, write_hold: 60, look: { glass: 'dark' }, config_version: 1 },
+    badgeCover: { type: CARD_TYPES.badge, entity: 'cover.hall_window', name: 'Hall', tap_action: 'sheet', icon_only: true, look: { blur: 12 }, config_version: 1 },
+    badgeFan: { type: CARD_TYPES.badge, entity: 'fan.lh_fixture_onoff', config_version: 1 },
+    roomArea: {
+      type: CARD_TYPES.room,
+      title: 'Living',
+      area: 'living_room',
+      power_entity: 'light.lh_fixture_living_room_lights',
+      exclude: ['light.ceiling_lights', 'fan.ceiling_fan'],
+      look: { glass: 'dark' },
+      config_version: 1,
+      domains: ['light', 'cover', 'fan'],
+      source: 'area',
+    },
+    roomList: { type: CARD_TYPES.room, title: 'Lounge', entities: ['cover.hall_window', { entity: 'fan.lh_fixture_ten', name: 'Ceiling' }], config_version: 1, source: 'list', domains: ['cover', 'fan'] },
+  } as const;
+  const MODULES: Record<keyof typeof V03, string> = {
+    light: 'light',
+    cover: 'cover',
+    fan: 'fan',
+    tileLight: 'tile',
+    tileCover: 'tile',
+    tileFan: 'tile',
+    badgeCover: 'badge',
+    badgeFan: 'badge',
+    roomArea: 'room',
+    roomList: 'room',
+  };
+
+  it.each(Object.keys(V03) as (keyof typeof V03)[])('%s: migrate, normalize and prune give the same bytes, still config_version 1', async (name) => {
+    const raw = V03[name];
+    const json = JSON.stringify(raw);
+    expect(JSON.stringify(migrateConfig(structuredClone(raw)))).toBe(json);
+    const { normalizeConfig, pruneConfig } = await import(`../src/cards/${MODULES[name]}/config.ts`);
+    const normalized = normalizeConfig(structuredClone(raw));
+    expect(normalized.config_version).toBe(1);
+    expect(JSON.stringify(pruneConfig(normalized))).toBe(json);
+    expect(JSON.stringify(raw)).toBe(json);
+  });
+
+  it.each(['roomArea', 'roomList'] as const)('%s: the same members and tiles with media players in its area', async (name) => {
+    const { makeMixedHass, makeMediaHass, mountRoom, tiles, text } = await import('./cards/room/helpers');
+    const { roomMembers } = await import('../src/cards/room/members');
+    const { normalizeConfig } = await import('../src/cards/room/config');
+    await import('../src/cards/room');
+    const cfg = normalizeConfig(structuredClone(V03[name]) as Record<string, unknown>);
+    const without = makeMixedHass().hass;
+    const withMedia = makeMediaHass().hass;
+    // The media hass really holds media players in this area.
+    expect(roomMembers(withMedia, { ...cfg, domains: ['light', 'cover', 'fan', 'media_player'] }).some((m) => m.entity.startsWith('media_player.'))).toBe(name === 'roomArea');
+    const before = roomMembers(without, cfg);
+    expect(before.length).toBeGreaterThan(1);
+    expect(roomMembers(withMedia, cfg)).toEqual(before);
+    const names = async (hass: typeof without) => {
+      const card = mountRoom(structuredClone(V03[name]) as Record<string, unknown>, hass);
+      await card.updateComplete;
+      const out = tiles(card).map((b) => text(b.querySelector('.rname')));
+      card.remove();
+      return out;
+    };
+    const shown = await names(without);
+    expect(shown).toEqual(before.map((m) => m.name));
+    expect(await names(withMedia)).toEqual(shown);
   });
 });

@@ -40,24 +40,31 @@ export const PICKER = {
     preview: true,
     documentationURL: `${DOCS_URL}/cards/fan`,
   },
+  media: {
+    type: TAGS.media,
+    name: 'Liquid Home media card',
+    description: 'Glass card for one media player: artwork behind the glass, playback buttons, a volume pill and a position bar.',
+    preview: true,
+    documentationURL: `${DOCS_URL}/cards/media`,
+  },
   tile: {
     type: TAGS.tile,
     name: 'Liquid Home tile',
-    description: 'Compact glass row for a light, cover or fan: icon action, status and steps. Tap to open its card as a sheet.',
+    description: 'Compact glass row for a light, cover, fan or media player: icon action, status and steps. Tap to open its card as a sheet.',
     preview: true,
     documentationURL: `${DOCS_URL}/cards/tile`,
   },
   badge: {
     type: TAGS.badge,
     name: 'Liquid Home badge',
-    description: 'Glass status pill for a light, cover or fan: its state and level.',
+    description: 'Glass status pill for a light, cover, fan or media player: its state and level.',
     preview: true,
     documentationURL: `${DOCS_URL}/cards/badge`,
   },
   room: {
     type: TAGS.room,
     name: 'Liquid Home room',
-    description: 'The lights, covers and fans of a room in one glass card: a tile for each, a strip for the selected one and a header power button for the lights.',
+    description: 'The lights, covers, fans and media players of a room in one glass card: a tile for each, a strip for the selected one and a header power button for the lights.',
     preview: true,
     documentationURL: `${DOCS_URL}/cards/room`,
   },
@@ -69,7 +76,7 @@ function register(list: PickerEntry[], entry: PickerEntry) {
 }
 
 window.customCards = window.customCards || [];
-for (const entry of [PICKER.light, PICKER.cover, PICKER.fan, PICKER.tile, PICKER.badge, PICKER.room]) register(window.customCards, entry);
+for (const entry of [PICKER.light, PICKER.cover, PICKER.fan, PICKER.media, PICKER.tile, PICKER.badge, PICKER.room]) register(window.customCards, entry);
 // The badge is in both lists, as the Liquid Climate badge.
 window.customBadges = window.customBadges || [];
 register(window.customBadges, PICKER.badge);

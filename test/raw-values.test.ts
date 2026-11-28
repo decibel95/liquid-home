@@ -51,7 +51,7 @@ const hasLen = (m: RegExpMatchArray) => new RegExp(LEN).test(m[0]);
 
 /** An interpolated length may only read a liquid-core token or the card's look.blur. */
 /** Case-sensitive on purpose: `dial.gap` or `Tile.size` is a local name, not a liquid-core token namespace. */
-const TOKEN_EXPR = /\b(?:DIAL|TILE|BADGE|CLUSTER|CLUSTER_ICON|SLIDER|READOUT|PILL_MODES|FOCUS)\.|\blook\??\.blur\b/;
+const TOKEN_EXPR = /\b(?:DIAL|TILE|BADGE|CLUSTER|CLUSTER_ICON|SLIDER|READOUT|PILL_MODES|FOCUS|MENU)\.|\blook\??\.blur\b/;
 
 const RULES: { name: string; re: RegExp; keep?: (m: RegExpMatchArray) => boolean }[] = [
   { name: 'hex colour', re: /#[0-9a-fA-F]{3,8}\b/g },

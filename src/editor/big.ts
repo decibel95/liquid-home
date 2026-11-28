@@ -15,7 +15,7 @@ const TABS: [Tab, string, string][] = [
 type BigConfig = RawConfig & { entity: string; name?: string; look?: LookConfig };
 
 /**
- * The editor of a big card (light, cover and fan card), as the Liquid Climate dial editor: Setup (entity of the card's
+ * The editor of a big card (light, cover, fan and media card), as the Liquid Climate dial editor: Setup (entity of the card's
  * domain, name), Controls (the card's own) and Look tabs, each tab with its docs link.
  */
 export abstract class LiquidHomeBigCardEditor<C extends BigConfig> extends LiquidHomeEditor<C> {

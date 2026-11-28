@@ -10,6 +10,7 @@ import { CARD_LOCALES as badge } from '../cards/badge/i18n';
 import { CARD_LOCALES as room } from '../cards/room/i18n';
 import { CARD_LOCALES as cover } from '../cards/cover/i18n';
 import { CARD_LOCALES as fan } from '../cards/fan/i18n';
+import { CARD_LOCALES as media } from '../cards/media/i18n';
 import { createI18n, flatten, type I18nHass, type I18nLayer } from '@decibel95/liquid-core';
 
 /** The six shipped languages (see CONTRIBUTING-translations.md). */
@@ -27,7 +28,7 @@ function layer(trees: Record<Language, Tree>, prefix = ''): I18nLayer {
 }
 
 /** Card strings live under their card name: `light.card.name`, `tile.card.name`. */
-const CARDS = { light, tile, badge, room, cover, fan } as const;
+const CARDS = { light, tile, badge, room, cover, fan, media } as const;
 
 /**
  * Core createI18n prepends the core layer (`core.*`); later layers win, so product wins over core and a card

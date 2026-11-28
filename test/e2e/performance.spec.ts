@@ -374,3 +374,131 @@ test.describe('comparison pages are comparable', () => {
     });
   }
 });
+
+/**
+ * Media page (plan 2.12, 0.4): 4 and 12 media cards, each with a tile of the same player, tickers running (every player
+ * plays with a seek line), the artwork backdrop on and off (`art=off` removes the covers: plain glass). Same method as the
+ * dashboard: the drag of the main control (the volume pill of the first card), p95 frame time, median of REPEATS runs,
+ * unthrottled and with 4x CPU throttling, against Liquid Climate with the same glass count (the same number of dial cards,
+ * each with a tile). Criteria: the ratio of the p95 values (asserted unless LH_E2E_PERF_ENFORCE=0) and the absolute budgets
+ * with LH_E2E_GPU=1. The load average is printed and written to the report: run on an idle machine for release evidence.
+ */
+const MEDIA_VARIANTS = [
+  { cards: 4, art: 'on' },
+  { cards: 4, art: 'off' },
+  { cards: 12, art: 'on' },
+  { cards: 12, art: 'off' },
+] as const;
+
+test.describe('media page: 4 and 12 media cards with tiles, backdrop on and off, tickers running', () => {
+  const baselines = new Map<string, Awaited<ReturnType<typeof measure>>>();
+
+  test.beforeAll(async () => {
+    const { loadavg, cpus } = await import('node:os');
+    results['media.environment'] = { loadAverageBefore: loadavg().map((n) => Math.round(n * 100) / 100), cpus: cpus().length };
+    console.log(`[media perf] load average before: ${JSON.stringify((results['media.environment'] as { loadAverageBefore: number[] }).loadAverageBefore)} (1, 5, 15 min), ${cpus().length} cpus`);
+  });
+  test.afterAll(async () => {
+    const { loadavg } = await import('node:os');
+    (results['media.environment'] as Record<string, unknown>).loadAverageAfter = loadavg().map((n) => Math.round(n * 100) / 100);
+    console.log(`[media perf] load average after: ${JSON.stringify((results['media.environment'] as { loadAverageAfter: number[] }).loadAverageAfter)}`);
+  });
+
+  for (const { cards, art } of MEDIA_VARIANTS) {
+    const label = `${cards} cards, backdrop ${art}`;
+
+    test(`${label}: one backdrop-filter per card and per tile, the art layers match the toggle and the viewport`, async ({ browser }) => {
+      const ctx = await openPerfPage(browser, `page=media&lc=none&cards=${cards}&art=${art}`);
+      try {
+        await ctx.page.waitForTimeout(art === 'on' ? 1500 : 200);
+        const counts = await ctx.page.evaluate(() => {
+          const count = (sel: string) => document.querySelectorAll(sel).length;
+          const w = window as unknown as { __perfReady: boolean };
+          const all = Array.from(document.querySelectorAll('liquid-home-media-card, liquid-home-tile'));
+          const art = all.filter((el) => el.shadowRoot?.querySelector('.art img')).length;
+          // The cover loads only while the card or tile is on screen (plan 2.12), so the cards below the fold have no layer yet.
+          const visible = all.filter((el) => {
+            const r = el.getBoundingClientRect();
+            return r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth;
+          }).length;
+          return { cards: count('liquid-home-media-card'), tiles: count('liquid-home-tile'), artLayers: art, onScreen: visible, ready: w.__perfReady };
+        });
+        const glass = await glassCount(ctx.page);
+        results[`media.${label}.layout`] = { ...counts, glass };
+        console.log(`[media perf] ${label}: ${JSON.stringify({ ...counts, glass })}`);
+        expect(counts).toMatchObject({ cards, tiles: cards });
+        expect(glass, 'exactly one backdrop-filter per card and per tile').toBe(cards * 2);
+        expect(counts.artLayers, 'cards and tiles on screen have their decoded cover, the ones below the fold have not loaded it').toBe(art === 'on' ? counts.onScreen : 0);
+        expect(counts.onScreen).toBeGreaterThan(0);
+        expect(ctx.errors).toEqual([]);
+      } finally {
+        await ctx.close();
+      }
+    });
+
+    for (const [rateName, rate] of [
+      ['unthrottled', 1],
+      ['4x CPU throttling', 4],
+    ] as const) {
+      test(`${label}, ${rateName}${ENFORCE_RATIO ? ': p95 within the allowance of the Liquid Climate p95 (same glass count)' : ' (ratio reported)'}`, async ({ browser }) => {
+        test.setTimeout(300_000);
+        const lhCtx = await openPerfPage(browser, `page=media&lc=none&cards=${cards}&art=${art}`);
+        let lh: Awaited<ReturnType<typeof measure>>;
+        try {
+          if (art === 'on') await lhCtx.page.waitForTimeout(1500);
+          lh = await measure(lhCtx.page, lhCtx.cdp, rate, REPEATS);
+          expect(lhCtx.errors).toEqual([]);
+        } finally {
+          await lhCtx.close();
+        }
+        const key = `${cards}.${rate}`;
+        if (!baselines.has(key)) {
+          const lcCtx = await openPerfPage(browser, `page=media&product=lc&cards=${cards}`);
+          try {
+            baselines.set(key, await measure(lcCtx.page, lcCtx.cdp, rate, REPEATS));
+            expect(lcCtx.errors).toEqual([]);
+          } finally {
+            await lcCtx.close();
+          }
+        }
+        const lc = baselines.get(key)!;
+        const ratio = (a: number, b: number) => Math.round((a / b) * 100) / 100;
+        const summary = {
+          lh: { frames: lh.drag.frames, p50: lh.drag.p50, p95: lh.drag.p95, max: lh.drag.max, longTasks: lh.drag.longTasks, runs: lh.runs },
+          lc: { frames: lc.drag.frames, p50: lc.drag.p50, p95: lc.drag.p95, max: lc.drag.max, longTasks: lc.drag.longTasks, runs: lc.runs },
+          ratioP50: ratio(lh.drag.p50, lc.drag.p50),
+          ratioP95: ratio(lh.drag.p95, lc.drag.p95),
+          allowanceP95: Math.round(ratioAllowance(lc.drag.p95) * 100) / 100,
+          withinLimit: lh.drag.p95 <= ratioAllowance(lc.drag.p95),
+          absoluteBudget: rate === 1 ? BUDGET_P95.unthrottled : BUDGET_P95.throttled4x,
+          absoluteOk: lh.drag.p95 <= (rate === 1 ? BUDGET_P95.unthrottled : BUDGET_P95.throttled4x),
+        };
+        results[`media.${label}.${rate === 1 ? 'unthrottled' : 'throttled4x'}`] = summary;
+        console.log(`[media perf ${label}, ${rateName}] LH p50 ${summary.lh.p50} p95 ${summary.lh.p95} (${summary.lh.frames} frames, ${summary.lh.longTasks} long tasks) | LC p50 ${summary.lc.p50} p95 ${summary.lc.p95} (${summary.lc.frames} frames) | ratio p50 ${summary.ratioP50} p95 ${summary.ratioP95} (allowance ${summary.allowanceP95}) | LH runs p95 ${summary.lh.runs.map((r) => r.p95)} LC runs p95 ${summary.lc.runs.map((r) => r.p95)}`);
+        expect(lh.drag.frames).toBeGreaterThan(5);
+        expect(lc.drag.frames).toBeGreaterThan(5);
+        if (ENFORCE_RATIO) expect(lh.drag.p95).toBeLessThanOrEqual(ratioAllowance(lc.drag.p95));
+        if (GPU) expect(lh.drag.p95).toBeLessThanOrEqual(summary.absoluteBudget);
+      });
+    }
+  }
+});
+
+test('the media drag really moves the volume pill of the first card', async ({ browser }) => {
+  const ctx = await openPerfPage(browser, 'page=media&lc=none&cards=4&art=on');
+  try {
+    const read = () => ctx.page.evaluate(() => document.querySelector('liquid-home-media-card')!.shadowRoot!.querySelector('[role="slider"][aria-label^="Volume"]')!.getAttribute('aria-valuenow'));
+    const at = (phase: number) => ctx.page.evaluate((p) => (window as unknown as { __dragPath: (p: number) => { x: number; y: number } }).__dragPath(p), phase);
+    const before = await read();
+    const from = await at(0);
+    await ctx.page.mouse.move(from.x, from.y);
+    await ctx.page.mouse.down();
+    const to = await at(Math.PI / 2);
+    await ctx.page.mouse.move(to.x, to.y, { steps: 8 });
+    const during = await read();
+    await ctx.page.mouse.up();
+    expect(during, `value before the drag was ${before}`).not.toBe(before);
+  } finally {
+    await ctx.close();
+  }
+});

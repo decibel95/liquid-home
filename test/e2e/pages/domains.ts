@@ -1,6 +1,7 @@
 import type { HomeAssistant } from '@decibel95/liquid-core';
 import { COVER_FIXTURES } from '../../covers/fixtures';
 import { FAN_FIXTURES } from '../../fans/fixtures';
+import { MEDIA_FIXTURES } from '../../cards/media/fixtures';
 import { loadBundle } from './fake-hass';
 
 /**
@@ -9,6 +10,9 @@ import { loadBundle } from './fake-hass';
  * - badges-ha: a long-name badge of each domain in a row with Home Assistant's rule `.badges > * { min-width: fit-content }`
  * - badges-plain: the same badges in a plain wrapping row
  * - history: a cover tile (cover.hall_window) and a fan badge (fan.living_room_fan), both opening the sheet
+ * - media-history: a media tile and a media badge (media_player.lh_fixture_playing), both opening the sheet
+ * - badges-media: the long-name media badges (fixture name, and a long `name` option) in the Home Assistant badge row
+ * - tiles-media: the long-name media tile (long friendly name, title and artist) and a short one, in a column that fills the page
  * - room: a room card (list source) with a fan whose preset word is wider than its tile value
  * `?glass=dark|light`. Calls and `location-changed` events are recorded on window.__domains.
  */
@@ -33,6 +37,10 @@ const fan = FAN_FIXTURES.off();
 add(fan);
 const longFan = FAN_FIXTURES.longName();
 add(longFan);
+const mediaPlaying = MEDIA_FIXTURES.playing();
+add(mediaPlaying);
+const mediaLong = MEDIA_FIXTURES.long_title();
+add(mediaLong);
 const light = {
   entity_id: 'light.long_light',
   state: 'on',
@@ -98,6 +106,23 @@ try {
       row.className = 'badges plain';
       holder.append(row);
       mount('liquid-home-badge', { entity: fan.entity_id, tap_action: 'sheet' }, row).id = 'hist-badge';
+    } else if (piece === 'media-history') {
+      mount('liquid-home-tile', { entity: mediaPlaying.entity_id, tap_action: 'sheet' }, holder).id = 'hist-media-tile';
+      const row = document.createElement('div');
+      row.className = 'badges plain';
+      holder.append(row);
+      mount('liquid-home-badge', { entity: mediaPlaying.entity_id, tap_action: 'sheet' }, row).id = 'hist-media-badge';
+    } else if (piece === 'badges-media') {
+      const row = document.createElement('div');
+      row.className = 'badges ha';
+      holder.append(row);
+      for (const extra of [{}, { name: `${LONG} Speaker` }]) {
+        const b = mount('liquid-home-badge', { entity: mediaLong.entity_id, tap_action: 'sheet', ...extra }, row);
+        b.dataset.entity = mediaLong.entity_id;
+      }
+    } else if (piece === 'tiles-media') {
+      mount('liquid-home-tile', { entity: mediaLong.entity_id, tap_action: 'sheet' }, holder).id = 'long-media-tile';
+      mount('liquid-home-tile', { entity: mediaLong.entity_id, name: `${LONG} Speaker`, tap_action: 'sheet' }, holder).id = 'long-media-tile-named';
     } else if (piece === 'room') {
       const el = mount('liquid-home-room', { title: 'Room', domains: ['light', 'cover', 'fan'], entities: [presetFan.entity_id, cover.entity_id] }, holder);
       el.id = 'room-card';

@@ -2,8 +2,9 @@
 
 Renders the stills, animations and demo video for the README and docs into `docs/public/media/`.
 Everything is generated from the real cards on a staging page (`dev/media.html`), nothing is drawn by hand.
-Copied from Liquid Climate and pointed at the Liquid Home harness. Scenes: `light`, `tile`, `badge`, `room` (a -light and a -dark still each)
-and the animation `light-drag` (the brightness pill dragged up and back). The demo video is not made in 0.1.
+Copied from Liquid Climate and pointed at the Liquid Home harness. Scenes: `light`, `cover`, `fan`, `media`, `tile`, `badge`, `room` (a -light and a -dark still each; the tile, badge and room scenes include media players)
+and the animations `light-drag`, `cover-drag` (the pill dragged up and back) and `media-seek` (the position bar dragged forward and let go). The demo video is not made.
+The media scenes use the six synthetic covers in `dev/covers/` (never real artwork). The stills freeze the clock so the position and time labels are the same in every run; the clip runs it (`live=1`).
 
 ## Run
 
@@ -22,7 +23,7 @@ A full run empties `docs/public/media/` first, starts Vite on a free port, rende
 
 ## Prerequisites
 
-- Node 20 or newer and `npm install` (installs `playwright` and `ffmpeg-static`).
+- Node 20 or newer and `npm install` (installs `playwright` and `ffmpeg-static`; with `--ignore-scripts` the ffmpeg binary is missing, so set `FFMPEG`).
 - A Chromium: `npx playwright install chromium`. If that browser is missing, the script falls back to an installed Google Chrome or Microsoft Edge.
 - ffmpeg comes from `ffmpeg-static`. Set `FFMPEG=/path/to/ffmpeg` to use another build (it needs libx264 and libwebp_anim).
 
@@ -30,7 +31,7 @@ A full run empties `docs/public/media/` first, starts Vite on a free port, rende
 
 `dev/media.html` and `dev/media.ts`. No harness chrome, English names, fixed states from the derived light fixtures (`test/fixtures/lights.ts`), HA's default light and dark theme variables.
 
-Query parameters: `scene`, `theme` (`light`, `dark`), `lang` (`en`, `nl`, `de`, `fr`, `es`, `it`), `cursor=1` (a pointer for recordings: hidden until `__media.pointer(true)`). The page sets `window.__mediaReady` once fonts and all cards have rendered. Open it with `npm run dev` at `/dev/media.html?scene=<name>`.
+Query parameters: `scene`, `live=1` (do not freeze the clock), `theme` (`light`, `dark`), `lang` (`en`, `nl`, `de`, `fr`, `es`, `it`), `cursor=1` (a pointer for recordings: hidden until `__media.pointer(true)`). The page sets `window.__mediaReady` once fonts and all cards have rendered. Open it with `npm run dev` at `/dev/media.html?scene=<name>`.
 
 ## Files
 

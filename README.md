@@ -1,14 +1,14 @@
 # Liquid Home
 
-Liquid glass cards for Home Assistant lights, covers and fans: a light card, a cover card, a fan card, a tile, a badge and a room card.
+Liquid glass cards for Home Assistant lights, covers, fans and media players: a light card, a cover card, a fan card, a media card, a tile, a badge and a room card.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/decibel95/liquid-home/main/docs/public/media/readme/hero-dark.png">
   <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/decibel95/liquid-home/main/docs/public/media/readme/hero-light.png">
-  <img src="https://raw.githubusercontent.com/decibel95/liquid-home/main/docs/public/media/readme/hero-light.png" alt="The Liquid Home light, cover and fan cards, tiles, badges and room card" width="900">
+  <img src="https://raw.githubusercontent.com/decibel95/liquid-home/main/docs/public/media/readme/hero-light.png" alt="The Liquid Home light, cover, fan and media cards, tiles, badges and room card" width="900">
 </picture>
 
-<sub>From left to right: light card, cover card, fan card, tile and badge, and room card.</sub>
+<sub>From left to right: light card, cover card, fan card, media card, tile and badge, and room card.</sub>
 
 Requires Home Assistant 2025.1 or newer.
 
@@ -38,6 +38,25 @@ entity: light.kitchen_lights
 ## Documentation
 
 All options, theming, languages and troubleshooting: [decibel95.github.io/liquid-home](https://decibel95.github.io/liquid-home/).
+
+## On the roadmap
+
+What we are working on. Plans can change.
+
+- Speaker grouping (planned).
+- Sensor and device cards (planned).
+
+Missing something? Feature requests and ideas are welcome: [open an issue](https://github.com/decibel95/liquid-home/issues/new/choose).
+
+## Liquid family
+
+<!-- When a new Liquid repo is created, add its row to this table in every Liquid README. -->
+
+| Project | What it is |
+| --- | --- |
+| [Liquid Climate](https://github.com/decibel95/liquid-climate) | Glass cards for climate, water heater and humidifier entities (Home Assistant, HACS) |
+| **Liquid Home** (this repo) | Glass cards for lights, covers, fans and media players (Home Assistant, HACS) |
+| [liquid-core](https://github.com/decibel95/liquid-core) | Shared design library behind the Liquid cards (npm) |
 
 ## License
 

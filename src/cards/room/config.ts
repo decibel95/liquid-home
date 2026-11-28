@@ -4,8 +4,8 @@ import { migrateConfig } from '../../migrate';
 
 export type RoomSource = 'area' | 'list';
 
-/** The domains a room can hold (P2-CHO-17), in display order: lights first, then covers, then fans. */
-export const ROOM_DOMAINS = ['light', 'cover', 'fan'] as const;
+/** The domains a room can hold (P2-CHO-17, P3-CHO-22), in display order: lights, covers, fans, then media players. */
+export const ROOM_DOMAINS = ['light', 'cover', 'fan', 'media_player'] as const;
 export type RoomDomain = (typeof ROOM_DOMAINS)[number];
 /** Without `domains` a room holds lights only, exactly as a 0.2 room (no config_version bump, plan section 4). */
 export const DEFAULT_DOMAINS: RoomDomain[] = ['light'];
@@ -19,7 +19,7 @@ export interface RoomConfig {
   type: string;
   title?: string;
   source: RoomSource;
-  /** The domains this room shows (P2-CHO-17): a subset of light, cover and fan, default light only. */
+  /** The domains this room shows (P2-CHO-17, P3-CHO-22): a subset of light, cover, fan and media_player, default light only. */
   domains?: RoomDomain[];
   area?: string;
   power_entity?: string;
@@ -38,7 +38,7 @@ export const defaultConfig = {
 };
 
 /**
- * The `domains` option as a clean subset in display order (light, cover, fan): unknown values and repeats are dropped,
+ * The `domains` option as a clean subset in display order (light, cover, fan, media_player): unknown values and repeats are dropped,
  * and a missing, empty or unusable list gives the default, lights only.
  */
 export function roomDomains(raw: unknown): RoomDomain[] {

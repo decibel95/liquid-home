@@ -2,17 +2,22 @@ import { LitElement, css, html, nothing, svg, type PropertyValues, type Template
 import { property, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import {
+  ArtworkController,
   DISABLED_OPACITY,
   ICONS,
+  PALETTE,
   TINT,
   UNAVAILABLE_POWER_OPACITY,
   WriterLease,
+  artworkStyles,
   focusRing,
   glassTokens,
   hassNeedsRender,
   resolveGlass,
+  renderArtwork,
   rgba,
   tileChrome,
+  tone,
   type HassEntity,
   type HomeAssistant,
 } from '@decibel95/liquid-core';
@@ -24,10 +29,48 @@ import { normalizeConfig, sheetConfig, type NormalizedTileConfig } from './confi
 import { brightnessPatch, colourOf, groupMembers, lightView, lightWriters, powerPatch, stepLevel, type LightWriter } from '../../lights';
 import { coverColour, coverGlyph, coverTileSub, coverWriters, iconAction, isCoverActive, isCoverUnavailable, stepState as coverStepState, type CoverWriter } from '../../covers';
 import { fanColour, fanIconAction, fanSub, fanView, fanWriters, powerPatch as fanPowerPatch, stepFan, stepState as fanStepState, type FanWriter } from '../../fans';
+import { isMediaLit, mediaTileSub, mediaView, mediaWriters, type MediaState, type MediaView, type MediaWriter } from '../../media';
 import { ENTITY_ERROR, percentText, statusText, tileDomain, type TileDomain } from './text';
 
 type Glass = 'dark' | 'light';
-type AnyWriter = LightWriter | CoverWriter | FanWriter;
+type AnyWriter = LightWriter | CoverWriter | FanWriter | MediaWriter;
+
+/** Media states where power sends turn_on (H1 writer): the icon taps power there, drawn not pressed (RH1 L6). */
+const MEDIA_POWER_OFF: readonly MediaState[] = ['off', 'standby', 'unknown'];
+
+/** What the media tile's icon does (P3-CHO-14): play or pause, power, or nothing (disabled, still a button, D-15). */
+export interface MediaIconAction {
+  action: 'play' | 'pause' | 'power';
+  /** The media card string of the label: "Play, <name>", "Pause, <name>", "Switch <name>". */
+  label: 'media.aria.play' | 'media.aria.pause' | 'media.aria.power';
+  /** Power only: pressed while the player is on. */
+  pressed?: boolean;
+  disabled: boolean;
+}
+
+/**
+ * The media tile icon (P3-CHO-14, GD4): play or pause by state (the label follows the action, no aria-pressed);
+ * disabled while buffering. Without PLAY and PAUSE but with TURN_ON or TURN_OFF it is the power ("Switch <name>",
+ * aria-pressed); an off, standby or unknown player with TURN_ON taps turn on. Neither bit: disabled. Unavailable:
+ * disabled, the label of what it would do. An off, standby or unknown player with transport or power bits but no
+ * TURN_ON gets a disabled Power ("Switch <name>"), not a disabled Play.
+ */
+export function mediaIconAction(v: MediaView): MediaIconAction {
+  const transport = v.can.play || v.can.pause;
+  const power = v.can.turnOn || v.can.turnOff;
+  const pausing = v.state === 'playing' || v.state === 'buffering';
+  const playPause = (disabled: boolean): MediaIconAction =>
+    pausing ? { action: 'pause', label: 'media.aria.pause', disabled } : { action: 'play', label: 'media.aria.play', disabled };
+  const powerAct = (disabled: boolean, pressed: boolean): MediaIconAction => ({ action: 'power', label: 'media.aria.power', pressed, disabled });
+  if (!v.available) return transport || !power ? playPause(true) : powerAct(true, false);
+  if (MEDIA_POWER_OFF.includes(v.state)) {
+    if (v.can.turnOn) return powerAct(false, false);
+    return transport || power ? powerAct(true, false) : playPause(true);
+  }
+  if (transport) return playPause(v.state === 'buffering' || (pausing ? !v.can.pause : !v.can.play));
+  if (power) return powerAct(!v.can.turnOff, true);
+  return playPause(true);
+}
 
 /** One step button: its aria label and whether it is disabled (drawn at 0.3 by the core tile chrome). */
 interface StepPart {
@@ -46,19 +89,26 @@ interface TileParts {
   /** The entity is unavailable (or missing): the icon is drawn at the unavailable power opacity. */
   unavailable: boolean;
   sub: string;
-  /** The steps, or null where they are hidden (on/off-only lights, toggle covers, toggle fans). */
-  steps: { value: string | null; minus: StepPart; plus: StepPart } | null;
+  /** The steps, or null where they are hidden (on/off-only lights, toggle covers, toggle fans, media without volume). */
+  steps: {
+    value: string | null;
+    /** The readout between the steps: drawn (default), drawn in fg2 (a muted media player, P3-CHO-19), or none (media step-only, P3-CHO-17). */
+    readout?: 'plain' | 'muted' | 'none';
+    minus: StepPart;
+    plus: StepPart;
+  } | null;
 }
 
 /** The tile's aria label per domain ("Kitchen Lights light", "Hall Window cover", "Living Room Fan fan"). */
-const ARIA: Record<TileDomain, string> = { light: 'tile.ariaTile', cover: 'tile.ariaCover', fan: 'tile.ariaFan' };
+const ARIA: Record<TileDomain, string> = { light: 'tile.ariaTile', cover: 'tile.ariaCover', fan: 'tile.ariaFan', media: 'tile.ariaMedia' };
 
 /**
- * Glass tile for a light, a cover or a fan (plan 2.6; the tag stays generic). Icon button with the entity colour tint
- * at the TINT levels, name and status, step buttons (hidden on on/off-only lights, toggle covers and toggle fans). The
- * icon is the light's power, the cover's toggle, toggle tilt or Stop (P2-CHO-8, D-15) and the fan's power. A tap on
- * the name opens the card of the entity as a sheet, with History. Sizes, radius, fonts and spacing are the Liquid
- * Climate tile's.
+ * Glass tile for a light, a cover, a fan or a media player (plan 2.6; the tag stays generic). Icon button with the
+ * entity colour tint at the TINT levels, name and status, step buttons (hidden on on/off-only lights, toggle covers,
+ * toggle fans and media players without volume). The icon is the light's power, the cover's toggle, toggle tilt or Stop
+ * (P2-CHO-8, D-15), the fan's power and the media player's play or pause (P3-CHO-14). A media tile draws the core
+ * artwork-backdrop at the tile radius (P3-CHO-16). A tap on the name opens the card of the entity as a sheet, with
+ * History. Sizes, radius, fonts and spacing are the Liquid Climate tile's.
  */
 export class LiquidHomeTile extends LitElement {
   @property({ attribute: false }) hass!: HomeAssistant;
@@ -71,9 +121,14 @@ export class LiquidHomeTile extends LitElement {
    */
   private _lease: WriterLease<AnyWriter> = this._leaseFor('light');
   private _watched: string[] = [];
+  /** The artwork-backdrop of a media tile (P3-CHO-16, GD5), created when a config first names a media player. */
+  private _art?: ArtworkController;
+  /** The media view of this update, computed once in willUpdate and read by render. */
+  private _view?: MediaView;
 
   private _leaseFor(domain: TileDomain): WriterLease<AnyWriter> {
     const onChange = () => this.requestUpdate();
+    if (domain === 'media') return new WriterLease<MediaWriter>(mediaWriters, onChange) as unknown as WriterLease<AnyWriter>;
     if (domain === 'cover') return new WriterLease<CoverWriter>(coverWriters, onChange) as unknown as WriterLease<AnyWriter>;
     if (domain === 'fan') return new WriterLease<FanWriter>(fanWriters, onChange) as unknown as WriterLease<AnyWriter>;
     return new WriterLease<LightWriter>(lightWriters, onChange) as unknown as WriterLease<AnyWriter>;
@@ -95,6 +150,8 @@ export class LiquidHomeTile extends LitElement {
   private _interacting(): AnyWriter | undefined {
     const w = this._writer();
     if (w && this._config) w.hold = this._config.write_hold;
+    // A media call reads the writer's hass (H1 writer notes): always the latest.
+    if (w && this._domain === 'media' && this.hass) w.hass = this.hass;
     return w;
   }
 
@@ -113,6 +170,13 @@ export class LiquidHomeTile extends LitElement {
       this._lease.release();
       this._lease = this._leaseFor(domain);
       this._domain = domain;
+    }
+    if (domain === 'media') this._art ??= new ArtworkController(this);
+    else if (this._art) {
+      this._art.set(undefined);
+      if (this.isConnected) this._art.hostDisconnected();
+      this.removeController(this._art);
+      this._art = undefined;
     }
     this._config = next;
     reconfigureLightSheet(this, sheetConfig(next) as unknown as LightCardConfig);
@@ -162,6 +226,19 @@ export class LiquidHomeTile extends LitElement {
     return cfg ? this.hass?.states[cfg.entity] : undefined;
   }
 
+  /** The media view with the shared writer's pending values (read fresh, H1 writer notes). */
+  private _mediaView(s: HassEntity | undefined): MediaView {
+    const w = this._writer() as MediaWriter | undefined;
+    return mediaView(s, { entityId: this._config?.entity, hass: this.hass as { hassUrl?: (path?: string) => string }, pending: w?.pending });
+  }
+
+  /** GD5: the art layer follows the view's URL (playing, paused or buffering with a picture); none for other domains. */
+  protected override willUpdate(): void {
+    const cfg = this._config;
+    this._view = this._domain === 'media' && cfg && this.hass ? this._mediaView(this.hass.states[cfg.entity]) : undefined;
+    this._art?.set(this._view?.artwork ?? undefined);
+  }
+
   /**
    * The icon tap is a discrete action, sent at once: light and fan power (deduped and serialised with a step in
    * flight), and the cover's toggle, toggle tilt or Stop (which ends every hold and pending step of the cover).
@@ -169,7 +246,13 @@ export class LiquidHomeTile extends LitElement {
   private _icon() {
     const s = this._entity();
     if (!s) return;
-    if (this._domain === 'cover') {
+    if (this._domain === 'media') {
+      const a = mediaIconAction(this._mediaView(s));
+      if (a.disabled) return;
+      const w = this._interacting() as MediaWriter | undefined;
+      if (a.action === 'power') w?.power();
+      else w?.playPause();
+    } else if (this._domain === 'cover') {
       const a = iconAction(s);
       if (a.action) (this._interacting() as CoverWriter | undefined)?.act(a.action);
     } else if (this._domain === 'fan') {
@@ -190,7 +273,10 @@ export class LiquidHomeTile extends LitElement {
   private _step(dir: 1 | -1) {
     const s = this._entity();
     if (!s) return;
-    if (this._domain === 'cover') {
+    if (this._domain === 'media') {
+      // P3-CHO-17, GD2: through the shared throttle writer (VOLUME_SET) or volume_up/volume_down at once (VOLUME_STEP).
+      (this._interacting() as MediaWriter | undefined)?.step(dir);
+    } else if (this._domain === 'cover') {
       (this._interacting() as CoverWriter | undefined)?.step(dir);
     } else if (this._domain === 'fan') {
       const w = this._interacting() as FanWriter | undefined;
@@ -295,6 +381,35 @@ export class LiquidHomeTile extends LitElement {
     };
   }
 
+  /**
+   * A media player (P3-CHO-14 to P3-CHO-19): speaker glyph, tinted in the fan_only neutral while playing or buffering
+   * (P3-COL-1, P3-CHO-15), play/pause icon, volume steps with the percent readout (none for step-only), hidden without
+   * volume, while off, standby or unknown and while a volume player reports no level; unavailable "--" with disabled
+   * steps; muted readout in fg2. An on/off-only player in on is tinted too (isMediaLit).
+   */
+  private _mediaParts(hass: HomeAssistant, s: HassEntity | undefined, name: string, glass: Glass): TileParts {
+    const v = this._view ?? this._mediaView(s);
+    const icon = mediaIconAction(v);
+    const hasVolume = v.kind === 'volume' || v.kind === 'step';
+    // Hidden too while a volume player is available but reports no level (nothing to step from, no "--").
+    const shown = hasVolume && (!v.available || !MEDIA_POWER_OFF.includes(v.state)) && !(v.available && v.kind === 'volume' && v.volume == null);
+    return {
+      glyph: ICONS.speaker,
+      tint: isMediaLit(v) ? tone(PALETTE.neutral, glass) : null,
+      icon: { button: true, label: t(hass, icon.label, { name }), pressed: icon.pressed, disabled: icon.disabled },
+      unavailable: !v.available,
+      sub: s ? mediaTileSub(hass, v) : t(hass, 'tile.entityNotFound', { entity: this._config!.entity }),
+      steps: shown
+        ? {
+            value: v.available && v.kind === 'volume' && v.volume != null ? percentText(hass, v.volume) : null,
+            readout: v.kind === 'step' ? 'none' : v.available && v.muted ? 'muted' : 'plain',
+            minus: { label: t(hass, 'media.aria.stepDown', { name }), disabled: !v.can.stepDown },
+            plus: { label: t(hass, 'media.aria.stepUp', { name }), disabled: !v.can.stepUp },
+          }
+        : null,
+    };
+  }
+
   // ---- Rendering -------------------------------------------------------
 
   private _svg(path: string, size: number, sw: number) {
@@ -310,11 +425,13 @@ export class LiquidHomeTile extends LitElement {
     const glassKind = resolveGlass(cfg.look?.glass ?? 'theme', hass, this);
     if (this._domain !== 'light') this._watched = [cfg.entity];
     const p =
-      this._domain === 'cover'
-        ? this._coverParts(hass, s, name, glassKind)
-        : this._domain === 'fan'
-          ? this._fanParts(hass, s, name, glassKind)
-          : this._lightParts(hass, s, name, glassKind);
+      this._domain === 'media'
+        ? this._mediaParts(hass, s, name, glassKind)
+        : this._domain === 'cover'
+          ? this._coverParts(hass, s, name, glassKind)
+          : this._domain === 'fan'
+            ? this._fanParts(hass, s, name, glassKind)
+            : this._lightParts(hass, s, name, glassKind);
     const err = this._writer()?.error;
     const tap = cfg.tap_action;
 
@@ -332,6 +449,7 @@ export class LiquidHomeTile extends LitElement {
 
     return html`
       <article class="tile rim g-${glassKind}" style=${styleMap({ '--_blur': `${cfg.look.blur}px` })} aria-label=${t(hass, ARIA[this._domain], { name })}>
+        ${this._art && this._domain === 'media' ? renderArtwork(this._art, { motion: cfg.look.motion }) : nothing}
         ${p.icon.button
           ? html`<button
               class="press power"
@@ -352,7 +470,13 @@ export class LiquidHomeTile extends LitElement {
               <button class="press step" aria-label=${p.steps.minus.label} ?disabled=${p.steps.minus.disabled} @click=${() => this._step(-1)}>
                 ${this._svg(ICONS.minus, 16, 2.2)}
               </button>
-              <span class="target" aria-live="polite">${p.steps.value ?? html`<span aria-hidden="true">--</span>`}</span>
+              ${p.steps.readout === 'none'
+                ? nothing
+                : html`<span class="target ${p.steps.readout === 'muted' ? 'muted' : ''}" aria-live="polite"
+                    >${p.steps.readout === 'muted' && p.steps.value !== null
+                      ? html`<span class="sr">${t(hass, 'media.aria.volumeMuted', { value: p.steps.value })}</span><span aria-hidden="true">${p.steps.value}</span>`
+                      : (p.steps.value ?? html`<span aria-hidden="true">--</span>`)}</span
+                  >`}
               <button class="press step" aria-label=${p.steps.plus.label} ?disabled=${p.steps.plus.disabled} @click=${() => this._step(1)}>
                 ${this._svg(ICONS.plus, 16, 2.2)}
               </button>
@@ -365,17 +489,32 @@ export class LiquidHomeTile extends LitElement {
 
   /**
    * The plain icon of a fan without TURN_ON and TURN_OFF (P2-CHO-8): a span, so it takes the tile button's own border
-   * and background (core tileChrome `button`) and the `.power` size.
+   * and background (core tileChrome `button`) and the `.power` size. A muted media player's readout is drawn in fg2
+   * (P3-CHO-19). The core art layer styles (P3-CHO-16) only act on a tile that renders the layer.
    */
   static override styles = [
     glassTokens,
     focusRing,
     tileChrome,
+    artworkStyles,
     css`
       span.power {
         box-sizing: border-box;
         border: 1px solid var(--lc-btn-edge);
         background: var(--lc-btn);
+      }
+      .target.muted {
+        color: var(--lc-fg2);
+      }
+      /*
+       * The readout grows past the core tileChrome .target width (64px, reused here, not a new visual value) when
+       * "100%" or "100 %" is wider than it, so it never touches or overlaps a step; a narrower readout keeps the 64px
+       * box and the steps stay where they are. Naming it a core token (TILE.target) is a follow-up for the next
+       * liquid-core release (0.5.0 is already out).
+       */
+      .target {
+        width: auto;
+        min-width: 64px;
       }
     `,
   ];

@@ -327,4 +327,11 @@ describe('tile config and Lovelace API', () => {
   it('is registered under its own tag only', () => {
     expect(customElements.get('liquid-home-tile')).toBe(LiquidHomeTile);
   });
+
+describe('readout width', () => {
+  it('lets the readout grow past the core 64px box, so 100 % never touches a step', () => {
+    const css = LiquidHomeTile.styles.flat().map((s) => (s as { cssText?: string }).cssText ?? '').join('\n');
+    expect(css).toMatch(/\.target\s*\{\s*width:\s*auto;\s*min-width:\s*64px;\s*\}/);
+  });
+});
 });

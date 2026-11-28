@@ -5,6 +5,7 @@
   "ariaTile": "{name} Licht",
   "ariaCover": "{name} Rollladen",
   "ariaFan": "{name} Ventilator",
+  "ariaMedia": "{name} Mediaplayer",
   "power": "{name} schalten",
   "stepDown": "Helligkeit verringern",
   "stepUp": "Helligkeit erhöhen",

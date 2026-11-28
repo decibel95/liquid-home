@@ -8,6 +8,7 @@ import { mount as badge } from './slots/badge';
 import { mount as room } from './slots/room';
 import { mount as cover } from './slots/cover';
 import { mount as fan } from './slots/fan';
+import { mount as media } from './slots/media';
 import { mount as editors } from './editors';
 
 const log = document.getElementById('log')!;
@@ -35,6 +36,7 @@ const slots: [string, SlotMount][] = [
   ['light', light],
   ['cover', cover],
   ['fan', fan],
+  ['media', media],
   ['tile', tile],
   ['badge', badge],
   ['room', room],

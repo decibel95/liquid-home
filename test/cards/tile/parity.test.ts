@@ -125,7 +125,8 @@ const TILE_COMPUTED: [string, string[]][] = [
   ['.sub', ['font-size']],
   ['.steps', ['gap']],
   ['.step', ['width', 'height', 'border-radius']],
-  ['.target', ['width', 'font-size', 'font-weight']],
+  // The 64px is Home's min-width (width: auto, so "100%" can grow the box instead of touching a step): lcWidth maps it.
+  ['.target', ['min-width', 'font-size', 'font-weight']],
 ];
 const BADGE_COMPUTED: [string, string[]][] = [
   ['.badge', ['height', 'min-width', 'font-family', 'border-top-width']],
@@ -138,6 +139,7 @@ const BADGE_COMPUTED: [string, string[]][] = [
 /** The Liquid Climate value of a longhand, from the fixture (shorthands expanded where the fixture uses one). */
 function lcValue(rules: Rules, sel: string, prop: string): string {
   const d = rules[sel];
+  if (sel === '.target' && prop === 'min-width') return String(d.width);
   // A rule's own custom property (the badge's --_size) stands in for var(--name) without a fallback.
   const own = (v: string) => v.replace(/var\((--[\w-]+)\)/g, (m, name: string) => (name in d ? String(d[name]) : m));
   if (prop in d) return fallback(own(String(d[prop])));

@@ -30,6 +30,13 @@ const SCANS: Scan[] = [
   { scope: 'cover card states on light glass', include: '#slot-cover [data-glass="light"]', cards: { selector: '#slot-cover [data-glass="light"] liquid-home-cover-card', min: 12 } },
   { scope: 'fan card states on dark glass', include: '#slot-fan [data-glass="dark"]', cards: { selector: '#slot-fan [data-glass="dark"] liquid-home-fan-card', min: 15 } },
   { scope: 'fan card states on light glass', include: '#slot-fan [data-glass="light"]', cards: { selector: '#slot-fan [data-glass="light"] liquid-home-fan-card', min: 15 } },
+  // H9 (plan 2.11): every media card fixture state (28 per glass), and the media tiles and badges of the tile and badge slots.
+  { scope: 'media card states on dark glass', include: '#slot-media [data-glass="dark"]', cards: { selector: '#slot-media [data-glass="dark"] liquid-home-media-card', min: 28 } },
+  { scope: 'media card states on light glass', include: '#slot-media [data-glass="light"]', cards: { selector: '#slot-media [data-glass="light"] liquid-home-media-card', min: 28 } },
+  { scope: 'media tiles on dark glass', include: '#slot-tile [data-glass="dark"]', cards: { selector: '#slot-tile [data-glass="dark"] liquid-home-tile[data-entity^="media_player."]', min: 24 } },
+  { scope: 'media tiles on light glass', include: '#slot-tile [data-glass="light"]', cards: { selector: '#slot-tile [data-glass="light"] liquid-home-tile[data-entity^="media_player."]', min: 24 } },
+  { scope: 'media badges on dark glass', include: '#slot-badge [data-glass="dark"]', cards: { selector: '#slot-badge [data-glass="dark"] liquid-home-badge[data-entity^="media_player."]', min: 24 } },
+  { scope: 'media badges on light glass', include: '#slot-badge [data-glass="light"]', cards: { selector: '#slot-badge [data-glass="light"] liquid-home-badge[data-entity^="media_player."]', min: 24 } },
 ];
 
 async function settle(page: Page): Promise<void> {
@@ -72,6 +79,39 @@ for (const sc of SCANS) {
     await settle(page);
     if (sc.cards) expect(await page.locator(sc.cards.selector).count(), `cards in ${sc.scope}`).toBeGreaterThanOrEqual(sc.cards.min);
     const report = await scan(page, sc, info);
+    expect(errors).toEqual([]);
+    expect(report.filter((v) => v.impact === 'serious' || v.impact === 'critical')).toEqual([]);
+  });
+}
+
+/**
+ * H9: states a static scan does not see: a media card with its chip menu open (Source, a TV) and the media sheet (header
+ * actions Shuffle, Repeat, History, Close around the hosted card), on both glasses.
+ */
+for (const glass of ['dark', 'light'] as const) {
+  test(`axe: media card with the Source chip menu open on ${glass} glass has no serious or critical violation`, async ({ page }, info) => {
+    const errors = watchErrors(page);
+    await stubFavicon(page);
+    await page.goto(`/dev/?media=tv_sources&glass=${glass}`);
+    await page.waitForFunction(() => document.querySelectorAll('liquid-home-media-card').length > 0);
+    await page.locator(`#slot-media [data-glass="${glass}"] .chip[data-chip="source"]`).click();
+    await expect(page.locator(`#slot-media [data-glass="${glass}"] .mitem`).first()).toBeVisible();
+    await page.waitForTimeout(1200);
+    const report = await scan(page, { scope: `open chip menu, ${glass}`, include: `#slot-media [data-glass="${glass}"]` }, info);
+    expect(errors).toEqual([]);
+    expect(report.filter((v) => v.impact === 'serious' || v.impact === 'critical')).toEqual([]);
+  });
+
+  test(`axe: media sheet opened from a tile on ${glass} glass has no serious or critical violation`, async ({ page }, info) => {
+    const errors = watchErrors(page);
+    await stubFavicon(page);
+    await page.goto(`/dev/?domain=media&glass=${glass}`);
+    await page.waitForFunction(() => document.querySelectorAll('liquid-home-tile[data-entity^="media_player."]').length > 5);
+    await page.locator('#slot-tile liquid-home-tile[data-fixture="shuffle repeat"] button.body').click();
+    await expect(page.locator('liquid-home-sheet liquid-home-media-card')).toBeVisible();
+    await expect(page.locator('liquid-home-sheet button.history')).toBeVisible();
+    await page.waitForTimeout(1500);
+    const report = await scan(page, { scope: `media sheet, ${glass}`, include: 'liquid-home-sheet' }, info);
     expect(errors).toEqual([]);
     expect(report.filter((v) => v.impact === 'serious' || v.impact === 'critical')).toEqual([]);
   });

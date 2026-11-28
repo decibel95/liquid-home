@@ -7,6 +7,10 @@ import { createPageHass, loadBundle } from './fake-hass';
  *   Climate cards.
  * - ?product=lc: 1 Liquid Climate dial, 12 tiles, 1 cluster (5 rooms) and 6 badges, climate entities idle (cool,
  *   hvac_action idle, look.motion minimal so that no particle animation runs), no Liquid Home cards.
+ * - ?page=media (0.4): a media page instead of the dashboard: ?cards=4|12 media cards, each with a tile of the same player,
+ *   playing with a seek line so the 1 s tickers run (product=lh), or the same number of Liquid Climate cards, each with a
+ *   tile (product=lc), the baseline of the same glass count. ?art=off removes the cover from every player (plain glass,
+ *   the backdrop toggle). The dragged control is the volume pill of the first media card (the dial ring on the baseline).
  * window.__perfReady is true once every card has rendered. window.__dragPath(phase) gives the pointer position on the
  * main control (the light card slider, or the dial's temperature ring) for phase 0..2pi, and window.__dragTarget
  * names what is dragged.
@@ -21,6 +25,8 @@ const w = window as unknown as {
 w.__perfReady = false;
 
 const params = new URLSearchParams(location.search);
+const pageKind = params.get('page') === 'media' ? 'media' : 'dashboard';
+const mediaCount = Math.min(12, Number(params.get('cards') ?? 4));
 const product = params.get('product') === 'lc' ? 'lc' : 'lh';
 /**
  * ?lc=idle (default): the Liquid Climate entities are off, so its cards are static glass.
@@ -45,6 +51,8 @@ try {
   const hassBox = createPageHass({
     extraLights: 12,
     extraClimates: 12,
+    extraMedia: pageKind === 'media' ? 12 : 0,
+    mediaArt: params.get('art') !== 'off',
     delay: Number(params.get('delay') ?? 800),
     climateState: product === 'lc' ? (params.get('lcstate') ?? 'cool') : lc === 'heating' ? 'heat' : 'off',
   });
@@ -52,16 +60,58 @@ try {
   await Promise.all(bundles.map(loadBundle));
 
   const all: El[] = [];
-  const mount = (tag: string, config: Record<string, unknown>, parent: string): El => {
+  const mount = (tag: string, config: Record<string, unknown>, parent: string | Element): El => {
     const el = document.createElement(tag) as El;
     el.setConfig({ type: `custom:${tag}`, ...config });
     el.hass = hassBox.current();
-    document.querySelector(parent)!.append(el);
+    (typeof parent === 'string' ? document.querySelector(parent)! : parent).append(el);
     all.push(el);
     return el;
   };
 
-  if (product === 'lc') {
+  const mediaGrid = (): HTMLElement => {
+    document.querySelector<HTMLElement>('main')!.style.gridTemplateColumns = '1fr';
+    const grid = document.createElement('div');
+    grid.id = 'mediagrid';
+    grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(444px,1fr));gap:16px;align-items:start';
+    document.querySelector('#right')!.append(grid);
+    return grid;
+  };
+  const cell = (grid: HTMLElement): HTMLElement => {
+    const c = document.createElement('div');
+    c.style.cssText = 'display:flex;flex-direction:column;gap:12px;min-width:0';
+    grid.append(c);
+    return c;
+  };
+
+  if (pageKind === 'media' && product === 'lc') {
+    const grid = mediaGrid();
+    for (let i = 0; i < mediaCount; i++) {
+      const c = cell(grid);
+      mount('liquid-climate-card', { entity: hassBox.extraClimates[i], ...look }, c);
+      mount('liquid-climate-tile', { entity: hassBox.extraClimates[i], ...look }, c);
+    }
+    w.__dragTarget = 'liquid-climate-card temperature ring';
+    w.__dragPath = (phase) => {
+      const svg = document.querySelector('liquid-climate-card')!.shadowRoot!.querySelector('svg[role="slider"]')!;
+      const r = svg.getBoundingClientRect();
+      const k = r.width / 400;
+      const angle = ((135 + 270 * (0.5 - 0.45 * Math.cos(phase))) * Math.PI) / 180;
+      return { x: r.left + (200 + 130 * Math.cos(angle)) * k, y: r.top + (200 + 130 * Math.sin(angle)) * k };
+    };
+  } else if (pageKind === 'media') {
+    const grid = mediaGrid();
+    for (let i = 0; i < mediaCount; i++) {
+      const c = cell(grid);
+      mount('liquid-home-media-card', { entity: hassBox.extraMedia[i], ...look }, c);
+      mount('liquid-home-tile', { entity: hassBox.extraMedia[i], ...look }, c);
+    }
+    w.__dragTarget = 'liquid-home-media-card volume pill';
+    w.__dragPath = (phase) => {
+      const r = document.querySelector('liquid-home-media-card')!.shadowRoot!.querySelector('[role="slider"][aria-label^="Volume"]')!.getBoundingClientRect();
+      return { x: r.left + r.width / 2, y: r.top + r.height * (0.5 - 0.4 * Math.sin(phase)) };
+    };
+  } else if (product === 'lc') {
     const rooms = hassBox.extraClimates;
     mount('liquid-climate-card', { entity: hassBox.climateIds[0], ...look }, '#left');
     rooms.slice(0, 6).forEach((entity) => mount('liquid-climate-badge', { entity, ...look }, '#badges'));

@@ -5,6 +5,7 @@
   "ariaTile": "{name} lamp",
   "ariaCover": "{name} bedekking",
   "ariaFan": "{name} ventilator",
+  "ariaMedia": "{name} mediaspeler",
   "power": "{name} aan of uit",
   "stepDown": "Helderheid omlaag",
   "stepUp": "Helderheid omhoog",

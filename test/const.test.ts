@@ -35,6 +35,8 @@ describe('const.ts', () => {
       coverEditor: 'liquid-home-cover-card-editor',
       fan: 'liquid-home-fan-card',
       fanEditor: 'liquid-home-fan-card-editor',
+      media: 'liquid-home-media-card',
+      mediaEditor: 'liquid-home-media-card-editor',
       sheet: 'liquid-home-sheet',
     });
     expect(new Set(Object.values(TAGS)).size).toBe(Object.keys(TAGS).length);

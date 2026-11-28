@@ -1,6 +1,6 @@
 # Theming {#theming}
 
-All six cards use the same glass and the same theme variables as [Liquid Climate](https://decibel95.github.io/liquid-climate). One theme setting moves both products together. card-mod is not required.
+All seven cards use the same glass and the same theme variables as [Liquid Climate](https://decibel95.github.io/liquid-climate). One theme setting moves both products together. card-mod is not required.
 
 ## Look options {#theming-look}
 
@@ -31,6 +31,10 @@ The same card in both glass styles.
 <img class="dark-only" src="/media/light-dark.png" alt="The light card in dark glass" loading="lazy">
 
 <img src="/media/readme/glass-split.png" alt="The light card in dark glass on a dark background next to the same card in light glass on a light background" loading="lazy">
+
+## Artwork on the media card {#theming-artwork}
+
+The media card, and the media player tile, draw the cover blurred behind the glass. On dark glass it shows as a rich colour wash. On light glass a light scrim sits over the image, so the artwork is only a faint tint and the text stays readable on any cover. This is by design and no option changes it. The artwork blur is fixed at 30 px: `look.blur` sets the blur of the glass only. `look.motion: minimal` makes the cover change instantly instead of a crossfade.
 
 ## Blur {#theming-blur}
 

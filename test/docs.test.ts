@@ -6,12 +6,14 @@ import docsConfig from '../docs/.vitepress/config.ts?raw';
 import hacs from '../hacs.json';
 import { CARD_TYPES, DOCS_URL } from '../src/const';
 import { PICKER } from '../src/register';
+import { MEDIA_THROTTLE_MS, SEEK_ECHO_S, TRACK_RESTART_S, VOLUME_STEP_PERCENT } from '../src/media/writer';
 import { defaultConfig as light, normalizeConfig as normalizeLight, LIGHT_MODES } from '../src/cards/light/config';
 import { defaultConfig as tile, TAP_ACTIONS, normalizeConfig as normalizeTile } from '../src/cards/tile/config';
 import { defaultConfig as badge } from '../src/cards/badge/config';
 import { defaultConfig as room, normalizeConfig as normalizeRoom } from '../src/cards/room/config';
 import { defaultConfig as cover } from '../src/cards/cover/config';
 import { defaultConfig as fan } from '../src/cards/fan/config';
+import { defaultConfig as mediaCard } from '../src/cards/media/config';
 // The media scripts are untyped .mjs files.
 // @ts-expect-error no declaration file
 import { SCENES } from '../scripts/media/stills.mjs';
@@ -59,7 +61,7 @@ const split = (target: string): [string, string] => {
 describe('docs anchors', () => {
   it('finds the docs pages', () => {
     expect([...ids.keys()]).toEqual(
-      expect.arrayContaining(['/', '/getting-started', '/theming', '/languages', '/troubleshooting', '/cards/light', '/cards/cover', '/cards/fan', '/cards/tile', '/cards/badge', '/cards/room']),
+      expect.arrayContaining(['/', '/getting-started', '/theming', '/languages', '/troubleshooting', '/cards/light', '/cards/cover', '/cards/fan', '/cards/media', '/cards/tile', '/cards/badge', '/cards/room']),
     );
   });
 
@@ -124,11 +126,12 @@ function paths(obj: Record<string, unknown>, prefix = ''): string[] {
 /** Options that have no default (and so are not in defaultConfig) but exist in the config types. */
 const OPTIONAL = {
   light: ['name', 'controls.modes'],
-  tile: ['name', 'controls.modes', 'controls.presets'],
+  tile: ['name', 'controls.modes', 'controls.presets', 'controls.sources', 'controls.sound_modes'],
   badge: ['name'],
   room: ['title', 'area', 'entities', 'power_entity', 'domains'],
   cover: ['name'],
   fan: ['name'],
+  media: ['name'],
 } as const;
 
 describe.each([
@@ -138,6 +141,7 @@ describe.each([
   ['room', room],
   ['cover', cover],
   ['fan', fan],
+  ['media', mediaCard],
 ] as const)('%s options', (card, defaults) => {
   const text = source(`/cards/${card}`);
   const options = text.slice(text.indexOf('## Options'), text.indexOf('## Editor groups'));
@@ -223,14 +227,14 @@ describe('docs allowed values match the code', () => {
 });
 
 describe('docs content', () => {
-  it('every example YAML on the card pages has a known card type and a light, cover or fan entity', () => {
+  it('every example YAML on the card pages has a known card type and a light, cover, fan or media player entity', () => {
     const types = Object.values(CARD_TYPES);
     for (const card of ['light', 'tile', 'badge', 'room']) {
       const text = source(`/cards/${card}`);
       for (const m of text.matchAll(/```yaml\n([\s\S]*?)```/g)) {
         const t = /type:\s*(\S+)/.exec(m[1])?.[1];
         expect(types, `${card}: ${t}`).toContain(t);
-        for (const e of m[1].matchAll(/\b(entity|power_entity):\s*(\S+)/g)) expect(e[2], card).toMatch(e[1] === 'power_entity' ? /^light\.[a-z0-9_]+$/ : /^(light|cover|fan)\.[a-z0-9_]+$/);
+        for (const e of m[1].matchAll(/\b(entity|power_entity):\s*(\S+)/g)) expect(e[2], card).toMatch(e[1] === 'power_entity' ? /^light\.[a-z0-9_]+$/ : /^(light|cover|fan|media_player)\.[a-z0-9_]+$/);
       }
     }
   });
@@ -272,6 +276,25 @@ describe('docs content', () => {
   });
 });
 
+describe('media docs match the code constants', () => {
+  it('names the throttle, the seek echo window, the track restart rule and the step size', () => {
+    const text = source('/cards/media');
+    expect(text).toContain(`${MEDIA_THROTTLE_MS} ms`);
+    expect(text).toMatch(new RegExp(`within ${SEEK_ECHO_S} s`));
+    expect(text).toMatch(new RegExp(`under ${TRACK_RESTART_S} s`));
+    expect(text).toContain(`${VOLUME_STEP_PERCENT} %`);
+    expect(source('/cards/tile')).toContain(`${VOLUME_STEP_PERCENT} %`);
+  });
+
+  it('says where media players are covered on the other pages', () => {
+    expect(source('/cards/room')).toContain('media_player');
+    expect(source('/troubleshooting')).toMatch(/media player without an area/);
+    expect(source('/troubleshooting')).toContain('entity_picture');
+    expect(source('/theming')).toContain('faint tint');
+    expect(source('/getting-started')).toContain('The seven cards');
+  });
+});
+
 describe('docs base path', () => {
   it('DOCS_URL has no trailing slash and a one-segment path', () => {
     expect(DOCS_URL.endsWith('/')).toBe(false);
@@ -289,7 +312,7 @@ describe('docs base path', () => {
 
 describe('docs media', () => {
   it('has a light and a dark still for every scene of the media pipeline, and the animations', () => {
-    expect(SCENES).toEqual(['light', 'cover', 'fan', 'tile', 'badge', 'room']);
+    expect(SCENES).toEqual(['light', 'cover', 'fan', 'media', 'tile', 'badge', 'room']);
     for (const scene of SCENES as string[]) for (const theme of ['light', 'dark']) expect(media).toContain(`/media/${scene}-${theme}.png`);
     for (const name of Object.keys(ANIMATIONS)) {
       expect(media).toContain(`/media/${name}.webp`);
@@ -309,7 +332,7 @@ describe('docs media', () => {
   });
 
   it('every card page shows its light and dark still', () => {
-    for (const card of ['light', 'cover', 'fan', 'tile', 'badge', 'room']) {
+    for (const card of ['light', 'cover', 'fan', 'media', 'tile', 'badge', 'room']) {
       const text = source(`/cards/${card}`);
       expect(text, card).toContain(`/media/${card}-light.png`);
       expect(text, card).toContain(`/media/${card}-dark.png`);

@@ -1,5 +1,6 @@
 import type { HomeAssistant } from '@decibel95/liquid-core';
 import { createHarness } from '../../../dev/harness';
+import { MEDIA_FIXTURES } from '../../cards/media/fixtures';
 import { LIGHT_FIXTURES, type LightFixtureName, type LightState } from '../../fixtures/lights';
 
 /**
@@ -19,6 +20,10 @@ export interface PageHass {
   /** A cover (position, `cover.e2e_window`) and a fan (3 speeds, `fan.e2e_fan`) for the two-bundle page. */
   coverId: string;
   fanId: string;
+  /** A media player (`media_player.e2e_player`, playing, volume and seek) for the two-bundle page. */
+  mediaId: string;
+  /** Ids of the extra media players (`media_player.e2e_media_1` ...), in order (opts.extraMedia). */
+  extraMedia: string[];
   /** Ids of the extra climate entities (`climate.e2e_lc_1` ...), in order. */
   extraClimates: string[];
   calls: { domain: string; service: string; data: Record<string, unknown> }[];
@@ -36,7 +41,7 @@ const CLIMATE_ATTRS = {
   supported_features: 1 | 8,
 };
 
-export function createPageHass(opts: { extraLights?: number; language?: string; delay?: number; climateState?: string; extraClimates?: number } = {}): PageHass {
+export function createPageHass(opts: { extraMedia?: number; mediaArt?: boolean; extraLights?: number; language?: string; delay?: number; climateState?: string; extraClimates?: number } = {}): PageHass {
   const calls: PageHass['calls'] = [];
   const harness = createHarness({
     language: opts.language ?? 'en',
@@ -60,6 +65,23 @@ export function createPageHass(opts: { extraLights?: number; language?: string; 
   const fanId = 'fan.e2e_fan';
   harness.states[coverId] = entity(coverId, 'open', { friendly_name: 'Hall Window', supported_features: 15, current_position: 60 });
   harness.states[fanId] = entity(fanId, 'on', { friendly_name: 'Living Room Fan', supported_features: 55, percentage: 66, percentage_step: 100 / 3, oscillating: false, direction: 'forward' });
+
+  const mediaId = 'media_player.e2e_player';
+  const player = MEDIA_FIXTURES.living_room();
+  harness.states[mediaId] = { ...player, entity_id: mediaId, attributes: { ...player.attributes, friendly_name: 'Living Room Speaker' } } as unknown as LightState;
+  // Extra players for the media performance page: playing with a seek line and volume, covers rotated over the six synthetic ones.
+  const covers = ['dark', 'light', 'saturated', 'busy', 'r43', 'wide'] as const;
+  const extraMedia: string[] = [];
+  for (let i = 1; i <= (opts.extraMedia ?? 0); i++) {
+    const id = `media_player.e2e_media_${i}`;
+    const base = MEDIA_FIXTURES.living_room();
+    harness.states[id] = {
+      ...base,
+      entity_id: id,
+      attributes: { ...base.attributes, friendly_name: `Speaker ${i}`, entity_picture: opts.mediaArt === false ? undefined : `/dev/covers/cover-${covers[(i - 1) % covers.length] === 'r43' ? '43' : covers[(i - 1) % covers.length]}.png`, media_title: `Track ${i}`, volume_level: 0.2 + ((i * 7) % 60) / 100, media_position: 20 + ((i * 37) % 150), media_position_updated_at: new Date().toISOString() },
+    } as unknown as LightState;
+    extraMedia.push(id);
+  }
 
   const climateIds = ['climate.e2e_living', 'climate.e2e_bedroom'];
   climateIds.forEach((id, i) => {
@@ -106,6 +128,8 @@ export function createPageHass(opts: { extraLights?: number; language?: string; 
     climateIds,
     coverId,
     fanId,
+    mediaId,
+    extraMedia,
     extraClimates,
     calls,
   };

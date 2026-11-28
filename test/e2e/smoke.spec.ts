@@ -2,10 +2,11 @@ import { expect, test, type Page } from 'playwright/test';
 import { expectCapped, measureBadges } from './support/badges';
 import { beginDrag, callsOf, watchCalls } from './support/domains';
 import { glassOf, stubFavicon, watchErrors } from './support/helpers';
+import { artState, beginSeekDrag, mediaCalls, openMedia, routeArt, seekBar } from './support/media';
 
 /**
  * D-10 cross-browser smoke (plan 2.12): the subset that runs in Chromium, Firefox and WebKit. Everything else in
- * test/e2e runs in Chromium only. Render both cards, a drag write, a keyboard step, the sheet History navigation, a long
+ * test/e2e runs in Chromium only. Render the cover, fan and media cards, a drag write, the media seek drag, the media chip menu by keyboard and the artwork fallback, a keyboard step, the sheet History navigation, a long
  * badge at 390 px, and the room tile `overflow-x: clip` ellipsis (Safari 16 and later).
  * Firefox and WebKit: `LH_E2E_BROWSERS=firefox,webkit npx playwright test -c test/e2e/playwright.config.ts` (see the config).
  */
@@ -152,5 +153,77 @@ test.describe('smoke: 390 px', () => {
     // The tile did not grow with the word: the page does not scroll sideways.
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
     expect(errors).toEqual([]);
+  });
+});
+
+/** 0.4: the media card, on the built bundle with a controllable player (pages/media.ts). */
+test.describe('smoke: media card', () => {
+  test('renders glass with its sliders, an artwork layer over a decoded cover and no console error', async ({ page }) => {
+    await routeArt(page, 'a.png', 'dark');
+    const { errors } = await openMedia(page, { art: '/__art/a.png', echo: 'none' });
+    await expect(page.locator('#card [role="slider"][aria-label="Position, Kitchen speaker"]')).toBeVisible();
+    await expect(page.locator('#card [role="slider"][aria-label="Volume, Kitchen speaker"]')).toBeVisible();
+    await expect(page.locator('#card h2')).toHaveText('Kitchen speaker');
+    await expect.poll(async () => (await artState(page)).imgs.length).toBe(1);
+    const glass = await glassOf(page, '#card');
+    expect(glass?.count, 'one backdrop-filter, the art layer has none').toBe(1);
+    expect(glass?.backdropFilter).toMatch(/blur\(\d+(\.\d+)?px\)/);
+    expect(glass?.borderRadius).toBe('40px');
+    expect(errors).toEqual([]);
+  });
+
+  test('a seek drag sends nothing while it runs and one media_seek at release', async ({ page }) => {
+    await openMedia(page, { echo: 'none' });
+    const before = Number(await seekBar(page).getAttribute('aria-valuenow'));
+    const drag = await beginSeekDrag(page, seekBar(page));
+    await drag.by(60, 8);
+    await page.waitForTimeout(500);
+    expect(await mediaCalls(page)).toEqual([]);
+    await drag.up();
+    await expect.poll(async () => (await mediaCalls(page, 'media_seek')).length).toBe(1);
+    await page.waitForTimeout(400);
+    const calls = await mediaCalls(page);
+    expect(calls).toHaveLength(1);
+    expect((calls[0]!.data.seek_position as number) - before).toBeGreaterThan(55);
+  });
+
+  test('chip menu by keyboard: arrows send nothing, Space selects once and the menu does not reopen, Enter selects once', async ({ page }) => {
+    await openMedia(page, { echo: 'none' });
+    const chip = page.locator('#card .chip[data-chip="source"]');
+    await chip.focus();
+    await page.keyboard.press('Space');
+    await expect(chip).toHaveAttribute('aria-expanded', 'true');
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('ArrowUp');
+    expect(await mediaCalls(page), 'moving focus sends nothing').toEqual([]);
+    await page.keyboard.press('Space');
+    await expect.poll(async () => (await mediaCalls(page, 'select_source')).length).toBe(1);
+    await page.waitForTimeout(700);
+    expect(await mediaCalls(page), 'one call, no second one from the keyup').toHaveLength(1);
+    expect((await mediaCalls(page))[0]!.data.source).toBe('HDMI 2');
+    await expect(chip, 'the menu did not reopen').toHaveAttribute('aria-expanded', 'false');
+    await expect(page.locator('#card .mitem')).toHaveCount(0);
+    await page.keyboard.press('Enter');
+    await expect(chip).toHaveAttribute('aria-expanded', 'true');
+    await page.keyboard.press('End');
+    await page.keyboard.press('Enter');
+    await expect.poll(async () => (await mediaCalls(page, 'select_source')).length).toBe(2);
+    await page.waitForTimeout(500);
+    expect(await mediaCalls(page)).toHaveLength(2);
+    expect((await mediaCalls(page))[1]!.data.source).toBe('YouTube');
+    await expect(chip).toBeFocused();
+  });
+
+  test('a cover that answers 404 falls back to plain glass and the card still works', async ({ page }) => {
+    await routeArt(page, 'missing.png', 'dark', { status: 404 });
+    const { errors } = await openMedia(page, { art: '/__art/missing.png', echo: 'none' });
+    await page.waitForTimeout(1500);
+    expect(await artState(page)).toEqual({ layer: false, layerOn: false, imgs: [] });
+    const glass = await glassOf(page, '#card');
+    expect(glass?.count).toBe(1);
+    await page.locator('#card button[data-action="play"]').click();
+    await expect.poll(async () => (await mediaCalls(page, 'media_pause')).length).toBe(1);
+    expect(errors.filter((e) => !/Failed to load resource|NS_ERROR|404/.test(e))).toEqual([]);
   });
 });
